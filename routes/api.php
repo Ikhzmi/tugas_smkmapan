@@ -114,6 +114,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/materials', [LmsController::class, 'teacherMaterials']);
         Route::post('/materials', [LmsController::class, 'storeMaterial']);
         Route::patch('/materials/{material}', [LmsController::class, 'updateMaterial']);
+        Route::post('/materials/{material}/file', [LmsController::class, 'uploadMaterialFile']);
         Route::delete('/materials/{material}', [LmsController::class, 'destroyMaterial']);
         Route::post('/materials/{material}/publish', [LmsController::class, 'publishMaterial']);
         Route::get('/assignments', [LmsController::class, 'teacherAssignments']);

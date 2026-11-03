@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "SMKM 8 Medan API v1",
+    "description": "Import this collection into Postman. Set token from POST /auth/login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://smkm8medan-api.test/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "admin_email", "value": "admin@smkm8medan.test" },
+    { "key": "dev_password", "value": "password" },
+    { "key": "major_id", "value": "" },
+    { "key": "class_id", "value": "" },
+    { "key": "assignment_id", "value": "" },
+    { "key": "submission_id", "value": "" },
+    { "key": "exam_id", "value": "" },
+    { "key": "attempt_id", "value": "" },
+    { "key": "question_id", "value": "" }
+  ],
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "Health",
+      "item": [{ "name": "Ping", "request": { "method": "GET", "url": "{{base_url}}/ping" } }]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{admin_email}}\",\n  \"password\": \"{{dev_password}}\",\n  \"device_id\": \"postman-device\",\n  \"device_label\": \"Postman\"\n}" },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        { "name": "Me", "request": { "method": "GET", "url": "{{base_url}}/auth/me" } },
+        { "name": "Logout", "request": { "method": "POST", "url": "{{base_url}}/auth/logout" } },
+        { "name": "Session status", "request": { "method": "GET", "url": "{{base_url}}/auth/session/status?device_id=postman-device" } }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        { "name": "Site", "request": { "method": "GET", "url": "{{base_url}}/public/site" } },
+        { "name": "Majors", "request": { "method": "GET", "url": "{{base_url}}/public/majors?per_page=20" } },
+        { "name": "Teachers", "request": { "method": "GET", "url": "{{base_url}}/public/teachers?per_page=20" } },
+        { "name": "Facilities", "request": { "method": "GET", "url": "{{base_url}}/public/facilities?per_page=20" } },
+        { "name": "Eskul", "request": { "method": "GET", "url": "{{base_url}}/public/eskul?per_page=20" } },
+        { "name": "Gallery", "request": { "method": "GET", "url": "{{base_url}}/public/gallery?per_page=20" } },
+        { "name": "Videos", "request": { "method": "GET", "url": "{{base_url}}/public/videos?category=showreel&per_page=20" } },
+        {
+          "name": "Suggestion",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nama\": \"Pengunjung\",\n  \"pesan\": \"Saran untuk sekolah\"\n}" },
+            "url": "{{base_url}}/public/suggestions"
+          }
+        },
+        { "name": "Visit", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"path\": \"/\",\n  \"session_id\": \"postman-session\"\n}" }, "url": "{{base_url}}/public/visits" } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "Accounts", "request": { "method": "GET", "url": "{{base_url}}/admin/accounts?per_page=20" } },
+        { "name": "Majors", "request": { "method": "GET", "url": "{{base_url}}/admin/majors?per_page=20" } },
+        { "name": "Classes", "request": { "method": "GET", "url": "{{base_url}}/admin/classes?per_page=20" } },
+        { "name": "Class students", "request": { "method": "GET", "url": "{{base_url}}/admin/classes/{{class_id}}/students" } },
+        { "name": "Subjects", "request": { "method": "GET", "url": "{{base_url}}/admin/subjects?per_page=20" } },
+        { "name": "Schedules", "request": { "method": "GET", "url": "{{base_url}}/admin/schedules?per_page=20" } },
+        { "name": "Analytics", "request": { "method": "GET", "url": "{{base_url}}/admin/analytics?range=7" } },
+        { "name": "Attendance summary", "request": { "method": "GET", "url": "{{base_url}}/admin/attendance/summary?date_from=2026-01-01&date_to=2026-12-31" } },
+        { "name": "PPDB", "request": { "method": "GET", "url": "{{base_url}}/admin/ppdb?per_page=20" } },
+        { "name": "Suggestions", "request": { "method": "GET", "url": "{{base_url}}/admin/suggestions?per_page=20" } },
+        { "name": "Reset attempt", "request": { "method": "POST", "url": "{{base_url}}/admin/attempts/{{attempt_id}}/reset" } },
+        { "name": "Terminate attempt", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"alasan\": \"Pengawasan admin\"\n}" }, "url": "{{base_url}}/admin/attempts/{{attempt_id}}/terminate" } }
+      ]
+    },
+    {
+      "name": "Guru",
+      "item": [
+        { "name": "Dashboard", "request": { "method": "GET", "url": "{{base_url}}/guru/dashboard" } },
+        { "name": "Schedules", "request": { "method": "GET", "url": "{{base_url}}/guru/schedules" } },
+        { "name": "Materials", "request": { "method": "GET", "url": "{{base_url}}/guru/materials?per_page=20" } },
+        { "name": "Assignments", "request": { "method": "GET", "url": "{{base_url}}/guru/assignments?per_page=20" } },
+        { "name": "Assignment submissions", "request": { "method": "GET", "url": "{{base_url}}/guru/assignments/{{assignment_id}}/submissions" } },
+        { "name": "Submission download URL", "request": { "method": "GET", "url": "{{base_url}}/guru/submissions/{{submission_id}}/download" } },
+        { "name": "Attendance", "request": { "method": "GET", "url": "{{base_url}}/guru/attendance?per_page=50" } },
+        { "name": "Exams", "request": { "method": "GET", "url": "{{base_url}}/guru/exams?per_page=20" } },
+        { "name": "Exam attempts", "request": { "method": "GET", "url": "{{base_url}}/guru/exams/{{exam_id}}/attempts" } },
+        { "name": "Exam recap", "request": { "method": "GET", "url": "{{base_url}}/guru/exams/{{exam_id}}/recap" } },
+        { "name": "Exam events", "request": { "method": "GET", "url": "{{base_url}}/guru/exams/events?since=2026-01-01T00:00:00Z" } },
+        { "name": "Reset attempt", "request": { "method": "POST", "url": "{{base_url}}/guru/attempts/{{attempt_id}}/reset" } }
+      ]
+    },
+    {
+      "name": "Siswa",
+      "item": [
+        { "name": "Dashboard", "request": { "method": "GET", "url": "{{base_url}}/siswa/dashboard" } },
+        { "name": "Schedules", "request": { "method": "GET", "url": "{{base_url}}/siswa/schedules" } },
+        { "name": "Materials", "request": { "method": "GET", "url": "{{base_url}}/siswa/materials?per_page=20" } },
+        { "name": "Material detail", "request": { "method": "GET", "url": "{{base_url}}/siswa/materials/{{material_id}}" } },
+        { "name": "Assignments", "request": { "method": "GET", "url": "{{base_url}}/siswa/assignments?per_page=20" } },
+        { "name": "Assignment detail", "request": { "method": "GET", "url": "{{base_url}}/siswa/assignments/{{assignment_id}}" } },
+        { "name": "Submissions", "request": { "method": "GET", "url": "{{base_url}}/siswa/submissions?per_page=20" } },
+        { "name": "Grades", "request": { "method": "GET", "url": "{{base_url}}/siswa/grades" } },
+        { "name": "Attendance", "request": { "method": "GET", "url": "{{base_url}}/siswa/attendance?per_page=50" } },
+        { "name": "Available exams", "request": { "method": "GET", "url": "{{base_url}}/siswa/exams?per_page=20" } },
+        { "name": "Start attempt", "request": { "method": "POST", "url": "{{base_url}}/siswa/exams/{{exam_id}}/attempts" } },
+        { "name": "Safe attempt questions", "request": { "method": "GET", "url": "{{base_url}}/siswa/attempts/{{attempt_id}}" } },
+        { "name": "Save answer", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"jawaban\": \"A\"\n}" }, "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/answers/{{question_id}}" } },
+        { "name": "Warning", "request": { "method": "POST", "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/warnings" } },
+        { "name": "Submit attempt", "request": { "method": "POST", "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/submit" } }
+      ]
+    }
+  ]
+}

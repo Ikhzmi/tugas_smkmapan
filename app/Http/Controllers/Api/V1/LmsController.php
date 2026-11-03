@@ -70,6 +70,21 @@ class LmsController extends Controller
         return ApiResponse::success($material->fresh()->load(['schoolClass', 'subject']), 'Materi berhasil diperbarui.');
     }
 
+    public function uploadMaterialFile(Request $request, Material $material): JsonResponse
+    {
+        $teacher = $request->user()->teacher;
+
+        if (! $teacher || $material->teacher_id !== $teacher->getKey()) {
+            abort(404);
+        }
+
+        $request->validate(['file' => ['required', 'file', 'mimes:pdf', 'max:25600']]);
+        $path = $request->file('file')->store('materi/'.$teacher->getKey(), 'public');
+        $material->update(['file_url' => Storage::disk('public')->url($path), 'tipe' => 'file']);
+
+        return ApiResponse::success($material->fresh(), 'Berkas materi berhasil diunggah.');
+    }
+
     public function destroyMaterial(Request $request, Material $material): Response
     {
         $teacher = $request->user()->teacher;

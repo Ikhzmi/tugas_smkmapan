@@ -16,6 +16,7 @@ uses(RefreshDatabase::class);
 
 test('teacher publishes LMS content and student submits one assignment', function () {
     Storage::fake('local');
+    Storage::fake('public');
     $teacherUser = User::factory()->create(['role' => 'guru']);
     $teacher = Teacher::query()->create(['user_id' => $teacherUser->getKey(), 'nama' => 'Guru Test']);
     $class = SchoolClass::query()->create(['nama' => 'X Test', 'tingkat' => 10, 'tahun_ajaran' => '2026/2027']);
@@ -24,14 +25,14 @@ test('teacher publishes LMS content and student submits one assignment', functio
     $student = Student::query()->create(['user_id' => $studentUser->getKey(), 'nisn' => '9000000001', 'nama' => 'Siswa Test', 'class_id' => $class->getKey()]);
 
     Sanctum::actingAs($teacherUser);
-    $this->postJson('/api/v1/guru/materials', [
+    $materialId = $this->postJson('/api/v1/guru/materials', [
         'judul' => 'Materi Test',
         'tipe' => 'teks',
         'deskripsi' => 'Isi materi',
         'class_id' => $class->getKey(),
         'subject_id' => $subject->getKey(),
         'is_published' => true,
-    ])->assertCreated();
+    ])->assertCreated()->json('data.id');
 
     $assignment = Assignment::query()->create([
         'teacher_id' => $teacher->getKey(),
@@ -52,6 +53,11 @@ test('teacher publishes LMS content and student submits one assignment', functio
         'file_url' => 'https://example.test/second.pdf',
     ])->assertStatus(409)->assertJsonPath('code', 'ALREADY_SUBMITTED');
     $this->getJson('/api/v1/siswa/grades')->assertOk();
+
+    Sanctum::actingAs($teacherUser);
+    $this->post('/api/v1/guru/materials/'.$materialId.'/file', [
+        'file' => UploadedFile::fake()->create('materi.pdf', 10, 'application/pdf'),
+    ])->assertOk();
 });
 
 test('teacher submission download returns a temporary signed URL', function () {

@@ -69,6 +69,23 @@ php artisan test --compact
 vendor/bin/pint --dirty --format agent
 ```
 
+### Cleanup file orphan
+
+Pemeriksaan storage selalu dry-run secara default:
+
+```powershell
+php artisan storage:prune-orphans --disk=public
+php artisan storage:prune-orphans --disk=local
+```
+
+Periksa daftar kandidat sebelum menghapus. Penghapusan eksplisit memakai
+`--delete`; command hanya menerima disk `public` atau `local` dan tidak pernah
+menghapus file yang masih direferensikan database:
+
+```powershell
+php artisan storage:prune-orphans --disk=public --delete
+```
+
 Migrasi dan seeder juga diuji dengan SQLite temporary. Query pencarian API
 sebaiknya memakai `ILIKE` di PostgreSQL dan fallback `LOWER(...) LIKE` pada
 SQLite; jangan menggunakan asumsi MySQL.
@@ -86,7 +103,9 @@ ditulis ke log.
 
 ## Endpoint
 
-Kontrak lengkap dan contoh request ada di [`docs/API.md`](docs/API.md).
+Kontrak lengkap dan contoh request ada di [`docs/API.md`](docs/API.md). Koleksi
+siap impor untuk Postman tersedia di
+[`docs/postman_collection.json`](docs/postman_collection.json).
 Dokumen analisis Web ada di `docs/analysis/01-feature-inventory.md` sampai
 `09-frontend-migration-map.md`. Panduan mobile ada di
 [`docs/MOBILE_HANDOFF.md`](docs/MOBILE_HANDOFF.md), dan spesifikasi awal OpenAPI

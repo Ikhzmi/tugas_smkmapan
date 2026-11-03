@@ -1,6 +1,6 @@
 # PROGRESS — SMKM 8 Medan API
 
-Terakhir diperbarui: 2026-11-03
+Terakhir diperbarui: 2026-11-04
 
 ## Ringkasan
 
@@ -12,15 +12,15 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 
 | Fase | Status | Catatan |
 | --- | --- | --- |
-| 0 — Audit & persiapan | done* | Persiapan lokal selesai; verifikasi DB menunggu kredensial user |
+| 0 — Audit & persiapan | done | Persiapan lokal dan koneksi project baru selesai |
 | 1 — Analisis Web (9 dokumen) | done | Dokumen 01–09 selesai; Web tetap read-only |
 | 2 — Fondasi kode | done | Schema UUID/domain, response contract, role middleware, rate limit, RLS command, SQLite migration, remote schema reset + RLS selesai |
-| 3 — Auth & akun | doing | Login Sanctum, logout, me, profile/password, sesi tunggal, akun admin dasar, test SQLite + smoke Herd dibuat; profil guru/siswa terintegrasi menyusul |
+| 3 — Auth & akun | done | Login/logout/me/profile/password, sesi tunggal, akun admin, akun guru/siswa, role guard, test SQLite + smoke Herd |
 | 4 — Akademik | doing | CRUD admin kelas/mapel/jadwal, guru/siswa, ownership dan conflict check tersedia |
-| 5 — LMS | doing | Materi, tugas, submission privat, penilaian tersedia; dashboard agregat/upload CMS lanjutan menyusul |
+| 5 — LMS | doing | Materi, tugas, submission privat, penilaian, dashboard dasar, upload materi tersedia; signed URL/cleanup lanjutan menyusul |
 | 6 — Presensi | doing | Presensi guru/siswa + duplicate/date/ownership guard tersedia; rekap admin menyusul |
-| 7 — Ujian online | doing | CBT server-side critical flow tersedia; recap/admin reset/polling event lanjutan menyusul |
-| 8 — CMS publik & PPDB | doing | Public content/forms + admin settings/PPDB/suggestions/facilities tersedia; eskul/gallery/video CRUD/upload menyusul |
+| 7 — Ujian online | doing | CBT server-side critical flow, kode, attempt, autosave, score, warning, reset, dan polling event tersedia; hardening recap menyusul |
+| 8 — CMS publik & PPDB | doing | Public content/forms + admin settings/PPDB/suggestions/facilities/eskul/gallery/video CRUD + image upload tersedia; validasi file lanjutan menyusul |
 | 9 — Analitik & penutup | doing | Analytics dasar admin, README/API/Mobile/OpenAPI draft tersedia; hardening dan endpoint audit menyusul |
 
 ## Fase 0 — Audit & Persiapan
@@ -55,9 +55,9 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 
 ### Langkah berikutnya
 
-1. User mengisi `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD` di `.env` (Supabase → Connect → Session pooler).
-2. Verifikasi `php artisan db:show` / `migrate:status`.
-3. Lanjutkan Fase 2: migrasi UUID/PostgreSQL-portable, response contract, role middleware, RLS command, dan test SQLite.
+1. Tambahkan CRUD admin jurusan, rekap presensi/ujian dan statistik dashboard yang masih dibutuhkan Web.
+2. Tambahkan hardening policy per resource, signed download URL, cleanup file orphan, dan feature test lintas kelas/user.
+3. Finalisasi API/OpenAPI/Postman dan lakukan audit endpoint terhadap `09-frontend-migration-map.md` sebelum migrasi Web.
 
 ### Catatan sesi lanjutan 2026-11-03
 

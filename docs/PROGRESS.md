@@ -16,10 +16,10 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 | 1 — Analisis Web (9 dokumen) | done | Dokumen 01–09 selesai; Web tetap read-only |
 | 2 — Fondasi kode | done | Schema UUID/domain, response contract, role middleware, rate limit, RLS command, SQLite migration, remote schema reset + RLS selesai |
 | 3 — Auth & akun | done | Login/logout/me/profile/password, sesi tunggal, akun admin, akun guru/siswa, role guard, test SQLite + smoke Herd |
-| 4 — Akademik | doing | CRUD admin kelas/mapel/jadwal, guru/siswa, ownership dan conflict check tersedia |
+| 4 — Akademik | done | CRUD admin jurusan/kelas/mapel/jadwal, guru/siswa, ownership dan conflict check tersedia |
 | 5 — LMS | doing | Materi, tugas, submission privat, penilaian, dashboard dasar, upload materi tersedia; signed URL/cleanup lanjutan menyusul |
-| 6 — Presensi | doing | Presensi guru/siswa + duplicate/date/ownership guard tersedia; rekap admin menyusul |
-| 7 — Ujian online | doing | CBT server-side critical flow, kode, attempt, autosave, score, warning, reset, dan polling event tersedia; hardening recap menyusul |
+| 6 — Presensi | done | Presensi guru/siswa, update owner/admin, duplicate/date/ownership guard, dan rekap admin tersedia |
+| 7 — Ujian online | done* | CBT server-side critical flow, kode, attempt, autosave, score, warning, reset, recap, dan polling event tersedia; audit final masih berjalan |
 | 8 — CMS publik & PPDB | doing | Public content/forms + admin settings/PPDB/suggestions/facilities/eskul/gallery/video CRUD + image upload tersedia; validasi file lanjutan menyusul |
 | 9 — Analitik & penutup | doing | Analytics dasar admin, README/API/Mobile/OpenAPI draft tersedia; hardening dan endpoint audit menyusul |
 
@@ -55,9 +55,9 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 
 ### Langkah berikutnya
 
-1. Tambahkan CRUD admin jurusan, rekap presensi/ujian dan statistik dashboard yang masih dibutuhkan Web.
-2. Tambahkan hardening policy per resource, signed download URL, cleanup file orphan, dan feature test lintas kelas/user.
-3. Finalisasi API/OpenAPI/Postman dan lakukan audit endpoint terhadap `09-frontend-migration-map.md` sebelum migrasi Web.
+1. Tambahkan cleanup file orphan dan validasi upload gambar/material yang lebih ketat.
+2. Audit seluruh endpoint terhadap `09-frontend-migration-map.md`, lalu lengkapi OpenAPI/Postman.
+3. Tambahkan feature test rate-limit dan jalankan smoke test endpoint utama melalui Herd.
 
 ### Catatan sesi lanjutan 2026-11-03
 

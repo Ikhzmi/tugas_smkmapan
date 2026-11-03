@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\AcademicController;
 use App\Http\Controllers\Api\V1\Admin\AccountController;
 use App\Http\Controllers\Api\V1\Admin\ContentController;
+use App\Http\Controllers\Api\V1\Admin\MajorController;
 use App\Http\Controllers\Api\V1\Admin\StudentController;
 use App\Http\Controllers\Api\V1\Admin\TeacherController;
 use App\Http\Controllers\Api\V1\AttendanceController;
@@ -62,6 +63,10 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/students', [StudentController::class, 'store']);
         Route::patch('/students/{student}', [StudentController::class, 'update']);
         Route::delete('/students/{student}', [StudentController::class, 'destroy']);
+        Route::get('/majors', [MajorController::class, 'index']);
+        Route::post('/majors', [MajorController::class, 'store']);
+        Route::patch('/majors/{major}', [MajorController::class, 'update']);
+        Route::delete('/majors/{major}', [MajorController::class, 'destroy']);
         Route::get('/classes', [AcademicController::class, 'classes']);
         Route::post('/classes', [AcademicController::class, 'storeClass']);
         Route::patch('/classes/{schoolClass}', [AcademicController::class, 'updateClass']);
@@ -99,6 +104,7 @@ Route::prefix('v1')->group(function (): void {
         Route::patch('/videos/{video}', [ContentController::class, 'updateVideo']);
         Route::delete('/videos/{video}', [ContentController::class, 'destroyVideo']);
         Route::post('/uploads/{context}', [ContentController::class, 'upload']);
+        Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
     });
 
     Route::middleware(['auth:sanctum', 'role:guru'])->prefix('guru')->group(function (): void {
@@ -115,6 +121,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/assignments/{assignment}/submissions', [LmsController::class, 'assignmentSubmissions']);
         Route::patch('/submissions/{submission}/grade', [LmsController::class, 'gradeSubmission']);
         Route::get('/submissions/{submission}/download', [LmsController::class, 'downloadSubmission']);
+        Route::get('/submissions/{submission}/file', [LmsController::class, 'downloadSubmissionFile'])
+            ->middleware('signed')->name('guru.submissions.file');
         Route::get('/dashboard', [DashboardController::class, 'teacher']);
         Route::get('/schedules', [DashboardController::class, 'teacherSchedules']);
         Route::get('/exams', [ExamController::class, 'teacherExams']);
@@ -126,6 +134,7 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('/questions/{question}', [ExamController::class, 'destroyQuestion']);
         Route::post('/exams/{exam}/code', [ExamController::class, 'generateCode'])->middleware('throttle:exam-code');
         Route::get('/exams/{exam}/attempts', [ExamController::class, 'teacherAttempts']);
+        Route::get('/exams/{exam}/recap', [ExamController::class, 'recap']);
         Route::post('/attempts/{attempt}/reset', [ExamController::class, 'resetAttempt']);
         Route::get('/exams/events', [ExamController::class, 'events']);
     });
@@ -153,5 +162,6 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware(['auth:sanctum', 'role:guru'])->prefix('guru')->group(function (): void {
         Route::get('/attendance', [AttendanceController::class, 'teacherIndex']);
         Route::post('/attendance', [AttendanceController::class, 'teacherStore']);
+        Route::patch('/attendance/{attendance}', [AttendanceController::class, 'update']);
     });
 });

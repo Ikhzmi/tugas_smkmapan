@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
 class LmsController extends Controller
@@ -212,6 +213,26 @@ class LmsController extends Controller
 
         if (! $submission->file_path || ! Storage::disk('local')->exists($submission->file_path)) {
             return ApiResponse::error('Berkas tidak ditemukan.', [], 404, 'FILE_NOT_FOUND');
+        }
+
+        $expiresAt = now()->addHour();
+
+        return ApiResponse::success([
+            'url' => URL::temporarySignedRoute('guru.submissions.file', $expiresAt, ['submission' => $submission->getKey()]),
+            'expires_at' => $expiresAt->toISOString(),
+        ]);
+    }
+
+    public function downloadSubmissionFile(Request $request, Submission $submission): Response
+    {
+        $teacher = $request->user()->teacher;
+
+        if (! $teacher || $submission->assignment?->teacher_id !== $teacher->getKey()) {
+            abort(404);
+        }
+
+        if (! $submission->file_path || ! Storage::disk('local')->exists($submission->file_path)) {
+            abort(404);
         }
 
         return response()->download(Storage::disk('local')->path($submission->file_path), $submission->file_name ?: basename($submission->file_path));

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['student_id', 'class_id', 'schedule_id', 'tanggal', 'jam_masuk', 'status', 'metode', 'catatan'])]
 class Attendance extends DomainModel
 {
+    protected $table = 'attendance';
+
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

@@ -110,6 +110,28 @@ class ExamController extends Controller
         return ApiResponse::paginated($exam->attempts()->with('student')->latest('dimulai_at')->paginate(min(max($request->integer('per_page', 50), 1), 100)));
     }
 
+    public function recap(Request $request, Exam $exam): JsonResponse
+    {
+        $this->ensureTeacherOwns($request, $exam);
+        $attempts = $exam->attempts()->with('student')->get();
+        $completed = $attempts->where('status', 'selesai')->filter(fn ($attempt): bool => $attempt->nilai_akhir !== null);
+
+        return ApiResponse::success([
+            'exam_id' => $exam->getKey(),
+            'total_attempts' => $attempts->count(),
+            'completed_attempts' => $completed->count(),
+            'average_score' => $completed->isEmpty() ? null : round((float) $completed->avg('nilai_akhir'), 2),
+            'by_status' => $attempts->groupBy('status')->map->count(),
+            'students' => $completed->map(fn ($attempt): array => [
+                'attempt_id' => $attempt->getKey(),
+                'student_id' => $attempt->student_id,
+                'student_name' => $attempt->student?->nama,
+                'score' => $attempt->nilai_akhir,
+                'submitted_at' => $attempt->dikumpulkan_at?->toISOString(),
+            ])->values(),
+        ]);
+    }
+
     public function resetAttempt(Request $request, Attempt $attempt): JsonResponse
     {
         $this->ensureTeacherOwns($request, $attempt->exam);

@@ -46,9 +46,12 @@ Form publik yang rate-limited: `POST /public/ppdb`,
 - Accounts: `GET/POST /admin/accounts`, `PATCH /admin/accounts/{id}/role`,
   `POST /admin/accounts/{id}/reset-password`, `DELETE /admin/accounts/{id}`.
 - People: CRUD `/admin/teachers`, CRUD `/admin/students`.
-- Academic: CRUD `/admin/classes`, `/admin/subjects`, `/admin/schedules`.
-- CMS/settings, PPDB, suggestions, analytics akan memakai resource admin yang
-  sama dengan policy `role:admin`.
+- Academic: CRUD `/admin/majors`, `/admin/classes`, `/admin/subjects`,
+  `/admin/schedules`.
+- CMS: CRUD settings, `/admin/facilities`, `/admin/eskul`, `/admin/gallery`,
+  `/admin/videos`, `POST /admin/uploads/{context}`.
+- Operations: `/admin/attendance/summary`, `/admin/analytics`, PPDB dan
+  suggestions.
 
 ## Guru
 
@@ -59,6 +62,8 @@ Form publik yang rate-limited: `POST /public/ppdb`,
   `GET /guru/exams/{id}/attempts`, reset attempt, polling
   `GET /guru/exams/events?since=<ISO8601>`.
 - Presensi: `GET/POST /guru/attendance`.
+- Rekap: `GET /guru/exams/{id}/recap`; reset attempt melalui
+  `POST /guru/attempts/{id}/reset`.
 
 ## Siswa
 
@@ -88,3 +93,9 @@ POST /siswa/attempts/{attempt}/submit
 
 Nilai dihitung server dari kunci jawaban database. Attempt siswa lain selalu
 ditolak, dan attempt berjalan dibatasi satu per siswa+ujian.
+
+## File privat
+
+`GET /guru/submissions/{id}/download` hanya mengembalikan URL bertanda tangan
+sementara selama satu jam. URL tersebut dipakai untuk `GET
+/guru/submissions/{id}/file`; otorisasi guru pemilik assignment tetap diperiksa.

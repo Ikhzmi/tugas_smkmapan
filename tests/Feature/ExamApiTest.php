@@ -41,3 +41,26 @@ test('student can complete an exam without receiving the answer key', function (
     $this->putJson('/api/v1/siswa/attempts/'.$attemptId.'/answers/'.$questionId, ['jawaban' => 'A'])->assertOk();
     $this->postJson('/api/v1/siswa/attempts/'.$attemptId.'/submit')->assertOk()->assertJsonPath('data.nilai_akhir', '100.00');
 });
+
+test('teacher can read an exam recap and reset a student attempt', function () {
+    $teacherUser = User::factory()->create(['role' => 'guru']);
+    $teacher = Teacher::query()->create(['user_id' => $teacherUser->getKey(), 'nama' => 'Guru Rekap Ujian']);
+    $studentUser = User::factory()->create(['role' => 'siswa']);
+    Student::query()->create(['user_id' => $studentUser->getKey(), 'nisn' => '8000000002', 'nama' => 'Siswa Rekap']);
+    $exam = Exam::query()->create([
+        'teacher_id' => $teacher->getKey(), 'judul' => 'Ujian Rekap', 'durasi_menit' => 60,
+        'is_active' => true, 'acak_soal' => false,
+    ]);
+    Question::query()->create([
+        'exam_id' => $exam->getKey(), 'tipe' => 'pg', 'pertanyaan' => 'Soal rekap',
+        'opsi' => ['A' => 'Benar'], 'kunci_jawaban' => 'A', 'bobot' => 1,
+    ]);
+
+    Sanctum::actingAs($studentUser);
+    $attemptId = $this->postJson('/api/v1/siswa/exams/'.$exam->getKey().'/attempts')->json('data.id');
+
+    Sanctum::actingAs($teacherUser);
+    $this->getJson('/api/v1/guru/exams/'.$exam->getKey().'/recap')->assertOk()->assertJsonPath('data.total_attempts', 1);
+    $this->postJson('/api/v1/guru/attempts/'.$attemptId.'/reset')->assertOk();
+    $this->getJson('/api/v1/guru/exams/'.$exam->getKey().'/recap')->assertOk()->assertJsonPath('data.total_attempts', 0);
+});

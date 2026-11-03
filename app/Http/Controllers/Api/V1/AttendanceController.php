@@ -86,6 +86,59 @@ class AttendanceController extends Controller
         return ApiResponse::created($attendance, 'Presensi berhasil disimpan.');
     }
 
+    public function update(Request $request, Attendance $attendance): JsonResponse
+    {
+        $user = $request->user();
+        $isAdmin = $user->role === 'admin';
+        $isOwner = $user->role === 'guru' && $user->teacher && $attendance->schedule?->teacher_id === $user->teacher->getKey();
+
+        if (! $isAdmin && ! $isOwner) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'jam_masuk' => ['sometimes', 'nullable', 'date_format:H:i'],
+            'status' => ['sometimes', 'in:hadir,terlambat,izin,sakit,alpa'],
+            'catatan' => ['sometimes', 'nullable', 'string', 'max:1000'],
+        ]);
+        $attendance->update($data);
+
+        return ApiResponse::success($attendance->fresh(), 'Presensi berhasil diperbarui.');
+    }
+
+    public function summary(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'class_id' => ['nullable', 'uuid', 'exists:classes,id'],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+        ]);
+        $query = Attendance::query()->with('schoolClass');
+
+        if (! empty($data['class_id'])) {
+            $query->where('class_id', $data['class_id']);
+        }
+        if (! empty($data['date_from'])) {
+            $query->whereDate('tanggal', '>=', $data['date_from']);
+        }
+        if (! empty($data['date_to'])) {
+            $query->whereDate('tanggal', '<=', $data['date_to']);
+        }
+
+        $records = $query->get();
+
+        return ApiResponse::success([
+            'total' => $records->count(),
+            'by_status' => $records->groupBy('status')->map->count(),
+            'by_class' => $records->groupBy(fn (Attendance $attendance): string => (string) $attendance->class_id)->map(fn ($rows): array => [
+                'class_id' => $rows->first()->class_id,
+                'class_name' => $rows->first()->schoolClass?->nama,
+                'total' => $rows->count(),
+                'by_status' => $rows->groupBy('status')->map->count(),
+            ])->values(),
+        ]);
+    }
+
     /** @return array<string, list<string>> */
     private function rules(bool $studentRequired = false): array
     {

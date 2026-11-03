@@ -16,12 +16,12 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 | 1 — Analisis Web (9 dokumen) | done | Dokumen 01–09 selesai; Web tetap read-only |
 | 2 — Fondasi kode | done | Schema UUID/domain, response contract, role middleware, rate limit, RLS command, SQLite migration, remote schema reset + RLS selesai |
 | 3 — Auth & akun | doing | Login Sanctum, logout, me, profile/password, sesi tunggal, akun admin dasar, test SQLite + smoke Herd dibuat; profil guru/siswa terintegrasi menyusul |
-| 4 — Akademik | todo | |
-| 5 — LMS | todo | |
-| 6 — Presensi | todo | |
-| 7 — Ujian online | todo | |
-| 8 — CMS publik & PPDB | todo | |
-| 9 — Analitik & penutup | todo | |
+| 4 — Akademik | doing | CRUD admin kelas/mapel/jadwal, guru/siswa, ownership dan conflict check tersedia |
+| 5 — LMS | doing | Materi, tugas, submission privat, penilaian tersedia; dashboard agregat/upload CMS lanjutan menyusul |
+| 6 — Presensi | doing | Presensi guru/siswa + duplicate/date/ownership guard tersedia; rekap admin menyusul |
+| 7 — Ujian online | doing | CBT server-side critical flow tersedia; recap/admin reset/polling event lanjutan menyusul |
+| 8 — CMS publik & PPDB | doing | Public content/forms + admin settings/PPDB/suggestions/facilities tersedia; eskul/gallery/video CRUD/upload menyusul |
+| 9 — Analitik & penutup | doing | Analytics dasar admin, README/API/Mobile/OpenAPI draft tersedia; hardening dan endpoint audit menyusul |
 
 ## Fase 0 — Audit & Persiapan
 

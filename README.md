@@ -1,58 +1,106 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SMKM 8 Medan API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API Laravel 13 untuk menggantikan akses Supabase Web SMKM 8 Medan.
+Frontend React dan Flutter nantinya hanya memanggil API ini.
 
-## About Laravel
+## Arsitektur
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel 13 + PHP 8.4, Sanctum bearer token.
+- PostgreSQL pada **Supabase project baru**, melalui Session pooler port 5432.
+- Laravel adalah satu-satunya akses database. Supabase Auth, Storage,
+  Realtime, `supabase-js`, Data API/PostgREST, anon key, dan service key tidak
+  dipakai serta tidak boleh dimasukkan ke Web/mobile.
+- File dikelola Laravel Storage: disk `public` untuk konten publik dan disk
+  `local` untuk submission tugas privat.
+- RLS diaktifkan tanpa policy pada semua tabel schema `public`; Laravel memakai
+  role database `postgres` yang dapat melewati RLS.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Menjalankan di Herd
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Pastikan folder project dipetakan Herd sebagai `smkm8medan-api`.
+2. Salin `.env.example` menjadi `.env`, lalu jalankan `php artisan key:generate`.
+3. Isi hanya kredensial project Supabase baru pada `.env`:
 
-## Learning Laravel
+   ```dotenv
+   DB_CONNECTION=pgsql
+   DB_HOST=host-session-pooler-dari-dashboard
+   DB_PORT=5432
+   DB_DATABASE=postgres
+   DB_USERNAME=postgres.<project-ref>
+   DB_PASSWORD=password-database
+   DB_SSLMODE=require
+   SUPABASE_NEW_PROJECT_CONFIRMED=true
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+   Ambil string tersebut dari dashboard Supabase project baru → **Connect** →
+   **Session pooler**. Jangan memakai host langsung `db.<ref>.supabase.co` atau
+   Transaction pooler port 6543.
+4. Aktifkan `pdo_pgsql` dan `pgsql` pada `php.ini` Herd bila belum muncul dari
+   `php -m`, lalu restart Herd.
+5. Verifikasi tanpa mencetak password: `php artisan db:show` atau
+   `php artisan migrate:status`.
+6. Setelah project baru terkonfirmasi, development database dapat disiapkan:
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+   ```powershell
+   php artisan migrate:fresh --seed --force
+   php artisan db:secure-rls
+   ```
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+   `migrate:fresh` menghapus schema public. Jangan jalankan pada database lama
+   atau database berisi data penting.
 
-## Agentic Development
+Supabase free tier dapat dijeda otomatis bila project lama tidak aktif;
+aktifkan kembali project sebelum demo. Sebelum demo/operasi destruktif, buat
+backup dari mesin yang memiliki `pg_dump`:
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```powershell
+pg_dump --format=custom --file=smkm8medan-api-$(Get-Date -Format yyyyMMdd).dump "<connection-string-session-pooler>"
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Jangan menaruh connection string, password, atau hasil dump di git.
 
-## Contributing
+## Test dan pemeriksaan
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Test otomatis selalu menggunakan SQLite in-memory dari `phpunit.xml`, bukan
+Supabase utama:
 
-## Code of Conduct
+```powershell
+php artisan test --compact
+vendor/bin/pint --dirty --format agent
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Migrasi dan seeder juga diuji dengan SQLite temporary. Query pencarian API
+sebaiknya memakai `ILIKE` di PostgreSQL dan fallback `LOWER(...) LIKE` pada
+SQLite; jangan menggunakan asumsi MySQL.
 
-## Security Vulnerabilities
+## Akun development seeder
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Semua akun seeder memakai password `password` dan hanya untuk development:
 
-## License
+- `admin@smkm8medan.test` — admin
+- `guru1@smkm8medan.test` sampai `guru3@smkm8medan.test` — guru
+- NISN `2026000001` sampai `2026000010` — siswa
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Ganti password sebelum demo. Password tidak dikembalikan endpoint dan tidak
+ditulis ke log.
+
+## Endpoint
+
+Kontrak lengkap dan contoh request ada di [`docs/API.md`](docs/API.md).
+Dokumen analisis Web ada di `docs/analysis/01-feature-inventory.md` sampai
+`09-frontend-migration-map.md`. Panduan mobile ada di
+[`docs/MOBILE_HANDOFF.md`](docs/MOBILE_HANDOFF.md), dan spesifikasi awal OpenAPI
+ada di [`docs/openapi.yaml`](docs/openapi.yaml).
+
+## Struktur utama
+
+```text
+app/Http/Controllers/Api/V1/  controller REST versi 1
+app/Http/Requests/             validasi request
+app/Models/                    model UUID domain
+app/Services/                  logika sesi dan ujian
+database/migrations/           schema PostgreSQL/SQLite-portable
+database/seeders/              data development
+docs/                          analisis, API, dan handoff
+routes/api.php                 route /api/v1
+```

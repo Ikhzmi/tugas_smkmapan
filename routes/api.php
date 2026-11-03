@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\AcademicController;
 use App\Http\Controllers\Api\V1\Admin\AccountController;
+use App\Http\Controllers\Api\V1\Admin\ContentController;
 use App\Http\Controllers\Api\V1\Admin\StudentController;
 use App\Http\Controllers\Api\V1\Admin\TeacherController;
 use App\Http\Controllers\Api\V1\AttendanceController;
@@ -72,6 +73,18 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/schedules', [AcademicController::class, 'storeSchedule']);
         Route::patch('/schedules/{schedule}', [AcademicController::class, 'updateSchedule']);
         Route::delete('/schedules/{schedule}', [AcademicController::class, 'destroySchedule']);
+        Route::get('/site-settings', [ContentController::class, 'settings']);
+        Route::put('/site-settings/{key}', [ContentController::class, 'updateSetting']);
+        Route::get('/analytics', [ContentController::class, 'analytics']);
+        Route::get('/ppdb', [ContentController::class, 'ppdb']);
+        Route::patch('/ppdb/{registration}', [ContentController::class, 'updatePpdb']);
+        Route::delete('/ppdb/{registration}', [ContentController::class, 'destroyPpdb']);
+        Route::get('/suggestions', [ContentController::class, 'suggestions']);
+        Route::delete('/suggestions/{suggestion}', [ContentController::class, 'destroySuggestion']);
+        Route::get('/facilities', [ContentController::class, 'facilities']);
+        Route::post('/facilities', [ContentController::class, 'storeFacility']);
+        Route::patch('/facilities/{facility}', [ContentController::class, 'updateFacility']);
+        Route::delete('/facilities/{facility}', [ContentController::class, 'destroyFacility']);
     });
 
     Route::middleware(['auth:sanctum', 'role:guru'])->prefix('guru')->group(function (): void {

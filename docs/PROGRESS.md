@@ -14,8 +14,8 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 | --- | --- | --- |
 | 0 — Audit & persiapan | done* | Persiapan lokal selesai; verifikasi DB menunggu kredensial user |
 | 1 — Analisis Web (9 dokumen) | done | Dokumen 01–09 selesai; Web tetap read-only |
-| 2 — Fondasi kode | todo | |
-| 3 — Auth & akun | todo | |
+| 2 — Fondasi kode | done | Schema UUID/domain, response contract, role middleware, rate limit, RLS command, SQLite migration, remote schema reset + RLS selesai |
+| 3 — Auth & akun | doing | Login Sanctum, logout, me, profile/password, sesi tunggal, akun admin dasar, test SQLite + smoke Herd dibuat; profil guru/siswa terintegrasi menyusul |
 | 4 — Akademik | todo | |
 | 5 — LMS | todo | |
 | 6 — Presensi | todo | |
@@ -58,3 +58,13 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 1. User mengisi `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD` di `.env` (Supabase → Connect → Session pooler).
 2. Verifikasi `php artisan db:show` / `migrate:status`.
 3. Lanjutkan Fase 2: migrasi UUID/PostgreSQL-portable, response contract, role middleware, RLS command, dan test SQLite.
+
+### Catatan sesi lanjutan 2026-11-03
+
+- User mengonfirmasi host di `.env` adalah Session pooler project Supabase baru; `php artisan db:show` berhasil tanpa menampilkan password.
+- Jangan memakai project Web lama dan jangan membaca secret Web.
+- `php artisan migrate` ke schema development berhenti karena `users` scaffold lama masih bigint; setelah seeder siap, gunakan `migrate:fresh --seed` hanya pada project baru yang sudah dikonfirmasi.
+- Migrasi SQLite in-memory/temporary berhasil untuk seluruh schema saat ini.
+- `db:secure-rls` akan menolak koneksi PostgreSQL bila `SUPABASE_NEW_PROJECT_CONFIRMED` tidak true.
+- `migrate:fresh --seed` pada project baru berhasil; 37 tabel `public` kemudian dikunci RLS tanpa policy.
+- Smoke test HTTPS Herd login admin + `/auth/me` berhasil tanpa mencetak token.

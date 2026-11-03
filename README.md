@@ -108,8 +108,8 @@ siap impor untuk Postman tersedia di
 [`docs/postman_collection.json`](docs/postman_collection.json).
 Dokumen analisis Web ada di `docs/analysis/01-feature-inventory.md` sampai
 `09-frontend-migration-map.md`. Panduan mobile ada di
-[`docs/MOBILE_HANDOFF.md`](docs/MOBILE_HANDOFF.md), dan spesifikasi awal OpenAPI
-ada di [`docs/openapi.yaml`](docs/openapi.yaml).
+[`docs/MOBILE_HANDOFF.md`](docs/MOBILE_HANDOFF.md), dan spesifikasi OpenAPI
+lengkap ada di [`docs/openapi.yaml`](docs/openapi.yaml).
 
 ## Struktur utama
 

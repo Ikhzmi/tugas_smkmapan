@@ -46,14 +46,12 @@ Hasil terakhir: **132 route API** terdaftar.
 
 - `docs/API.md`: kontrak ringkas dan format respons.
 - `docs/postman_collection.json`: koleksi request utama per role.
-- `docs/openapi.yaml`: spesifikasi OpenAPI inti untuk health/auth/public/CBT;
-  koleksi Postman menjadi referensi eksplorasi endpoint tambahan.
+- `docs/openapi.yaml`: spesifikasi OpenAPI seluruh 132 operasi API, termasuk
+  schema request, parameter, role, upload, dan signed download.
 - `docs/MOBILE_HANDOFF.md`: token, jaringan, alur siswa/guru, dan aturan soal.
 
 ## Sisa non-blocking
 
-1. Menambah schema detail untuk seluruh 124 route pada OpenAPI jika generator
-   dokumentasi dipilih pada fase berikutnya.
-2. Menambah script postman test otomatis dan collection runner di CI.
-3. Cleanup orphan storage harus dijalankan manual setelah inspeksi dry-run;
+1. Menambah script postman test otomatis dan collection runner di CI.
+2. Cleanup orphan storage harus dijalankan manual setelah inspeksi dry-run;
    command tidak dijadwalkan otomatis untuk mencegah penghapusan tak sengaja.

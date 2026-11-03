@@ -14,14 +14,20 @@ Diperbarui setiap fase. Isi detail analisis ada di `docs/analysis/`.
 
 - File `.env` milik `Web/` dan nilai kredensial Supabase lama TIDAK dibaca/disalin. Bila ditemukan kredensial hard-coded saat analisis, hanya dicatat lokasi filenya tanpa nilainya.
 
-## Asumsi produk (sementara, akan dilengkapi Fase 1)
+## Temuan produk Fase 1
 
-- Role pengguna: `admin`, `guru`, `siswa`.
-- Login kemungkinan memakai email untuk guru/admin dan NIS untuk siswa — akan dikonfirmasi dari kode Web.
-- Sesi tunggal: login baru mencabut token lama; heartbeat/resume/release disediakan setara RPC Supabase lama.
-- Penilaian ujian dilakukan di server; kunci jawaban tidak pernah dikirim ke siswa.
+- Role pengguna: `admin`, `guru`, `siswa`; tidak ada role keempat.
+- Web login siswa mengubah NISN menjadi email turunan, sedangkan guru/admin memakai username/email. API baru menerima `identifier` langsung agar tidak bergantung pada Supabase Auth.
+- Sesi tunggal non-admin memiliki grace 5 menit dan heartbeat 30 detik; admin boleh multi-device.
+- Ujian memiliki durasi, jadwal, optional kode akses, urutan soal acak, satu attempt aktif, warning maksimum 3, dan penilaian server-side.
+- `materials` dan `assignments` adalah tabel kanonik; bucket lama `materi`/`tugas` hanya konsep storage, bukan tabel.
+- Realtime event ujian dan sesi diganti polling endpoint pada fase awal.
+- Import Excel/CSV tetap client-side; API menerima JSON tervalidasi.
 
 ## Risiko
 
 - Definisi RPC Supabase mungkin tidak tersedia di repo Web; perilakunya disimpulkan dari pemakaian frontend dan dicatat sebagai asumsi.
 - Supabase free tier bisa dijeda otomatis bila lama tidak aktif (perlu dibangunkan sebelum demo).
+- Schema/SQL RPC lengkap tidak tersedia sebagai sumber backend yang boleh dipakai; hak akses API baru harus diuji dengan feature test lintas role.
+- Ditemukan penggunaan kredensial/konfigurasi Supabase pada kode Web; tidak disalin dan file rahasia Web tidak dibaca.
+- Media lama tidak diimpor; URL publik lama harus dipetakan ulang ketika frontend mulai migrasi.

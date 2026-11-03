@@ -12,8 +12,8 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 
 | Fase | Status | Catatan |
 | --- | --- | --- |
-| 0 — Audit & persiapan | doing | Menunggu kredensial Supabase dari user |
-| 1 — Analisis Web (9 dokumen) | todo | |
+| 0 — Audit & persiapan | done* | Persiapan lokal selesai; verifikasi DB menunggu kredensial user |
+| 1 — Analisis Web (9 dokumen) | done | Dokumen 01–09 selesai; Web tetap read-only |
 | 2 — Fondasi kode | todo | |
 | 3 — Auth & akun | todo | |
 | 4 — Akademik | todo | |
@@ -45,8 +45,16 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 - Test otomatis memakai SQLite in-memory (`phpunit.xml`), bukan Supabase.
 - Tidak ada impor data dari Supabase lama.
 
+### Fase 1 — Analisis Web
+
+- Sembilan dokumen kontrak tersedia di `docs/analysis/01-feature-inventory.md` sampai `09-frontend-migration-map.md`.
+- Ditemukan fitur publik, CMS admin, akademik, LMS, presensi, CBT, sesi tunggal, storage, analytics, dan semua RPC yang dipanggil Web.
+- Tidak ada kredensial Supabase lama yang disalin ke API/dokumen.
+- Temuan penting: siswa login dengan NISN, guru/admin username/email; soal siswa harus memakai allow-list tanpa kunci jawaban; realtime diganti polling.
+- Fase 1 selesai tanpa mengubah folder `Web`.
+
 ### Langkah berikutnya
 
 1. User mengisi `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD` di `.env` (Supabase → Connect → Session pooler).
 2. Verifikasi `php artisan db:show` / `migrate:status`.
-3. Jalankan Fase 1 (analisis Web).
+3. Lanjutkan Fase 2: migrasi UUID/PostgreSQL-portable, response contract, role middleware, RLS command, dan test SQLite.

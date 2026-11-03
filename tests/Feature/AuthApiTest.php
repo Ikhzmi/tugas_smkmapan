@@ -89,3 +89,17 @@ test('admin account routes are protected by the role middleware', function () {
     Sanctum::actingAs($student);
     $this->getJson('/api/v1/admin/accounts')->assertForbidden()->assertJsonPath('code', 'FORBIDDEN_ROLE');
 });
+
+test('login endpoint is rate limited', function () {
+    foreach (range(1, 5) as $attempt) {
+        $this->postJson('/api/v1/auth/login', [
+            'identifier' => 'unknown@example.test',
+            'password' => 'wrong-password',
+        ])->assertUnauthorized();
+    }
+
+    $this->postJson('/api/v1/auth/login', [
+        'identifier' => 'unknown@example.test',
+        'password' => 'wrong-password',
+    ])->assertStatus(429);
+});

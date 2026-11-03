@@ -140,6 +140,14 @@ class ExamController extends Controller
         return ApiResponse::success(null, 'Attempt direset.');
     }
 
+    public function terminateManaged(Request $request, Attempt $attempt, ExamService $service): JsonResponse
+    {
+        $this->ensureTeacherOwns($request, $attempt->exam);
+        $data = $request->validate(['alasan' => ['required', 'string', 'max:500']]);
+
+        return $this->result($service->terminate($attempt, $data['alasan']));
+    }
+
     public function events(Request $request): JsonResponse
     {
         $teacher = $request->user()->teacher;
@@ -249,6 +257,10 @@ class ExamController extends Controller
 
     private function ensureTeacherOwns(Request $request, Exam $exam): void
     {
+        if ($request->user()->role === 'admin') {
+            return;
+        }
+
         if (! $request->user()->teacher || $exam->teacher_id !== $request->user()->teacher->getKey()) {
             abort(404);
         }

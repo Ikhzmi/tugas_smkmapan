@@ -39,5 +39,6 @@ test('admin can manage majors and receive attendance summary', function () {
         'tanggal' => now()->toDateString(), 'status' => 'hadir',
     ])->assertCreated();
     Sanctum::actingAs($admin);
+    $this->getJson('/api/v1/admin/classes/'.$class->getKey().'/students')->assertOk()->assertJsonCount(1, 'data');
     $this->getJson('/api/v1/admin/attendance/summary?class_id='.$class->getKey())->assertOk()->assertJsonPath('data.total', 1)->assertJsonPath('data.by_status.hadir', 1);
 });

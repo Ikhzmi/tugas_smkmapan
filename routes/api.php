@@ -71,6 +71,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/classes', [AcademicController::class, 'storeClass']);
         Route::patch('/classes/{schoolClass}', [AcademicController::class, 'updateClass']);
         Route::delete('/classes/{schoolClass}', [AcademicController::class, 'destroyClass']);
+        Route::get('/classes/{schoolClass}/students', [AcademicController::class, 'classStudents']);
         Route::get('/subjects', [AcademicController::class, 'subjects']);
         Route::post('/subjects', [AcademicController::class, 'storeSubject']);
         Route::patch('/subjects/{subject}', [AcademicController::class, 'updateSubject']);
@@ -104,6 +105,8 @@ Route::prefix('v1')->group(function (): void {
         Route::patch('/videos/{video}', [ContentController::class, 'updateVideo']);
         Route::delete('/videos/{video}', [ContentController::class, 'destroyVideo']);
         Route::post('/uploads/{context}', [ContentController::class, 'upload']);
+        Route::post('/attempts/{attempt}/reset', [ExamController::class, 'resetAttempt']);
+        Route::post('/attempts/{attempt}/terminate', [ExamController::class, 'terminateManaged']);
         Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
     });
 
@@ -136,14 +139,18 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/exams/{exam}/attempts', [ExamController::class, 'teacherAttempts']);
         Route::get('/exams/{exam}/recap', [ExamController::class, 'recap']);
         Route::post('/attempts/{attempt}/reset', [ExamController::class, 'resetAttempt']);
+        Route::post('/attempts/{attempt}/terminate', [ExamController::class, 'terminateManaged']);
         Route::get('/exams/events', [ExamController::class, 'events']);
     });
 
     Route::middleware(['auth:sanctum', 'role:siswa'])->prefix('siswa')->group(function (): void {
         Route::get('/materials', [LmsController::class, 'studentMaterials']);
+        Route::get('/materials/{material}', [LmsController::class, 'studentMaterial']);
         Route::get('/assignments', [LmsController::class, 'studentAssignments']);
+        Route::get('/assignments/{assignment}', [LmsController::class, 'studentAssignment']);
         Route::post('/assignments/{assignment}/submissions', [LmsController::class, 'submitAssignment']);
         Route::get('/submissions', [LmsController::class, 'studentSubmissions']);
+        Route::get('/grades', [LmsController::class, 'studentGrades']);
         Route::get('/attendance', [AttendanceController::class, 'studentIndex']);
         Route::post('/attendance', [AttendanceController::class, 'studentStore']);
         Route::get('/dashboard', [DashboardController::class, 'student']);

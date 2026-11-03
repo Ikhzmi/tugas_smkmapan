@@ -49,6 +49,7 @@ menjadi kontrak migrasi berikutnya.
 | `AdminGuruManager.jsx` | teachers + account RPC + upload | `/admin/teachers`, `/admin/uploads/teacher-photo` |
 | `AdminSiswaManager.jsx` | students/classes + account RPC | `/admin/students`, `/admin/classes` |
 | `AdminKelasManager.jsx` | CRUD `classes` | `/admin/classes` CRUD |
+| `AdminKelasManager.jsx` | anggota kelas | `GET /admin/classes/{id}/students` |
 | `AdminMapelManager.jsx` | CRUD `subjects` | `/admin/subjects` CRUD |
 | `AdminJadwalManager.jsx` | CRUD `schedules` | `/admin/schedules` CRUD |
 
@@ -82,6 +83,7 @@ menjadi kontrak migrasi berikutnya.
 | `pages/DashboardSiswa.jsx` | published materials | `GET /siswa/materials` |
 | `components/siswa/MaterialViewerModal.jsx` | material detail/file URL | `GET /siswa/materials/{id}` |
 | `pages/DashboardSiswa.jsx` | published assignments + submissions | `GET /siswa/assignments`, `/siswa/submissions` |
+| `pages/DashboardSiswa.jsx` | detail tugas | `GET /siswa/assignments/{id}` |
 | `components/siswa/SubmissionModal.jsx` | insert `submissions` + bucket tugas | `POST /siswa/assignments/{id}/submissions` multipart |
 | `pages/DashboardSiswa.jsx` | exams, counts, unlocks, attempts | `GET /siswa/exams` |
 | `components/siswa/ExamRunner.jsx` | `questions_safe` | `GET /siswa/attempts/{id}` atau start response soal aman |
@@ -90,6 +92,7 @@ menjadi kontrak migrasi berikutnya.
 | `components/siswa/ExamRunner.jsx` | verify/has unlock RPC | `/siswa/exams/{id}/unlock` GET/POST |
 | `components/siswa/ExamRunner.jsx` | warning/submit/terminate RPC | `/siswa/attempts/{id}/{warnings,submit,terminate}` |
 | `components/siswa/PresensiSiswa.jsx` | attendance self-service | `/siswa/attendance` |
+| `pages/DashboardSiswa.jsx` | rekap nilai tugas/ujian | `GET /siswa/grades` |
 
 ## 6. Data shape compatibility
 

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\V1;
 use App\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Assignment;
+use App\Models\Attempt;
 use App\Models\Material;
 use App\Models\Submission;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -251,6 +251,17 @@ class LmsController extends Controller
         return ApiResponse::paginated($query->paginate(min(max($request->integer('per_page', 20), 1), 100)));
     }
 
+    public function studentMaterial(Request $request, Material $material): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (! $student || $material->class_id !== $student->class_id || ! $material->is_published) {
+            abort(404);
+        }
+
+        return ApiResponse::success($material->load('subject'), 'Materi ditemukan.');
+    }
+
     public function studentAssignments(Request $request): JsonResponse
     {
         $student = $request->user()->student;
@@ -259,9 +270,20 @@ class LmsController extends Controller
             return ApiResponse::error('Profil siswa belum tersedia.', [], 403, 'SISWA_PROFILE_NOT_FOUND');
         }
 
-        $query = Assignment::query()->with(['subject', 'submissions' => fn (Builder $builder): Builder => $builder->where('student_id', $student->getKey())])->where('class_id', $student->class_id)->where('is_published', true)->latest();
+        $query = Assignment::query()->with(['subject', 'submissions' => fn ($relation) => $relation->where('student_id', $student->getKey())])->where('class_id', $student->class_id)->where('is_published', true)->latest();
 
         return ApiResponse::paginated($query->paginate(min(max($request->integer('per_page', 20), 1), 100)));
+    }
+
+    public function studentAssignment(Request $request, Assignment $assignment): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (! $student || $assignment->class_id !== $student->class_id || ! $assignment->is_published) {
+            abort(404);
+        }
+
+        return ApiResponse::success($assignment->load(['subject', 'submissions' => fn ($relation) => $relation->where('student_id', $student->getKey())]), 'Tugas ditemukan.');
     }
 
     public function submitAssignment(Request $request, Assignment $assignment): JsonResponse
@@ -315,6 +337,26 @@ class LmsController extends Controller
         }
 
         return ApiResponse::paginated($student->submissions()->with('assignment')->latest('dikumpulkan_at')->paginate(min(max($request->integer('per_page', 20), 1), 100)));
+    }
+
+    public function studentGrades(Request $request): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (! $student) {
+            return ApiResponse::error('Profil siswa belum tersedia.', [], 403, 'SISWA_PROFILE_NOT_FOUND');
+        }
+
+        return ApiResponse::success([
+            'assignments' => $student->submissions()->with('assignment')->whereNotNull('nilai')->latest('dinilai_at')->get(),
+            'exams' => Attempt::query()->with('exam')->where('student_id', $student->getKey())->where('status', 'selesai')->latest('dikumpulkan_at')->get()->map(fn (Attempt $attempt): array => [
+                'attempt_id' => $attempt->getKey(),
+                'exam_id' => $attempt->exam_id,
+                'exam_title' => $attempt->exam?->judul,
+                'score' => $attempt->nilai_akhir,
+                'submitted_at' => $attempt->dikumpulkan_at?->toISOString(),
+            ]),
+        ]);
     }
 
     /** @return array<string, mixed> */

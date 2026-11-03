@@ -47,11 +47,13 @@ Form publik yang rate-limited: `POST /public/ppdb`,
   `POST /admin/accounts/{id}/reset-password`, `DELETE /admin/accounts/{id}`.
 - People: CRUD `/admin/teachers`, CRUD `/admin/students`.
 - Academic: CRUD `/admin/majors`, `/admin/classes`, `/admin/subjects`,
-  `/admin/schedules`.
+  `/admin/schedules`; anggota kelas melalui
+  `GET /admin/classes/{id}/students`.
 - CMS: CRUD settings, `/admin/facilities`, `/admin/eskul`, `/admin/gallery`,
   `/admin/videos`, `POST /admin/uploads/{context}`.
 - Operations: `/admin/attendance/summary`, `/admin/analytics`, PPDB dan
-  suggestions.
+  suggestions; admin dapat reset/terminate attempt melalui
+  `/admin/attempts/{id}/{reset,terminate}`.
 
 ## Guru
 
@@ -70,6 +72,8 @@ Form publik yang rate-limited: `POST /public/ppdb`,
 - LMS: `GET /siswa/materials`, `GET /siswa/assignments`, multipart
   `POST /siswa/assignments/{id}/submissions`, `GET /siswa/submissions`.
 - Presensi: `GET/POST /siswa/attendance`.
+- Detail dan nilai: `GET /siswa/materials/{id}`,
+  `GET /siswa/assignments/{id}`, `GET /siswa/grades`.
 - Ujian: `GET /siswa/exams`, `GET/POST /siswa/exams/{id}/unlock`,
   `POST /siswa/exams/{id}/attempts`, `GET /siswa/attempts/{id}`,
   `PUT /siswa/attempts/{attempt}/answers/{question}`, warning, submit, dan

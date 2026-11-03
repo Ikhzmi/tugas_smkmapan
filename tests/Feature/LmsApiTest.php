@@ -43,6 +43,7 @@ test('teacher publishes LMS content and student submits one assignment', functio
 
     Sanctum::actingAs($studentUser);
     $this->getJson('/api/v1/siswa/materials')->assertOk()->assertJsonCount(1, 'data');
+    $this->getJson('/api/v1/siswa/assignments/'.$assignment->getKey())->assertOk()->assertJsonPath('data.judul', 'Tugas Test');
     $this->post('/api/v1/siswa/assignments/'.$assignment->getKey().'/submissions', [
         'file' => UploadedFile::fake()->create('jawaban.pdf', 10, 'application/pdf'),
         'catatan' => 'Keterangan',
@@ -50,6 +51,7 @@ test('teacher publishes LMS content and student submits one assignment', functio
     $this->postJson('/api/v1/siswa/assignments/'.$assignment->getKey().'/submissions', [
         'file_url' => 'https://example.test/second.pdf',
     ])->assertStatus(409)->assertJsonPath('code', 'ALREADY_SUBMITTED');
+    $this->getJson('/api/v1/siswa/grades')->assertOk();
 });
 
 test('teacher submission download returns a temporary signed URL', function () {

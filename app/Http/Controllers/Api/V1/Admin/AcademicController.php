@@ -57,6 +57,13 @@ class AcademicController extends Controller
         return response()->noContent();
     }
 
+    public function classStudents(Request $request, SchoolClass $schoolClass): JsonResponse
+    {
+        $query = $schoolClass->students()->orderBy('nama');
+
+        return ApiResponse::paginated($query->paginate(min(max($request->integer('per_page', 50), 1), 100)));
+    }
+
     public function subjects(Request $request): JsonResponse
     {
         $query = Subject::query()->with('major')->orderBy('nama');

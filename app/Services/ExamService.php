@@ -205,8 +205,8 @@ class ExamService
     {
         $attempt->loadMissing('exam');
         $deadline = $attempt->dimulai_at->copy()->addMinutes($attempt->exam->durasi_menit);
-        if (! $attempt->exam->admin_override && $attempt->exam->waktu_selesai) {
-            $deadline = min($deadline, $attempt->exam->waktu_selesai);
+        if (! $attempt->exam->admin_override && $attempt->exam->waktu_selesai && $attempt->exam->waktu_selesai->lessThan($deadline)) {
+            $deadline = $attempt->exam->waktu_selesai;
         }
 
         return now()->greaterThanOrEqualTo($deadline);

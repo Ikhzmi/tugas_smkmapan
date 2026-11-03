@@ -23,9 +23,10 @@ class AccountController extends Controller
 
         if ($search !== '') {
             $query->where(function (Builder $builder) use ($search): void {
-                $builder->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('username', 'like', '%'.$search.'%');
+                $needle = '%'.mb_strtolower($search).'%';
+                $builder->whereRaw('LOWER(name) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(email) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(username) LIKE ?', [$needle]);
             });
         }
 

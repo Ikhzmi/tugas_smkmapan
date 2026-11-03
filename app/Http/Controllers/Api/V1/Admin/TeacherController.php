@@ -23,9 +23,10 @@ class TeacherController extends Controller
 
         if ($search !== '') {
             $query->where(function (Builder $builder) use ($search): void {
-                $builder->where('nama', 'like', '%'.$search.'%')
-                    ->orWhere('department', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%');
+                $needle = '%'.mb_strtolower($search).'%';
+                $builder->whereRaw('LOWER(nama) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(department) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(email) LIKE ?', [$needle]);
             });
         }
 

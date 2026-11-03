@@ -179,9 +179,10 @@ class AcademicController extends Controller
         }
 
         $query->where(function (Builder $builder) use ($search, $columns): void {
+            $needle = '%'.mb_strtolower($search).'%';
             foreach ($columns as $index => $column) {
-                $method = $index === 0 ? 'where' : 'orWhere';
-                $builder->{$method}($column, 'like', '%'.$search.'%');
+                $method = $index === 0 ? 'whereRaw' : 'orWhereRaw';
+                $builder->{$method}('LOWER('.$column.') LIKE ?', [$needle]);
             }
         });
     }

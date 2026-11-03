@@ -86,6 +86,19 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/facilities', [ContentController::class, 'storeFacility']);
         Route::patch('/facilities/{facility}', [ContentController::class, 'updateFacility']);
         Route::delete('/facilities/{facility}', [ContentController::class, 'destroyFacility']);
+        Route::get('/eskul', [ContentController::class, 'eskul']);
+        Route::post('/eskul', [ContentController::class, 'storeEskul']);
+        Route::patch('/eskul/{eskul}', [ContentController::class, 'updateEskul']);
+        Route::delete('/eskul/{eskul}', [ContentController::class, 'destroyEskul']);
+        Route::get('/gallery', [ContentController::class, 'gallery']);
+        Route::post('/gallery', [ContentController::class, 'storeGallery']);
+        Route::patch('/gallery/{gallery}', [ContentController::class, 'updateGallery']);
+        Route::delete('/gallery/{gallery}', [ContentController::class, 'destroyGallery']);
+        Route::get('/videos', [ContentController::class, 'videos']);
+        Route::post('/videos', [ContentController::class, 'storeVideo']);
+        Route::patch('/videos/{video}', [ContentController::class, 'updateVideo']);
+        Route::delete('/videos/{video}', [ContentController::class, 'destroyVideo']);
+        Route::post('/uploads/{context}', [ContentController::class, 'upload']);
     });
 
     Route::middleware(['auth:sanctum', 'role:guru'])->prefix('guru')->group(function (): void {

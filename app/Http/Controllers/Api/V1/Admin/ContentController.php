@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Models\Eskul;
 use App\Models\Facility;
+use App\Models\Gallery;
 use App\Models\LoginEvent;
 use App\Models\PpdbRegistration;
 use App\Models\SiteSetting;
 use App\Models\SiteVisit;
 use App\Models\Suggestion;
+use App\Models\Video;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class ContentController extends Controller
@@ -112,6 +116,94 @@ class ContentController extends Controller
         return response()->noContent();
     }
 
+    public function eskul(Request $request): JsonResponse
+    {
+        return ApiResponse::paginated(Eskul::query()->orderBy('nama')->paginate(min(max($request->integer('per_page', 20), 1), 100)));
+    }
+
+    public function storeEskul(Request $request): JsonResponse
+    {
+        return ApiResponse::created(Eskul::query()->create($request->validate($this->eskulRules())), 'Ekstrakurikuler berhasil dibuat.');
+    }
+
+    public function updateEskul(Request $request, Eskul $eskul): JsonResponse
+    {
+        $eskul->update($request->validate($this->eskulRules(false)));
+
+        return ApiResponse::success($eskul->fresh(), 'Ekstrakurikuler berhasil diperbarui.');
+    }
+
+    public function destroyEskul(Eskul $eskul): Response
+    {
+        $eskul->delete();
+
+        return response()->noContent();
+    }
+
+    public function gallery(Request $request): JsonResponse
+    {
+        return ApiResponse::paginated(Gallery::query()->orderBy('sort_order')->paginate(min(max($request->integer('per_page', 20), 1), 100)));
+    }
+
+    public function storeGallery(Request $request): JsonResponse
+    {
+        return ApiResponse::created(Gallery::query()->create($request->validate($this->galleryRules())), 'Galeri berhasil dibuat.');
+    }
+
+    public function updateGallery(Request $request, Gallery $gallery): JsonResponse
+    {
+        $gallery->update($request->validate($this->galleryRules(false)));
+
+        return ApiResponse::success($gallery->fresh(), 'Galeri berhasil diperbarui.');
+    }
+
+    public function destroyGallery(Gallery $gallery): Response
+    {
+        $gallery->delete();
+
+        return response()->noContent();
+    }
+
+    public function videos(Request $request): JsonResponse
+    {
+        return ApiResponse::paginated(Video::query()->orderBy('sort_order')->paginate(min(max($request->integer('per_page', 20), 1), 100)));
+    }
+
+    public function storeVideo(Request $request): JsonResponse
+    {
+        return ApiResponse::created(Video::query()->create($request->validate($this->videoRules())), 'Video berhasil dibuat.');
+    }
+
+    public function updateVideo(Request $request, Video $video): JsonResponse
+    {
+        $video->update($request->validate($this->videoRules(false)));
+
+        return ApiResponse::success($video->fresh(), 'Video berhasil diperbarui.');
+    }
+
+    public function destroyVideo(Video $video): Response
+    {
+        $video->delete();
+
+        return response()->noContent();
+    }
+
+    public function upload(Request $request, string $context): JsonResponse
+    {
+        $folders = [
+            'major' => 'branding/jurusan', 'hero' => 'branding/hero', 'profile' => 'branding/profile',
+            'teacher-photo' => 'teachers', 'eskul' => 'eskul', 'facility' => 'fasilitas', 'gallery' => 'galeri',
+        ];
+        if (! isset($folders[$context])) {
+            return ApiResponse::error('Konteks upload tidak valid.', [], 422, 'UPLOAD_CONTEXT_INVALID');
+        }
+
+        $request->validate(['file' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120']]);
+        $path = $request->file('file')->store($folders[$context], 'public');
+
+        return ApiResponse::created(['url' => Storage::disk('public')->url($path), 'path' => $path], 'Berkas berhasil diunggah.');
+    }
+
     /** @return array<string, list<string>> */
     private function facilityRules(bool $required = true): array
     {
@@ -125,6 +217,43 @@ class ContentController extends Controller
             'badge' => ['nullable', 'string', 'max:100'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /** @return array<string, list<string>> */
+    private function eskulRules(bool $required = true): array
+    {
+        return [
+            'nama' => [$required ? 'required' : 'sometimes', 'string', 'max:150'],
+            'kategori' => ['nullable', 'string', 'max:100'], 'image_url' => ['nullable', 'url', 'max:2048'],
+            'warna' => ['nullable', 'string', 'max:20'], 'warna_soft' => ['nullable', 'string', 'max:20'],
+            'deskripsi' => ['nullable', 'string', 'max:5000'], 'jadwal' => ['nullable', 'string', 'max:150'],
+            'pembina' => ['nullable', 'string', 'max:150'], 'prestasi' => ['nullable', 'string', 'max:5000'],
+            'jumlah_anggota' => ['nullable', 'integer', 'min:0'], 'max_anggota' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /** @return array<string, list<string>> */
+    private function galleryRules(bool $required = true): array
+    {
+        return [
+            'judul' => [$required ? 'required' : 'sometimes', 'string', 'max:200'], 'kategori' => ['nullable', 'string', 'max:100'],
+            'tanggal' => ['nullable', 'date'], 'deskripsi' => ['nullable', 'string', 'max:5000'],
+            'image_url' => ['nullable', 'url', 'max:2048'], 'rotate' => ['sometimes', 'numeric'],
+            'sort_order' => ['sometimes', 'integer', 'min:0'], 'is_active' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /** @return array<string, list<string>> */
+    private function videoRules(bool $required = true): array
+    {
+        return [
+            'judul' => [$required ? 'required' : 'sometimes', 'string', 'max:200'], 'kreator' => ['nullable', 'string', 'max:150'],
+            'durasi_text' => ['nullable', 'string', 'max:30'], 'deskripsi' => ['nullable', 'string', 'max:5000'],
+            'software' => ['nullable', 'array'], 'thumbnail_url' => ['nullable', 'url', 'max:2048'],
+            'episode_no' => ['nullable', 'integer', 'min:0'], 'kategori' => ['nullable', 'string', 'max:30'],
+            'is_published' => ['sometimes', 'boolean'], 'sort_order' => ['sometimes', 'integer', 'min:0'],
         ];
     }
 }

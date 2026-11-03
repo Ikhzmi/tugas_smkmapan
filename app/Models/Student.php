@@ -14,6 +14,11 @@ class Student extends DomainModel
         return $this->belongsTo(User::class);
     }
 
+    public function schoolClass(): BelongsTo
+    {
+        return $this->belongsTo(SchoolClass::class, 'class_id');
+    }
+
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);

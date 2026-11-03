@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Admin\StudentController;
 use App\Http\Controllers\Api\V1\Admin\TeacherController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ExamController;
 use App\Http\Controllers\Api\V1\LmsController;
 use App\Http\Controllers\Api\V1\PublicController;
@@ -101,6 +102,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/assignments/{assignment}/submissions', [LmsController::class, 'assignmentSubmissions']);
         Route::patch('/submissions/{submission}/grade', [LmsController::class, 'gradeSubmission']);
         Route::get('/submissions/{submission}/download', [LmsController::class, 'downloadSubmission']);
+        Route::get('/dashboard', [DashboardController::class, 'teacher']);
+        Route::get('/schedules', [DashboardController::class, 'teacherSchedules']);
         Route::get('/exams', [ExamController::class, 'teacherExams']);
         Route::post('/exams', [ExamController::class, 'storeExam']);
         Route::patch('/exams/{exam}', [ExamController::class, 'updateExam']);
@@ -121,6 +124,8 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/submissions', [LmsController::class, 'studentSubmissions']);
         Route::get('/attendance', [AttendanceController::class, 'studentIndex']);
         Route::post('/attendance', [AttendanceController::class, 'studentStore']);
+        Route::get('/dashboard', [DashboardController::class, 'student']);
+        Route::get('/schedules', [DashboardController::class, 'studentSchedules']);
         Route::get('/exams', [ExamController::class, 'studentExams']);
         Route::get('/exams/{exam}/unlock', [ExamController::class, 'hasUnlock']);
         Route::post('/exams/{exam}/unlock', [ExamController::class, 'unlock'])->middleware('throttle:exam-code');

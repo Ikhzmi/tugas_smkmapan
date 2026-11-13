@@ -9,7 +9,7 @@ use App\Models\Exam;
 use App\Models\ExamUnlock;
 use App\Models\Question;
 use App\Services\ExamService;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -169,7 +169,7 @@ class ExamController extends Controller
             return ApiResponse::error('Profil siswa belum tersedia.', [], 403, 'SISWA_PROFILE_NOT_FOUND');
         }
 
-        $exams = Exam::query()->withCount('questions')->where('is_active', true)->with(['subject', 'attempts' => fn (Builder $builder): Builder => $builder->where('student_id', $student->getKey())])->latest()->paginate(min(max($request->integer('per_page', 20), 1), 100));
+        $exams = Exam::query()->withCount('questions')->where('is_active', true)->with(['subject', 'attempts' => fn (Relation $relation): Relation => $relation->where('student_id', $student->getKey())])->latest()->paginate(min(max($request->integer('per_page', 20), 1), 100));
 
         return ApiResponse::paginated($exams);
     }

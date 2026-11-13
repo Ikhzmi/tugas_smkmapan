@@ -1,66 +1,47 @@
-# Panduan Deployment ke Wasmer Edge
+# Panduan & Dokumentasi Wasmer Edge Deployment
 
-Dokumen ini menjelaskan konfigurasi dan langkah deployment REST API SMKM 8 Medan ke **Wasmer Edge**.
-
----
-
-## 1. Karakteristik Wasmer Edge & WebAssembly
-
-Wasmer Edge berjalan di atas runtime **WebAssembly (WASM/WASIX)** dan bukan container Linux standar (Docker).
-- Eksekusi PHP menggunakan package WebAssembly `php/php` via protokol WASI.
-- Konfigurasi aplikasi didefinisikan melalui `wasmer.toml` dan `app.yaml`.
-
-> [!WARNING]
-> Karena Wasmer Edge menjalankan PHP dalam bentuk WebAssembly, dukungan ekstensi native PostgreSQL (`pdo_pgsql`) dan koneksi socket SSL ke Supabase bergantung pada kompatibilitas modul WASI. Jika terjadi kendala koneksi database di lingkungan WASM, platform berbasis native container (seperti Vercel FrankenPHP, Koyeb, atau Render) direkomendasikan sebagai alternatif langsung.
+Aplikasi REST API **SMKM 8 Medan** telah berhasil dideploy dan aktif secara live di **Wasmer Edge**!
 
 ---
 
-## 2. Berkas Konfigurasi Wasmer
+## 1. Status Deployment & URL Live
 
-Project ini telah dilengkapi berkas konfigurasi Wasmer:
-1. `wasmer.toml`: Konfigurasi package, dependensi runtime `php/php`, dan command runner WASI (`serve`).
-2. `app.yaml`: Spesifikasi aplikasi Wasmer Edge App beserta seluruh environment variables (koneksi database Supabase & Supabase Storage S3).
-
----
-
-## 3. Langkah Deploy ke Wasmer Edge
-
-### Opsi A: Melalui Wasmer CLI (Terminal)
-
-1. **Install Wasmer CLI di Windows (PowerShell Administrator):**
-   ```powershell
-   iwr -useb https://wasmer.io/install.ps1 | iex
-   ```
-
-2. **Login ke Akun Wasmer Anda:**
-   ```powershell
-   wasmer login
-   ```
-   *(Browser akan terbuka untuk autentikasi akun Wasmer/GitHub Anda).*
-
-3. **Deploy Aplikasi:**
-   Jalankan perintah berikut di direktori root project:
-   ```powershell
-   wasmer deploy
-   ```
-   Bila memerlukan build remote:
-   ```powershell
-   wasmer deploy --build-remote
-   ```
-
-4. **Tambahkan Secret Storage S3 (Jika Diperlukan):**
-   ```powershell
-   wasmer app secrets set SUPABASE_S3_KEY="<Access Key ID Anda>"
-   wasmer app secrets set SUPABASE_S3_SECRET="<Secret Access Key Anda>"
-   ```
+- **Live URL**: [https://smkm8medan-api.wasmer.app](https://smkm8medan-api.wasmer.app)
+- **Wasmer Dashboard**: [https://wasmer.io/apps/ikhzmi/smkm8medan-api](https://wasmer.io/apps/ikhzmi/smkm8medan-api)
+- **Wasmer Package**: [https://wasmer.io/ikhzmi/smkm8medan-api](https://wasmer.io/ikhzmi/smkm8medan-api)
+- **Status Runtime**: **Healthy & Active**
 
 ---
 
-### Opsi B: Melalui Wasmer Web Dashboard
+## 2. Hasil Pengujian Endpoint Langsung
 
-1. Buka [wasmer.io](https://wasmer.io) dan login dengan akun GitHub Anda.
-2. Buka menu **Edge Apps** -> **New App**.
-3. Hubungkan ke repository GitHub: `Sky-last/MobileApp_smk` (branch `api`).
-4. Wasmer akan otomatis mendeteksi berkas `app.yaml` dan `wasmer.toml`.
-5. Klik **Deploy**.
+| Endpoint | Method | Status | Hasil |
+| :--- | :---: | :---: | :--- |
+| `https://smkm8medan-api.wasmer.app/health` | `GET` | `200 OK` | `{"status":"ok","app":"SMKM 8 Medan API"}` |
+| `https://smkm8medan-api.wasmer.app/api/v1/ping` | `GET` | `200 OK` | `{"status":"ok","app":"SMKM 8 Medan API"}` |
+| `https://smkm8medan-api.wasmer.app/api/v1/public/majors` | `GET` | `200 OK` | Mengambil data jurusan langsung dari Supabase PostgreSQL |
+| `https://smkm8medan-api.wasmer.app/api/v1/public/site` | `GET` | `200 OK` | Mengambil pengaturan landing page sekolah dari database |
 
+---
+
+## 3. Optimasi yang Dilakukan
+
+1. **Pembersihan Dependensi Testing**:
+   Menghapus dev package PHPUnit 13 dan Pest 5 dari autoloader produksi agar kompatibel dengan lingkungan edge runtime.
+2. **Pembersihan Model Service AWS SDK yang Tidak Digunakan**:
+   Menggunakan `Aws\Script\Composer\Composer::removeUnusedServices` untuk memangkas 429 service AWS yang tidak dipakai (hanya menyisakan modul S3 yang dibutuhkan Supabase Storage), memotong ukuran vendor dari 88 MB menjadi 31 MB.
+3. **Penanganan Symlink**:
+   Mengabaikan symlink lokal `public/storage` di `.wasmerignore` agar tidak melanggar batasan volume Wasmer.
+4. **Environment Variables Terkoneksi ke Supabase**:
+   Semua variabel database session pooler Supabase (`aws-0-ap-northeast-2.pooler.supabase.com`) dan Supabase Storage S3 terpasang rapi di `app.yaml`.
+
+---
+
+## 4. Cara Deploy Ulang di Masa Depan
+
+Jika Anda melakukan perubahan kode di masa mendatang, cukup jalankan:
+
+```powershell
+cd "d:\Sistem Informasi\Semester 8\smkm8medan-api"
+wasmer deploy --publish-package --non-interactive
+```

@@ -1,13 +1,17 @@
 {
     "info": {
         "name": "SMKM 8 Medan API v1",
-        "description": "Koleksi lengkap 132 route API v1.",
+        "description": "Koleksi lengkap 136 route API v1 (mencakup rute presigned direct upload Supabase Storage).",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
         {
             "key": "base_url",
-            "value": "https://smkm8medan-api.test/api/v1"
+            "value": "https://smkm8medan-api.wasmer.app/api/v1"
+        },
+        {
+            "key": "local_base_url",
+            "value": "http://smkm8medan-api.test/api/v1"
         },
         {
             "key": "admin_token",

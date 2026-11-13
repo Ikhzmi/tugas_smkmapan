@@ -15,7 +15,17 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35"
     },
-    "require-dev": {},
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pail": "^1.2.5",
+        "laravel/pao": "^1.0.6",
+        "laravel/pint": "^1.27",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "pestphp/pest": "^5.3",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "symfony/yaml": "^8.1"
+    },
     "autoload": {
         "psr-4": {
             "App\\": "app/",
@@ -47,11 +57,10 @@
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi",
-            "Aws\\Script\\Composer\\Composer::removeUnusedServices"
+            "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
-            "@php -r \"exit(0);\""
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
@@ -68,10 +77,7 @@
     "extra": {
         "laravel": {
             "dont-discover": []
-        },
-        "aws/aws-sdk-php": [
-            "S3"
-        ]
+        }
     },
     "config": {
         "optimize-autoloader": true,

@@ -53,7 +53,8 @@ Form publik yang rate-limited: `POST /public/ppdb`,
   `/admin/schedules`; anggota kelas melalui
   `GET /admin/classes/{id}/students`.
 - CMS: CRUD settings, `/admin/facilities`, `/admin/eskul`, `/admin/gallery`,
-  `/admin/videos`, `POST /admin/uploads/{context}`.
+  `/admin/videos`, `POST /admin/uploads/{context}` dan
+  `POST /admin/uploads/{context}/url` untuk unggah langsung.
 - Operations: `/admin/attendance/summary`, `/admin/analytics`, PPDB dan
   suggestions; admin dapat reset/terminate attempt melalui
   `/admin/attempts/{id}/{reset,terminate}`.
@@ -63,6 +64,8 @@ Form publik yang rate-limited: `POST /public/ppdb`,
 - LMS: CRUD `/guru/materials`, CRUD `/guru/assignments`,
   `GET /guru/assignments/{id}/submissions`,
   `PATCH /guru/submissions/{id}/grade`, download submission.
+  Berkas besar memakai `POST /guru/materials/{id}/upload-url` lalu
+  `POST /guru/materials/{id}/upload-confirm`.
 - Ujian: CRUD `/guru/exams`, CRUD questions, `POST /guru/exams/{id}/code`,
   `GET /guru/exams/{id}/attempts`, reset attempt, polling
   `GET /guru/exams/events?since=<ISO8601>`.
@@ -74,6 +77,8 @@ Form publik yang rate-limited: `POST /public/ppdb`,
 
 - LMS: `GET /siswa/materials`, `GET /siswa/assignments`, multipart
   `POST /siswa/assignments/{id}/submissions`, `GET /siswa/submissions`.
+  Unggah langsung memakai `POST /siswa/assignments/{id}/upload-url` lalu
+  `POST /siswa/assignments/{id}/submissions` dengan `file_path`.
 - Presensi: `GET/POST /siswa/attendance`.
 - Detail dan nilai: `GET /siswa/materials/{id}`,
   `GET /siswa/assignments/{id}`, `GET /siswa/grades`.
@@ -103,6 +108,34 @@ ditolak, dan attempt berjalan dibatasi satu per siswa+ujian.
 
 ## File privat
 
-`GET /guru/submissions/{id}/download` hanya mengembalikan URL bertanda tangan
-sementara selama satu jam. URL tersebut dipakai untuk `GET
-/guru/submissions/{id}/file`; otorisasi guru pemilik assignment tetap diperiksa.
+`GET /guru/submissions/{id}/download` mengembalikan URL sementara selama satu
+jam. Bila private disk memakai driver `s3` (Supabase Storage), URL tersebut
+adalah presigned URL langsung ke bucket privat. Bila masih disk lokal, URL
+mengarah ke `GET /guru/submissions/{id}/file` yang bertanda tangan; otorisasi
+guru pemilik assignment tetap diperiksa.
+
+## Direct upload (berkas besar)
+
+Vercel membatasi body request sekitar 4,5 MB, sedangkan materi dan tugas bisa
+mencapai 25 MB. Karena itu klien mengunggah langsung ke object storage:
+
+```http
+POST /guru/materials/{material}/upload-url
+{"filename":"materi.pdf","content_type":"application/pdf","size":1048576}
+```
+
+Respons berisi `upload_url`, `method` (`PUT`), `path`, `headers`, dan
+`expires_at`. Klien melakukan `PUT` berkas ke `upload_url` dengan header yang
+sama, lalu mengonfirmasi:
+
+```http
+POST /guru/materials/{material}/upload-confirm
+{"path":"materi/<teacher>/<material>/<uuid>.pdf"}
+```
+
+Alur siswa: `POST /siswa/assignments/{id}/upload-url` → `PUT` ke
+`upload_url` → `POST /siswa/assignments/{id}/submissions` dengan `file_path`,
+`file_name`, dan `file_size`. Path selalu divalidasi harus berada di folder
+milik pengguna. Endpoint `upload-url` mengembalikan `422
+DIRECT_UPLOAD_UNSUPPORTED` bila disk belum memakai driver `s3`; gunakan
+endpoint multipart sebagai gantinya.

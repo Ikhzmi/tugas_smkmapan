@@ -17,7 +17,9 @@ kembali ke halaman login.
 
 Login NISN melalui `/auth/login`, lalu gunakan `/auth/me`, dashboard/LMS,
 `/siswa/materials`, `/siswa/assignments`, `/siswa/attendance`, dan
-`/siswa/exams`. Pengumpulan tugas memakai multipart file atau `file_url`.
+`/siswa/exams`. Pengumpulan tugas memakai multipart file, `file_url`, atau
+direct upload via `POST /siswa/assignments/{id}/upload-url` lalu kirim
+`file_path` ke `/siswa/assignments/{id}/submissions`.
 
 Alur ujian: unlock bila perlu → `POST /siswa/exams/{id}/attempts` → tampilkan
 only allow-list soal → autosave `PUT .../answers/{question}` → submit. Jangan
@@ -26,8 +28,11 @@ pernah mengharapkan `kunci_jawaban` pada respons siswa.
 ## Guru
 
 Gunakan `/guru/materials`, `/guru/assignments`, `/guru/submissions`,
-`/guru/attendance`, dan `/guru/exams`. Polling event ujian menggunakan
-`GET /guru/exams/events?since=<last-created-at>` setiap 5–10 detik.
+`/guru/attendance`, dan `/guru/exams`. Untuk materi berukuran besar, gunakan
+`POST /guru/materials/{id}/upload-url` (presigned PUT) lalu
+`POST /guru/materials/{id}/upload-confirm`. Download berkas submission
+memakai URL dari `GET /guru/submissions/{id}/download`. Polling event ujian
+menggunakan `GET /guru/exams/events?since=<last-created-at>` setiap 5–10 detik.
 
 ## Jaringan
 

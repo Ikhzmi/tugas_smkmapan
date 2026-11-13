@@ -91,3 +91,9 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 - Tooling AI (Laravel Boost, skill agent, MCP, dan file panduan agent) dihapus
   dari repo. `symfony/yaml` ditambahkan eksplisit sebagai dev dependency karena
   dipakai `ApiContractTest`. Test suite tetap 20 lulus, 827 assertions.
+- Menyiapkan deployment Vercel via Container (Dockerfile + FrankenPHP + Caddyfile + vercel.json).
+- Menambahkan integrasi Supabase Storage berbasis S3 protocol via `league/flysystem-aws-s3-v3`.
+- Menambahkan alur presigned direct upload untuk berkas besar agar lolos limit Vercel 4.5 MB:
+  admin image upload-url, guru material upload-url & upload-confirm, serta siswa submission upload-url.
+- Koleksi Postman dan kontrak OpenAPI diperbarui sinkron menjadi 136 route unik (138 request Postman).
+- Test suite berkembang menjadi 26 lulus, 865 assertions.

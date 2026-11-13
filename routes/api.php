@@ -105,6 +105,7 @@ Route::prefix('v1')->group(function (): void {
         Route::patch('/videos/{video}', [ContentController::class, 'updateVideo']);
         Route::delete('/videos/{video}', [ContentController::class, 'destroyVideo']);
         Route::post('/uploads/{context}', [ContentController::class, 'upload']);
+        Route::post('/uploads/{context}/url', [ContentController::class, 'presignUpload']);
         Route::post('/attempts/{attempt}/reset', [ExamController::class, 'resetAttempt']);
         Route::post('/attempts/{attempt}/terminate', [ExamController::class, 'terminateManaged']);
         Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
@@ -115,6 +116,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/materials', [LmsController::class, 'storeMaterial']);
         Route::patch('/materials/{material}', [LmsController::class, 'updateMaterial']);
         Route::post('/materials/{material}/file', [LmsController::class, 'uploadMaterialFile']);
+        Route::post('/materials/{material}/upload-url', [LmsController::class, 'presignMaterialUpload']);
+        Route::post('/materials/{material}/upload-confirm', [LmsController::class, 'confirmMaterialUpload']);
         Route::delete('/materials/{material}', [LmsController::class, 'destroyMaterial']);
         Route::post('/materials/{material}/publish', [LmsController::class, 'publishMaterial']);
         Route::get('/assignments', [LmsController::class, 'teacherAssignments']);
@@ -150,6 +153,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/assignments', [LmsController::class, 'studentAssignments']);
         Route::get('/assignments/{assignment}', [LmsController::class, 'studentAssignment']);
         Route::post('/assignments/{assignment}/submissions', [LmsController::class, 'submitAssignment']);
+        Route::post('/assignments/{assignment}/upload-url', [LmsController::class, 'presignSubmissionUpload']);
         Route::get('/submissions', [LmsController::class, 'studentSubmissions']);
         Route::get('/grades', [LmsController::class, 'studentGrades']);
         Route::get('/attendance', [AttendanceController::class, 'studentIndex']);

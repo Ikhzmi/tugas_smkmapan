@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Upload Disks
+    |--------------------------------------------------------------------------
+    |
+    | Disk yang dipakai endpoint upload. Secara default memakai disk lokal agar
+    | development dan test tetap berjalan tanpa kredensial cloud. Saat deploy
+    | (mis. Vercel) arahkan ke disk Supabase Storage di bawah.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 'public'),
+    'private_disk' => env('PRIVATE_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -56,6 +70,40 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        /*
+         * Supabase Storage memakai protokol S3. Kunci akses hanya disimpan di
+         * server; mobile tidak pernah menerima kredensial ini.
+         *
+         * - supabase        : bucket privat (materi, berkas tugas)
+         * - supabase-public : bucket publik (gambar CMS)
+         */
+        'supabase' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION', 'ap-northeast-2'),
+            'bucket' => env('SUPABASE_S3_BUCKET'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'request_checksum_calculation' => 'when_required',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'supabase-public' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION', 'ap-northeast-2'),
+            'bucket' => env('SUPABASE_S3_PUBLIC_BUCKET'),
+            'url' => env('SUPABASE_S3_PUBLIC_URL'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'request_checksum_calculation' => 'when_required',
             'throw' => false,
             'report' => false,
         ],

@@ -5,6 +5,7 @@
 !.env.example
 tests/
 database/database.sqlite
+database/seed-assets/
 docs/
 composer.lock
 node_modules/

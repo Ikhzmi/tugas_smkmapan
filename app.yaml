@@ -32,6 +32,8 @@ env:
   PRIVATE_DISK: supabase
   SUPABASE_S3_REGION: ap-northeast-2
   SUPABASE_S3_ENDPOINT: "https://kwxfkacounktglsrtnap.supabase.co/storage/v1/s3"
+  SUPABASE_S3_KEY: "9e0277d7cd76f2c71bb83e2171c9b436"
+  SUPABASE_S3_SECRET: "8c1cfba7ee855156868292520dfddc70c6c9643386af5ec7222485887b81540c"
   SUPABASE_S3_BUCKET: smkm8-private
   SUPABASE_S3_PUBLIC_BUCKET: smkm8-public
   SUPABASE_S3_PUBLIC_URL: "https://kwxfkacounktglsrtnap.supabase.co/storage/v1/object/public/smkm8-public"

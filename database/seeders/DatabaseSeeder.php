@@ -12,7 +12,6 @@ use App\Models\Material;
 use App\Models\Question;
 use App\Models\Schedule;
 use App\Models\SchoolClass;
-use App\Models\SiteSetting;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -25,140 +24,180 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::query()->create([
-            'name' => 'Administrator SMKM 8 Medan',
-            'username' => 'admin',
-            'email' => 'admin@smkm8medan.test',
-            'password' => 'password',
-            'role' => 'admin',
-        ]);
+        // Konten asli sekolah (identitas, jurusan, guru, fasilitas, galeri,
+        // eskul, video) — dipakai landing page & CMS, terpasang di semua
+        // lingkungan.
+        $this->call(SchoolContentSeeder::class);
 
-        $majors = collect([
-            ['kode' => 'TKJ', 'nama' => 'Teknik Komputer dan Jaringan'],
-            ['kode' => 'DKV', 'nama' => 'Desain Komunikasi Visual'],
-        ])->mapWithKeys(function (array $attributes): array {
-            $major = Major::query()->create($attributes + [
-                'deskripsi' => 'Program keahlian contoh untuk development.',
-                'kurikulum' => ['produktif', 'projek'],
-                'karir' => ['Teknisi', 'Desainer'],
-            ]);
-
-            return [$major->kode => $major];
-        });
-
-        $teachers = collect(range(1, 3))->map(function (int $number): Teacher {
-            $user = User::query()->create([
-                'name' => 'Guru '.$number,
-                'username' => 'guru'.$number,
-                'email' => 'guru'.$number.'@smkm8medan.test',
+        // Akun administrator.
+        User::query()->updateOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'Administrator SMKM 8 Medan',
+                'email' => 'admin@smkm8medan.test',
                 'password' => 'password',
-                'role' => 'guru',
-            ]);
+                'role' => 'admin',
+            ],
+        );
 
-            return Teacher::query()->create([
-                'user_id' => $user->getKey(),
-                'nama' => 'Guru '.$number,
-                'gelar' => 'S.Pd.',
-                'jabatan' => 'Guru Mata Pelajaran',
-                'department' => $number % 2 === 0 ? 'DKV' : 'TKJ',
-                'email' => $user->email,
-                'jam_kerja' => '07:30–14:00',
-            ]);
+        // Data contoh LMS (kelas, siswa, jadwal, materi, tugas, ujian) hanya
+        // untuk pengembangan — supaya database produksi tidak berisi data demo.
+        if (! app()->isProduction()) {
+            $this->seedLmsDemo();
+        }
+
+        Artisan::call('db:secure-rls');
+    }
+
+    /**
+     * Data contoh LMS untuk lingkungan pengembangan. Jurusan mengambil dari
+     * konten asli (SchoolContentSeeder), bukan placeholder.
+     */
+    private function seedLmsDemo(): void
+    {
+        $majors = Major::query()->whereIn('kode', ['TKJ', 'DKV'])
+            ->get()->keyBy('kode');
+
+        $tkj = $majors->get('TKJ');
+        $dkv = $majors->get('DKV');
+
+        if (! $tkj || ! $dkv) {
+            $this->command?->warn('  [demo] Jurusan TKJ/DKV tidak ditemukan, lewati data demo LMS.');
+
+            return;
+        }
+
+        // Akun guru contoh untuk uji login LMS (bukan tenaga pendidik asli).
+        $teachers = collect(range(1, 3))->map(function (int $number): Teacher {
+            $user = User::query()->updateOrCreate(
+                ['username' => 'guru'.$number],
+                [
+                    'name' => 'Guru '.$number,
+                    'email' => 'guru'.$number.'@smkm8medan.test',
+                    'password' => 'password',
+                    'role' => 'guru',
+                ],
+            );
+
+            return Teacher::query()->updateOrCreate(
+                ['nama' => 'Guru '.$number],
+                [
+                    'user_id' => $user->getKey(),
+                    'gelar' => 'S.Pd.',
+                    'jabatan' => 'Guru Mata Pelajaran',
+                    'department' => $number % 2 === 0 ? 'DKV' : 'TKJ',
+                    'email' => $user->email,
+                    'jam_kerja' => '07:30–14:00',
+                ],
+            );
         });
 
         $classes = collect([
-            ['nama' => 'X TKJ 1', 'tingkat' => 10, 'tahun_ajaran' => '2026/2027', 'major_id' => $majors['TKJ']->getKey()],
-            ['nama' => 'X DKV 1', 'tingkat' => 10, 'tahun_ajaran' => '2026/2027', 'major_id' => $majors['DKV']->getKey()],
-        ])->map(fn (array $attributes): SchoolClass => SchoolClass::query()->create($attributes + ['wali_kelas_id' => $teachers->first()->getKey()]));
+            ['nama' => 'X TKJ 1', 'tingkat' => 10, 'tahun_ajaran' => '2026/2027', 'major_id' => $tkj->getKey()],
+            ['nama' => 'X DKV 1', 'tingkat' => 10, 'tahun_ajaran' => '2026/2027', 'major_id' => $dkv->getKey()],
+        ])->map(fn (array $attributes): SchoolClass => SchoolClass::query()->updateOrCreate(
+            ['nama' => $attributes['nama']],
+            $attributes + ['wali_kelas_id' => $teachers->first()->getKey()],
+        ));
 
         foreach (range(1, 10) as $number) {
             $class = $classes->get(($number - 1) % 2);
             $nisn = '202600'.str_pad((string) $number, 4, '0', STR_PAD_LEFT);
-            $user = User::query()->create([
-                'name' => 'Siswa '.$number,
-                'username' => $nisn,
-                'email' => null,
-                'password' => 'password',
-                'role' => 'siswa',
-            ]);
-            Student::query()->create([
-                'user_id' => $user->getKey(),
-                'nisn' => $nisn,
-                'nis' => 'NIS'.$number,
-                'nama' => 'Siswa '.$number,
-                'class_id' => $class->getKey(),
-            ]);
+            $user = User::query()->updateOrCreate(
+                ['username' => $nisn],
+                [
+                    'name' => 'Siswa '.$number,
+                    'email' => null,
+                    'password' => 'password',
+                    'role' => 'siswa',
+                ],
+            );
+            Student::query()->updateOrCreate(
+                ['nisn' => $nisn],
+                [
+                    'user_id' => $user->getKey(),
+                    'nis' => 'NIS'.$number,
+                    'nama' => 'Siswa '.$number,
+                    'class_id' => $class->getKey(),
+                ],
+            );
         }
 
         $subjects = collect([
-            ['kode' => 'PBO', 'nama' => 'Pemrograman Berorientasi Objek', 'major_id' => $majors['TKJ']->getKey()],
-            ['kode' => 'DKV', 'nama' => 'Dasar Desain Komunikasi Visual', 'major_id' => $majors['DKV']->getKey()],
-        ])->map(fn (array $attributes): Subject => Subject::query()->create($attributes));
+            ['kode' => 'PBO', 'nama' => 'Pemrograman Berorientasi Objek', 'major_id' => $tkj->getKey()],
+            ['kode' => 'DKV', 'nama' => 'Dasar Desain Komunikasi Visual', 'major_id' => $dkv->getKey()],
+        ])->map(fn (array $attributes): Subject => Subject::query()->updateOrCreate(
+            ['kode' => $attributes['kode']],
+            $attributes,
+        ));
 
         foreach ($classes as $classIndex => $class) {
-            Schedule::query()->create([
-                'class_id' => $class->getKey(),
-                'subject_id' => $subjects->get($classIndex)->getKey(),
-                'teacher_id' => $teachers->get($classIndex)->getKey(),
-                'hari' => 'senin',
-                'jam_mulai' => '07:30',
-                'jam_selesai' => '09:00',
-            ]);
+            Schedule::query()->updateOrCreate(
+                [
+                    'class_id' => $class->getKey(),
+                    'subject_id' => $subjects->get($classIndex)->getKey(),
+                    'hari' => 'senin',
+                ],
+                [
+                    'teacher_id' => $teachers->get($classIndex)->getKey(),
+                    'jam_mulai' => '07:30',
+                    'jam_selesai' => '09:00',
+                ],
+            );
         }
 
         $teacher = $teachers->first();
         $class = $classes->first();
         $subject = $subjects->first();
-        Material::query()->create([
-            'teacher_id' => $teacher->getKey(),
-            'subject_id' => $subject->getKey(),
-            'class_id' => $class->getKey(),
-            'judul' => 'Pengenalan Pemrograman',
-            'deskripsi' => 'Materi contoh untuk development.',
-            'tipe' => 'teks',
-            'is_published' => true,
-        ]);
-        Assignment::query()->create([
-            'teacher_id' => $teacher->getKey(),
-            'subject_id' => $subject->getKey(),
-            'class_id' => $class->getKey(),
-            'judul' => 'Latihan Algoritma Dasar',
-            'deskripsi' => 'Kumpulkan jawaban dalam bentuk dokumen.',
-            'deadline' => now()->addDays(7),
-            'is_published' => true,
-        ]);
+        Material::query()->updateOrCreate(
+            ['judul' => 'Pengenalan Pemrograman', 'class_id' => $class->getKey()],
+            [
+                'teacher_id' => $teacher->getKey(),
+                'subject_id' => $subject->getKey(),
+                'deskripsi' => 'Materi contoh untuk development.',
+                'tipe' => 'teks',
+                'is_published' => true,
+            ],
+        );
+        Assignment::query()->updateOrCreate(
+            ['judul' => 'Latihan Algoritma Dasar', 'class_id' => $class->getKey()],
+            [
+                'teacher_id' => $teacher->getKey(),
+                'subject_id' => $subject->getKey(),
+                'deskripsi' => 'Kumpulkan jawaban dalam bentuk dokumen.',
+                'deadline' => now()->addDays(7),
+                'is_published' => true,
+            ],
+        );
 
-        $exam = Exam::query()->create([
-            'teacher_id' => $teacher->getKey(),
-            'subject_id' => $subject->getKey(),
-            'judul' => 'Ujian Contoh Pemrograman',
-            'deskripsi' => 'Ujian development dengan sepuluh soal.',
-            'durasi_menit' => 60,
-            'waktu_mulai' => now()->subHour(),
-            'waktu_selesai' => now()->addDays(7),
-            'is_active' => true,
-            'butuh_kode' => true,
-            'acak_soal' => true,
-        ]);
-        ExamCode::query()->create(['exam_id' => $exam->getKey(), 'code' => 'SMK268', 'is_active' => true]);
+        $exam = Exam::query()->updateOrCreate(
+            ['judul' => 'Ujian Contoh Pemrograman'],
+            [
+                'teacher_id' => $teacher->getKey(),
+                'subject_id' => $subject->getKey(),
+                'deskripsi' => 'Ujian development dengan sepuluh soal.',
+                'durasi_menit' => 60,
+                'waktu_mulai' => now()->subHour(),
+                'waktu_selesai' => now()->addDays(7),
+                'is_active' => true,
+                'butuh_kode' => true,
+                'acak_soal' => true,
+            ],
+        );
+        ExamCode::query()->updateOrCreate(
+            ['exam_id' => $exam->getKey()],
+            ['code' => 'SMK268', 'is_active' => true],
+        );
         foreach (range(1, 10) as $number) {
-            Question::query()->create([
-                'exam_id' => $exam->getKey(),
-                'tipe' => 'pg',
-                'pertanyaan' => 'Soal contoh nomor '.$number,
-                'opsi' => ['A' => 'Pilihan A', 'B' => 'Pilihan B', 'C' => 'Pilihan C', 'D' => 'Pilihan D'],
-                'kunci_jawaban' => 'A',
-                'bobot' => 1,
-            ]);
+            Question::query()->updateOrCreate(
+                ['exam_id' => $exam->getKey(), 'pertanyaan' => 'Soal contoh nomor '.$number],
+                [
+                    'tipe' => 'pg',
+                    'opsi' => ['A' => 'Pilihan A', 'B' => 'Pilihan B', 'C' => 'Pilihan C', 'D' => 'Pilihan D'],
+                    'kunci_jawaban' => 'A',
+                    'bobot' => 1,
+                ],
+            );
         }
-
-        SiteSetting::query()->create(['key' => 'sekolah', 'value' => ['nama' => 'SMKM 8 Medan', 'npsn' => '00000000']]);
-        SiteSetting::query()->create(['key' => 'hero', 'value' => ['eyebrow' => 'Sekolah Menengah Kejuruan']]);
-        SiteSetting::query()->create(['key' => 'ujian', 'value' => ['fitur_aktif' => true]]);
-        Facility::query()->create(['judul' => 'Laboratorium Komputer', 'deskripsi' => 'Fasilitas pembelajaran digital.', 'is_active' => true]);
-        Gallery::query()->create(['judul' => 'Kegiatan Sekolah', 'deskripsi' => 'Contoh galeri.', 'is_active' => true]);
-        Video::query()->create(['judul' => 'Profil SMKM 8 Medan', 'kategori' => 'showreel', 'is_published' => true]);
-
-        Artisan::call('db:secure-rls');
     }
 }

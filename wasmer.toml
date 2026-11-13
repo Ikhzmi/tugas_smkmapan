@@ -1,6 +1,6 @@
 [package]
 name = "ikhzmi/smkm8medan-api"
-version = "0.1.5"
+version = "0.1.7"
 description = "SMKM 8 Medan REST API on Wasmer Edge"
 license = "MIT"
 private = false

@@ -101,6 +101,31 @@ Semua akun seeder memakai password `password` dan hanya untuk development:
 Ganti password sebelum demo. Password tidak dikembalikan endpoint dan tidak
 ditulis ke log.
 
+## Seeder konten sekolah
+
+`SchoolContentSeeder` (dipanggil otomatis oleh `DatabaseSeeder`) mengisi data
+asli sekolah yang dipakai landing page & CMS: identitas sekolah, hero, profil
+(visi/misi/sejarah/kartu kepala sekolah), copy semua section, tampilan, 4
+program keahlian, 24 tenaga pendidik, fasilitas (utama + pendukung), galeri,
+ekstrakurikuler, dan video profil.
+
+- **Aset foto** diunggah ke disk media (Supabase Storage) dari
+  `database/seed-assets/` — URL tersimpan di kolom `*_url` database. Berkas
+  tidak ada → seeder tetap jalan tanpa foto (aman untuk seed ulang di server).
+- **Idempotent**: `updateOrCreate` berdasarkan kunci unik (kode jurusan, nama
+  guru, judul galeri/fasilitas/eskul), aman dijalankan berulang. Placeholder
+  lama ("Guru 1", "Laboratorium Komputer", "Kegiatan Sekolah", "Profil SMKM 8
+  Medan") otomatis dihapus.
+- **Data demo LMS** (kelas, siswa, jadwal, ujian) hanya dibuat saat
+  `APP_ENV` bukan `production`.
+
+Jalankan:
+
+```bash
+php artisan db:seed                    # semua (konten + akun + demo di dev)
+php artisan db:seed --class=SchoolContentSeeder   # hanya konten sekolah
+```
+
 ## Endpoint
 
 Kontrak lengkap dan contoh request ada di [`docs/API.md`](docs/API.md). Koleksi

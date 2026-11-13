@@ -1,6 +1,9 @@
 # API Contract v1
 
-Base URL: `http://smkm8medan-api.test/api/v1`  
+Base URL: `https://smkm8medan-api.test/api/v1`  
+Gunakan HTTPS langsung. URL `http://` me-redirect 301 dan klien seperti Postman
+dapat mengubah POST menjadi GET sehingga muncul `405 Method Not Allowed`.
+
 Header privat: `Accept: application/json` dan `Authorization: Bearer <token>`.
 
 ## Respons

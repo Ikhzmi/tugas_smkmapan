@@ -94,7 +94,7 @@ test('postman collection is valid and covers core role flows', function () {
     $collection = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
 
     expect($collection['info']['name'])->toBe('SMKM 8 Medan API v1')
-        ->and($collection['variable'])->toContainEqual(['key' => 'base_url', 'value' => 'http://smkm8medan-api.test/api/v1']);
+        ->and($collection['variable'])->toContainEqual(['key' => 'base_url', 'value' => 'https://smkm8medan-api.test/api/v1']);
 
     $requests = [];
 

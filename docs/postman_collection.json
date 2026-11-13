@@ -1,11 +1,11 @@
 {
   "info": {
     "name": "SMKM 8 Medan API v1",
-    "description": "Import this collection into Postman. Set token from POST /auth/login.",
+    "description": "Import this collection into Postman. Set token from POST /auth/login. Gunakan base_url HTTPS; URL HTTP akan di-redirect 301 dan Postman mengubah POST menjadi GET sehingga muncul 405.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://smkm8medan-api.test/api/v1" },
+    { "key": "base_url", "value": "https://smkm8medan-api.test/api/v1" },
     { "key": "token", "value": "" },
     { "key": "admin_email", "value": "admin@smkm8medan.test" },
     { "key": "dev_password", "value": "password" },

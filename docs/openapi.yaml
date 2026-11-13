@@ -6,8 +6,8 @@ info:
     Laravel REST API untuk Web SMKM 8 Medan dan handoff mobile. Database
     diakses hanya melalui Laravel; autentikasi menggunakan Sanctum.
 servers:
-  - url: http://smkm8medan-api.test/api/v1
-    description: Herd development
+  - url: https://smkm8medan-api.test/api/v1
+    description: Herd development (wajib HTTPS; HTTP me-redirect POST menjadi GET)
 tags:
   - name: Health
   - name: Auth

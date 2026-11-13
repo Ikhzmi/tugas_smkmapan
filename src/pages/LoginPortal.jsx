@@ -15,7 +15,7 @@ import {
   takeNotice,
   clearNotice,
 } from '../lib/sessionGuard';
-import { supabase } from '../lib/supabase';
+import { logout as apiLogout } from '../lib/auth';
 import { useTheme } from '../hooks/useTheme';
 import LightTunnel from '../components/backgrounds/LightTunnel';
 import TeddyMascot from '../components/login/TeddyMascot';
@@ -59,7 +59,7 @@ export default function LoginPortal() {
           setNoticeMsg(message);
           resetSessionCache();
           try {
-            await supabase.auth.signOut({ scope: 'local' });
+            await apiLogout();
           } catch { /* biarkan form login tampil */ }
           return;
         }
@@ -98,38 +98,23 @@ export default function LoginPortal() {
     setLoading(true);
     markFreshLogin();
     try {
-      if (/^\d+$/.test(id)) {
-        try {
-          await signInSiswa(id, password);
-        } catch {
-          await signInEmail(emailForUsername(id), password);
-        }
-      } else {
-        await signInEmail(emailForUsername(id), password);
-      }
+      // API menerima NISN (siswa), username, atau email sebagai identifier.
+      const data = /^\d+$/.test(id)
+        ? await signInSiswa(id, password)
+        : await signInEmail(emailForUsername(id), password);
 
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        throw new Error('Sesi login tidak terbentuk. Coba lagi.');
-      }
-
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authUser.id)
-        .maybeSingle();
-
-      const target = prof?.role === 'guru'
+      const role = data?.user?.role;
+      const target = role === 'guru'
         ? '/guru/dashboard'
-        : prof?.role === 'siswa'
+        : role === 'siswa'
           ? '/lms/dashboard'
-          : prof?.role === 'admin'
+          : role === 'admin'
             ? '/admin/dashboard'
             : '';
 
       if (!target) {
         cancelFreshLogin();
-        await supabase.auth.signOut({ scope: 'local' });
+        await apiLogout();
         setError('Akun ini tidak memiliki akses ke portal.');
         return;
       }
@@ -137,21 +122,21 @@ export default function LoginPortal() {
       // Aturan 1 akun = 1 perangkat: kalau akun masih aktif di perangkat lain,
       // login ini DITOLAK dan sesi yang sedang berjalan tidak diganggu.
       // Hanya guru/siswa; admin bebas login di banyak perangkat.
-      if (prof?.role === 'guru' || prof?.role === 'siswa') {
+      if (role === 'guru' || role === 'siswa') {
         const sesi = await ensureSession();
         if (sesi.status === 'conflict') {
           resetSessionCache();
-          await supabase.auth.signOut({ scope: 'local' });
+          await apiLogout();
           setError(conflictNotice(sesi.otherLabel));
           return;
         }
         if (sesi.status === 'expired' || sesi.status === 'revoked') {
           resetSessionCache();
-          await supabase.auth.signOut({ scope: 'local' });
+          await apiLogout();
           setError(sesi.status === 'expired' ? SESSION_NOTICE.expired : SESSION_NOTICE.revoked);
           return;
         }
-      } else if (prof?.role === 'admin') {
+      } else if (role === 'admin') {
         // Jangan tinggalkan flag fresh-login yang bisa memicu klaim sesi
         // kalau ada kode lain memanggil ensureSession setelah ini.
         cancelFreshLogin();
@@ -165,7 +150,11 @@ export default function LoginPortal() {
       navigate(target);
     } catch (err) {
       cancelFreshLogin();
-      setError(err.message || 'Kredensial salah. Coba lagi.');
+      if (err?.status === 409 || err?.code === 'SESSION_CONFLICT') {
+        setError(conflictNotice(err?.data?.other_device_label));
+      } else {
+        setError(err.message || 'Kredensial salah. Coba lagi.');
+      }
     } finally {
       setLoading(false);
     }

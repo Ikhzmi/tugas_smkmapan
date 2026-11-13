@@ -1,89 +1,99 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { getToken, getStoredUser, onAuthChange } from '../lib/api';
+import { login as apiLogin, logout as apiLogout, fetchMe } from '../lib/auth';
 import {
   releaseUserSession, clearLocalSession, resetSessionCache, clearResumeFlag,
 } from '../lib/sessionGuard';
 
-export const emailForNisn = (nisn) => `${String(nisn).trim()}@siswa.smkmuh8.sch.id`;
+// Identifier siswa = NISN; guru/admin = username atau email.
+// API yang menerjemahkan identifier, jadi tidak ada lagi email sintetis.
+export const emailForNisn = (nisn) => String(nisn).trim();
 
-export const emailForUsername = (username) => {
-  const v = String(username ?? '').trim().toLowerCase();
-  if (!v) return v;
-  // Kalau user mengetik email lengkap, jangan ditempel domain lagi.
-  return v.includes('@') ? v : `${v}@smkmuh8.sch.id`;
-};
+export const emailForUsername = (username) => String(username ?? '').trim();
+
+const toProfile = (user) => (user ? {
+  id: user.id,
+  nama: user.name,
+  role: user.role,
+  foto_url: user.foto_url || null,
+  username: user.username || null,
+  email: user.email || null,
+  teacher_id: user.teacher_id || null,
+  student_id: user.student_id || null,
+} : null);
 
 export function useAuth() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const activeUidRef = useRef('');
+  const [user, setUser] = useState(() => (getToken() ? getStoredUser() : null));
+  const [profile, setProfile] = useState(() => (getToken() ? toProfile(getStoredUser()) : null));
+  const [loading, setLoading] = useState(() => !!getToken());
 
-  const fetchProfile = useCallback(async (uid) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, nama, role, foto_url')
-      .eq('id', uid)
-      .single();
-    // Abaikan hasil profil lama kalau akun sudah berganti.
-    if (activeUidRef.current !== uid) return;
-    if (!error) setProfile(data);
+  const syncUser = useCallback((nextUser) => {
+    setUser(nextUser || null);
+    setProfile(toProfile(nextUser));
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    const syncUser = (nextUser) => {
-      const nextId = nextUser?.id || '';
-      activeUidRef.current = nextId;
-      setUser(nextUser);
-      // Profil lama tidak boleh dipakai untuk akun baru: ini sumber race
-      // yang membuat admin sempat dianggap guru/siswa oleh session guard.
-      setProfile((prev) => (prev && prev.id !== nextId ? null : prev));
+    let alive = true;
 
-      if (nextUser) fetchProfile(nextUser.id);
-      else setLoading(false);
+    const boot = async () => {
+      if (!getToken()) {
+        syncUser(null);
+        return;
+      }
+      try {
+        const me = await fetchMe();
+        if (alive) syncUser(me);
+      } catch (err) {
+        if (!alive) return;
+        if (err?.status === 401 || err?.status === 403) {
+          // Token kedaluwarsa / dicabut: bersihkan sesi lokal.
+          syncUser(null);
+        } else {
+          // Server tidak terjangkau: pakai profil tersimpan (mode offline).
+          syncUser(getStoredUser());
+        }
+      }
     };
+    boot();
 
-    supabase.auth.getSession().then(({ data }) => {
-      syncUser(data.session?.user ?? null);
+    const off = onAuthChange(() => {
+      if (!alive) return;
+      if (!getToken()) {
+        syncUser(null);
+        return;
+      }
+      const stored = getStoredUser();
+      if (stored) syncUser(stored);
     });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      syncUser(session?.user ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [fetchProfile]);
+    return () => { alive = false; off(); };
+  }, [syncUser]);
 
   const signInSiswa = async (nisn, password) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: emailForNisn(nisn),
-      password,
-    });
-    if (error) throw new Error('NISN atau kata sandi salah.');
+    const data = await apiLogin(nisn, password);
+    syncUser(data.user);
+    return data;
   };
 
-  const signInEmail = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw new Error('Email atau kata sandi salah.');
+  const signInEmail = async (identifier, password) => {
+    const data = await apiLogin(identifier, password);
+    syncUser(data.user);
+    return data;
   };
 
   const signOut = async () => {
     // Admin tidak terikat aturan 1 akun 1 perangkat: jangan sentuh sesi server.
-    if (profile?.role === 'admin') {
-      clearLocalSession();
-    } else {
+    if (profile?.role !== 'admin') {
       try {
         await releaseUserSession();
       } catch { /* offline: sesi akan kedaluwarsa sendiri */ }
+    } else {
+      clearLocalSession();
     }
     resetSessionCache();
     clearResumeFlag();
-    // 'local' = hanya perangkat ini yang keluar. Default Supabase adalah
-    // 'global' yang ikut mencabut sesi akun yang sama di semua perangkat —
-    // ini yang bikin sesi admin saling menendang.
-    await supabase.auth.signOut({ scope: 'local' });
-    setUser(null);
-    setProfile(null);
+    await apiLogout();
+    syncUser(null);
   };
 
   return { user, profile, loading, signInSiswa, signInEmail, signOut };

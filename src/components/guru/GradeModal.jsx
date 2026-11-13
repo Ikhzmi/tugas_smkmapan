@@ -4,7 +4,7 @@ import {
   MessageSquare, Star, Loader2
 } from 'lucide-react';
 import GuruModal from './GuruModal';
-import { supabase } from '../../lib/supabase';
+import { apiGet } from '../../lib/api';
 import './GradeModal.css';
 
 const QUICK_SCORES = [60, 70, 75, 80, 85, 90, 95, 100];
@@ -28,24 +28,22 @@ export default function GradeModal({ open, submission, assignment, onClose, onSa
 
   if (!submission) return null;
 
-  const isStoragePath = String(submission.file_url || '').startsWith('tugas://');
+  const hasFile = !!(submission.file_url || submission.file_path);
+  const isLink = /^https?:\/\//i.test(String(submission.file_url || ''));
 
   const openFile = async () => {
-    if (!submission.file_url) return;
-    if (!isStoragePath) {
-      window.open(submission.file_url, '_blank', 'noopener');
-      return;
-    }
+    if (!hasFile) return;
     setOpenBusy(true);
     setFileError('');
-    const path = submission.file_url.replace('tugas://', '');
-    const { data, error } = await supabase.storage.from('tugas').createSignedUrl(path, 3600);
-    setOpenBusy(false);
-    if (error || !data?.signedUrl) {
-      setFileError(error?.message || 'Gagal membuka berkas.');
-      return;
+    try {
+      const data = await apiGet(`/guru/submissions/${submission.id}/download`);
+      if (!data?.url) throw new Error('Gagal membuka berkas.');
+      window.open(data.url, '_blank', 'noopener');
+    } catch (err) {
+      setFileError(err.message || 'Gagal membuka berkas.');
+    } finally {
+      setOpenBusy(false);
     }
-    window.open(data.signedUrl, '_blank', 'noopener');
   };
 
   const submit = () => {
@@ -119,7 +117,7 @@ export default function GradeModal({ open, submission, assignment, onClose, onSa
 
           <div className="grm-block">
             <span className="grm-meta-label"><Paperclip size={12} /> Berkas / tautan</span>
-            {submission.file_url ? (
+            {hasFile ? (
               <>
                 <button
                   type="button"
@@ -129,12 +127,10 @@ export default function GradeModal({ open, submission, assignment, onClose, onSa
                 >
                   {openBusy ? <Loader2 size={14} className="gm-spin" /> : <ExternalLink size={14} />}
                   <span>
-                    {isStoragePath
-                      ? submission.file_url.replace('tugas://', '').split('/').pop()
-                      : 'Buka tautan tugas'}
+                    {submission.file_name || (isLink ? 'Buka tautan tugas' : 'Buka berkas')}
                   </span>
                 </button>
-                {!isStoragePath && (
+                {isLink && (
                   <p className="grm-file-url">{submission.file_url}</p>
                 )}
               </>

@@ -4,7 +4,7 @@ import {
   ShieldCheck, UserPlus, Trash2, KeyRound, RefreshCw, AlertCircle, X, Search,
   ChevronLeft, ChevronRight,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import { TableSkeleton } from './ui/Skeleton';
 import './AdminPeopleManager.css';
 
@@ -31,10 +31,14 @@ export default function AdminAccountManager({ onNotify }) {
   const [resetPw, setResetPw] = useState('');
 
   const load = useCallback(async () => {
-    const { data, error: err } = await supabase.rpc('admin_list_accounts');
     setError('');
-    if (err) setError(err.message);
-    setRows(data || []);
+    try {
+      const items = await apiListAll('/admin/accounts');
+      setRows(items.map((r) => ({ ...r, login_terakhir: r.last_login_at })));
+    } catch (err) {
+      setError(err.message);
+      setRows([]);
+    }
     setLoading(false);
   }, []);
 
@@ -74,13 +78,13 @@ export default function AdminAccountManager({ onNotify }) {
     setError('');
     setModalError('');
     try {
-      const { error: err } = await supabase.rpc('admin_create_account', {
-        p_email: form.email.trim(),
-        p_password: form.password,
-        p_nama: form.nama.trim(),
-        p_role: form.role,
+      await apiPost('/admin/accounts', {
+        name: form.nama.trim(),
+        email: form.email.trim(),
+        role: form.role,
+        password: form.password,
+        password_confirmation: form.password,
       });
-      if (err) throw err;
       onNotify?.(`Akun ${form.email.trim().toLowerCase()} berhasil dibuat.`);
       setForm(null);
       await load();
@@ -95,11 +99,9 @@ export default function AdminAccountManager({ onNotify }) {
   const handleRole = async (row, role) => {
     if (role === row.role) return;
     setError('');
-    const { error: err } = await supabase.rpc('admin_set_role', {
-      p_user_id: row.user_id,
-      p_role: role,
-    });
-    if (err) {
+    try {
+      await apiPatch(`/admin/accounts/${row.user_id}/role`, { role });
+    } catch (err) {
       setError(err.message);
       return;
     }
@@ -110,8 +112,9 @@ export default function AdminAccountManager({ onNotify }) {
   const handleDelete = async (row) => {
     if (!window.confirm(`Hapus akun ${row.email} (role: ${row.role})? Data guru/siswa yang tertaut tidak ikut terhapus, hanya tautan akunnya yang dilepas.`)) return;
     setError('');
-    const { error: err } = await supabase.rpc('admin_delete_account', { p_user_id: row.user_id });
-    if (err) {
+    try {
+      await apiDelete(`/admin/accounts/${row.user_id}`);
+    } catch (err) {
       setError(err.message);
       return;
     }
@@ -125,11 +128,10 @@ export default function AdminAccountManager({ onNotify }) {
     setError('');
     setModalError('');
     try {
-      const { error: err } = await supabase.rpc('admin_reset_password', {
-        p_user_id: resetTarget.user_id,
-        p_password: resetPw,
+      await apiPost(`/admin/accounts/${resetTarget.user_id}/reset-password`, {
+        password: resetPw,
+        password_confirmation: resetPw,
       });
-      if (err) throw err;
       onNotify?.(`Kata sandi ${resetTarget.email} berhasil direset.`);
       setResetTarget(null);
       setResetPw('');
@@ -395,8 +397,8 @@ export default function AdminAccountManager({ onNotify }) {
                     </select>
                   </div>
                   <div className="apm-field">
-                    <label>Kata sandi awal * (min. 6 karakter)</label>
-                    <input className="apm-input" type="text" value={form.password} onChange={set('password')} required minLength={6} />
+                    <label>Kata sandi awal * (min. 8 karakter)</label>
+                    <input className="apm-input" type="text" value={form.password} onChange={set('password')} required minLength={8} />
                   </div>
                   <div className="apm-hint apm-field-full">
                     Supaya sesuai alur login website: guru/admin memakai
@@ -440,7 +442,7 @@ export default function AdminAccountManager({ onNotify }) {
                   Akun: <code>{resetTarget.email}</code> ({resetTarget.nama})
                 </div>
                 <div className="apm-field apm-field-full">
-                  <label>Kata sandi baru * (min. 6 karakter)</label>
+                  <label>Kata sandi baru * (min. 8 karakter)</label>
                   <input
                     className="apm-input"
                     type="text"
@@ -448,7 +450,7 @@ export default function AdminAccountManager({ onNotify }) {
                     onChange={(e) => setResetPw(e.target.value)}
                     placeholder="Kata sandi baru"
                     required
-                    minLength={6}
+                    minLength={8}
                     autoFocus
                   />
                 </div>

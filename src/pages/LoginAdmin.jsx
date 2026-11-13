@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth, emailForUsername } from '../hooks/useAuth';
 import { clearNotice, cancelFreshLogin } from '../lib/sessionGuard';
-import { supabase } from '../lib/supabase';
+import { logout as apiLogout } from '../lib/auth';
 import { useTheme } from '../hooks/useTheme';
 import LightTunnel from '../components/backgrounds/LightTunnel';
 import TeddyMascot from '../components/login/TeddyMascot';
@@ -48,19 +48,9 @@ export default function LoginAdmin() {
 
     setLoading(true);
     try {
-      await signInEmail(emailForUsername(username), password);
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        throw new Error('Sesi login tidak terbentuk.');
-      }
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authUser.id)
-        .maybeSingle();
-
-      if (prof?.role !== 'admin') {
-        await supabase.auth.signOut({ scope: 'local' });
+      const data = await signInEmail(emailForUsername(username), password);
+      if (data?.user?.role !== 'admin') {
+        await apiLogout();
         setError('Akun ini tidak memiliki akses admin.');
         return;
       }
@@ -69,8 +59,8 @@ export default function LoginAdmin() {
       // pemeriksaan sesi di sini.
       clearNotice();
       navigate('/admin/dashboard');
-    } catch {
-      setError('Kredensial tidak valid. Hubungi IT Administrator.');
+    } catch (err) {
+      setError(err?.message || 'Kredensial tidak valid. Hubungi IT Administrator.');
     } finally {
       setLoading(false);
     }

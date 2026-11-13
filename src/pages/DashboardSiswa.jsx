@@ -8,7 +8,7 @@ import {
   CalendarClock, ShieldAlert, LayoutDashboard, ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
+import { apiGet, apiListAll, apiPost, apiUpload } from '../lib/api';
 import { getExamSession, formatExamSession, consumeReloadResume } from '../lib/examSession';
 import { SCHOOL_INFO } from '../data/schoolData';
 import { ASSETS } from '../data/assets';
@@ -37,19 +37,17 @@ const getTodayDayName = () => {
 
 
 const friendlySubmitError = (err) => {
-  const msg = String(err?.message || '');
-  if (err?.code === '23505' || msg.includes('duplicate key')) {
+  if (err?.code === 'ALREADY_SUBMITTED') {
     return 'Anda sudah mengumpulkan tugas ini. Hubungi guru jika ingin mengumpulkan ulang.';
   }
-  if (msg.includes('row-level security')) {
-    return 'Tugas ini belum dibuka untuk pengumpulan. Hubungi guru Anda.';
-  }
-  if (msg.toLowerCase().includes('bucket not found')) {
-    return 'Penyimpanan berkas tugas belum disiapkan. Hubungi administrator.';
-  }
-  if (msg.toLowerCase().includes('too large') || msg.toLowerCase().includes('maximum allowed size')) {
+  const msg = String(err?.message || '');
+  if (msg.toLowerCase().includes('too large') || msg.toLowerCase().includes('maximum allowed size') || msg.includes('25600')) {
     return 'Berkas terlalu besar. Maksimal 25 MB.';
   }
+  const fieldErrors = err?.errors && typeof err.errors === 'object'
+    ? Object.values(err.errors).flat().filter(Boolean)
+    : [];
+  if (fieldErrors.length) return fieldErrors.join(' ');
   return msg || 'Gagal mengumpulkan tugas.';
 };
 
@@ -80,6 +78,18 @@ const statusTugas = (sub) => {
   if (sub.status === 'dinilai') return { key: 'graded', label: `Dinilai • ${sub.nilai ?? '-'}`, tone: 'is-live' };
   return { key: 'submitted', label: 'Menunggu dinilai', tone: 'is-draft' };
 };
+
+// API memakai nama relasi tunggal (subject/teacher/school_class); komponen web
+// memakai bentuk jamak. Pemetaan dilakukan di lapisan pemuatan data ini.
+const mapSchedule = (s) => ({ ...s, subjects: s.subject || null, teachers: s.teacher || null });
+const mapMaterial = (m) => ({ ...m, subjects: m.subject || null });
+const mapAssignment = (a) => ({ ...a, subjects: a.subject || null });
+const mapStudent = (raw) => ({
+  ...raw,
+  classes: raw.school_class
+    ? { ...raw.school_class, majors: raw.school_class.major || null }
+    : null,
+});
 
 export default function DashboardSiswa() {
   const navigate = useNavigate();
@@ -142,116 +152,75 @@ export default function DashboardSiswa() {
 
   const loadData = useCallback(async () => {
     if (!user) return;
+    try {
+      const dash = await apiGet('/siswa/dashboard');
+      if (!dash?.student) {
+        setStudent(null);
+        return;
+      }
+      const st = mapStudent(dash.student);
+      setStudent(st);
 
-    const { data: st } = await supabase
-      .from('students')
-      .select('id, nisn, nama, class_id, classes(nama, tingkat, majors(nama, kode))')
-      .eq('profile_id', user.id)
-      .maybeSingle();
+      const [sch, mats, asg, exm, subs, att, site] = await Promise.all([
+        apiListAll('/siswa/schedules').catch(() => []),
+        apiListAll('/siswa/materials').catch(() => []),
+        apiListAll('/siswa/assignments').catch(() => []),
+        apiListAll('/siswa/exams').catch(() => []),
+        apiListAll('/siswa/submissions').catch(() => []),
+        apiListAll('/siswa/attendance').catch(() => []),
+        apiGet('/public/site', { auth: false }).catch(() => ({})),
+      ]);
 
-    if (!st) {
-      setStudent(null);
-      setDataLoading(false);
-      return;
-    }
-    setStudent(st);
+      setSchedules(sch.map(mapSchedule));
+      setMaterials(mats.map(mapMaterial));
+      setAssignments(asg.map(mapAssignment));
 
-    const [sch, mats, asg, exm, subs, cfg, atp, qcounts, att, unl] = await Promise.all([
-      supabase
-        .from('schedules')
-        .select('id, hari, jam_mulai, jam_selesai, subject_id, subjects(nama, kode), teachers(nama, gelar)')
-        .eq('class_id', st.class_id),
-      supabase
-        .from('materials')
-        .select('id, judul, deskripsi, tipe, file_url, subject_id, created_at')
-        .eq('class_id', st.class_id)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('assignments')
-        .select('id, judul, deskripsi, deadline, subject_id, created_at')
-        .eq('class_id', st.class_id)
-        .eq('is_published', true)
-        .order('deadline', { ascending: true }),
-      supabase
-        .from('exams')
-        
-        .select('*')
-        .eq('is_active', true),
-      supabase
-        .from('submissions')
-        .select('id, assignment_id, nilai, feedback, status, dikumpulkan_at, catatan, file_url')
-        .eq('student_id', st.id),
-      supabase.from('site_settings').select('value').eq('key', 'ujian').maybeSingle(),
-      supabase
-        .from('attempts')
-        
-        .select('id, exam_id, status, dimulai_at, dikumpulkan_at, alasan_berhenti, dihentikan_at')
-        .eq('student_id', st.id),
-      supabase.from('exam_question_counts').select('exam_id, jumlah'),
-      supabase
-        .from('attendance')
-        .select('id, schedule_id, class_id, tanggal, jam_masuk, status, metode, catatan')
-        .eq('student_id', st.id)
-        .order('tanggal', { ascending: false })
-        .limit(300),
-      supabase.from('exam_unlocks').select('exam_id'),
-    ]);
-
-    setSchedules(sch.data || []);
-    setMaterials(mats.data || []);
-    setAssignments(asg.data || []);
-    
-    const examRows = (exm.data || []).map((x) => ({
-      ...x,
-      butuh_kode: x.butuh_kode ?? false,
-      admin_override: !!x.admin_override,
-      acak_soal: x.acak_soal !== false,
-    }));
-    setExams(examRows);
-    setSubmissions(subs.data || []);
-    setExamFeatureOn(cfg.data?.value?.fitur_aktif !== false);
-
-    let attemptRows = atp.data || [];
-    if (atp.error) {
-      const retry = await supabase
-        .from('attempts')
-        .select('id, exam_id, status, dimulai_at, dikumpulkan_at')
-        .eq('student_id', st.id);
-      attemptRows = (retry.data || []).map((a) => ({
-        ...a,
-        alasan_berhenti: null,
-        dihentikan_at: null,
+      const examRows = exm.map((x) => ({
+        ...x,
+        subjects: x.subject || null,
+        butuh_kode: x.butuh_kode ?? false,
+        admin_override: !!x.admin_override,
+        acak_soal: x.acak_soal !== false,
       }));
-    }
-    setAttempts(attemptRows);
-    setAttendance(att.data || []);
-    setUnlockedExams(new Set((unl.data || []).map((u) => u.exam_id)));
+      setExams(examRows);
+      setSubmissions(subs);
+      setExamFeatureOn(site?.ujian?.fitur_aktif !== false);
 
-    const counts = {};
-    if (!qcounts.error) {
-      (qcounts.data || []).forEach((row) => {
-        counts[row.exam_id] = row.jumlah || 0;
+      // Attempt & jumlah soal berasal dari payload ujian (relasi attempts +
+      // questions_count), bukan tabel terpisah.
+      const attemptRows = [];
+      const counts = {};
+      examRows.forEach((x) => {
+        counts[x.id] = x.questions_count ?? 0;
+        (x.attempts || []).forEach((a) => attemptRows.push({ ...a, exam_id: x.id }));
       });
-    } else {
-      
-      const { data: qsafe } = await supabase.from('questions_safe').select('exam_id');
-      (qsafe || []).forEach((q) => {
-        counts[q.exam_id] = (counts[q.exam_id] || 0) + 1;
-      });
-    }
-    setQuestionCounts(counts);
+      setAttempts(attemptRows);
+      setQuestionCounts(counts);
+      setAttendance(att);
 
-    // Setelah refresh di tengah ujian, ujian yang masih berjalan dibuka kembali
-    // (modal "Lanjutkan Ujian"), bukan ditinggal di dashboard.
-    const resumeExamId = consumeReloadResume();
-    if (resumeExamId) {
-      const target = examRows.find((x) => x.id === resumeExamId);
-      const berjalan = attemptRows.some((a) => a.exam_id === resumeExamId && a.status === 'berjalan');
-      if (target && berjalan) setExamTarget({ ...target, jumlah_soal: counts[target.id] || 0 });
-    }
+      // Status buka-kode per ujian (hanya ujian yang memerlukan kode).
+      const unlocked = new Set();
+      await Promise.all(examRows.filter((x) => x.butuh_kode).map(async (x) => {
+        try {
+          const res = await apiGet(`/siswa/exams/${x.id}/unlock`);
+          if (res?.unlocked) unlocked.add(x.id);
+        } catch { /* abaikan */ }
+      }));
+      setUnlockedExams(unlocked);
 
-    setDataLoading(false);
+      // Setelah refresh di tengah ujian, ujian yang masih berjalan dibuka kembali
+      // (modal "Lanjutkan Ujian"), bukan ditinggal di dashboard.
+      const resumeExamId = consumeReloadResume();
+      if (resumeExamId) {
+        const target = examRows.find((x) => x.id === resumeExamId);
+        const berjalan = attemptRows.some((a) => a.exam_id === resumeExamId && a.status === 'berjalan');
+        if (target && berjalan) setExamTarget({ ...target, jumlah_soal: counts[target.id] || 0 });
+      }
+    } catch {
+      // Biarkan state sebelumnya bila server tidak terjangkau.
+    } finally {
+      setDataLoading(false);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -472,31 +441,18 @@ export default function DashboardSiswa() {
     setSubError('');
     setSubBusy(true);
     try {
-      let fileUrl = link;
-
+      const assignmentId = submitTarget.assignment.id;
       if (file) {
-        const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
-        const path = `${student.nisn}/${submitTarget.assignment.id}-${Date.now()}.${ext}`;
-        
-        
-        
-        const { error: upErr } = await supabase.storage
-          .from('tugas')
-          .upload(path, file, { contentType: file.type || 'application/octet-stream' });
-        if (upErr) throw upErr;
-        
-        fileUrl = `tugas://${path}`;
+        const form = new FormData();
+        form.append('file', file);
+        if (note) form.append('catatan', note);
+        await apiUpload(`/siswa/assignments/${assignmentId}/submissions`, form);
+      } else {
+        await apiPost(`/siswa/assignments/${assignmentId}/submissions`, {
+          file_url: link || null,
+          catatan: note || null,
+        });
       }
-
-      const { error } = await supabase.from('submissions').insert({
-        assignment_id: submitTarget.assignment.id,
-        student_id: student.id,
-        file_url: fileUrl || null,
-        catatan: note || null,
-        status: 'dikumpulkan',
-        dikumpulkan_at: new Date().toISOString(),
-      });
-      if (error) throw error;
 
       setSubmitTarget(null);
       await loadData();

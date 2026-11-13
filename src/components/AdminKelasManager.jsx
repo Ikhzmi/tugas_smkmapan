@@ -4,7 +4,7 @@ import {
   School, Plus, Edit3, Trash2, RefreshCw, AlertCircle, X, ChevronRight,
   UserPlus, Upload, ArrowUpCircle, UserCheck,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import { parseStudentFile } from '../lib/studentImport';
 import './AdminPeopleManager.css';
 
@@ -57,34 +57,23 @@ export default function AdminKelasManager({ onNotify }) {
   const importClassRef = useRef('');
 
   const load = useCallback(async () => {
-    const [cRes, sRes, tRes, mRes] = await Promise.all([
-      supabase
-        .from('classes')
-        .select('id, nama, tingkat, tahun_ajaran, major_id, wali_kelas_id, majors(kode, nama), teachers(nama, gelar)')
-        .order('tingkat')
-        .order('nama'),
-      supabase
-        .from('students')
-        .select('id, nisn, nis, nama, no_hp, alamat, profile_id, class_id')
-        .order('nama'),
-      supabase
-        .from('teachers')
-        .select('id, nama, gelar')
-        .order('nama'),
-      supabase
-        .from('majors')
-        .select('id, kode, nama')
-        .order('kode'),
-    ]);
     setError('');
-    if (cRes.error) setError('Gagal memuat data kelas: ' + cRes.error.message);
-    if (sRes.error) setError((prev) => prev || 'Gagal memuat data siswa: ' + sRes.error.message);
-    if (tRes.error) setError((prev) => prev || 'Gagal memuat daftar guru: ' + tRes.error.message);
-    if (mRes.error) setError((prev) => prev || 'Gagal memuat daftar jurusan: ' + mRes.error.message);
-    setClasses(cRes.data || []);
-    setStudents(sRes.data || []);
-    setTeachers(tRes.data || []);
-    setMajors(mRes.data || []);
+    try {
+      const [kelas, siswa, guru, jurusan] = await Promise.all([
+        apiListAll('/admin/classes'),
+        apiListAll('/admin/students'),
+        apiListAll('/admin/teachers'),
+        apiListAll('/admin/majors'),
+      ]);
+      setClasses(kelas.map((c) => ({ ...c, majors: c.major || null, teachers: c.wali_kelas || null })));
+      setStudents(siswa.map((s) => ({ ...s, profile_id: s.user_id })));
+      setTeachers(guru);
+      setMajors(jurusan);
+    } catch (err) {
+      setError('Gagal memuat data kelas: ' + err.message);
+      setClasses([]);
+      setStudents([]);
+    }
     setLoading(false);
   }, []);
 
@@ -134,12 +123,10 @@ export default function AdminKelasManager({ onNotify }) {
     };
     try {
       if (classForm.mode === 'edit') {
-        const { error: err } = await supabase.from('classes').update(payload).eq('id', classForm.id);
-        if (err) throw err;
+        await apiPatch(`/admin/classes/${classForm.id}`, payload);
         onNotify?.('Data kelas berhasil diperbarui.');
       } else {
-        const { error: err } = await supabase.from('classes').insert(payload);
-        if (err) throw err;
+        await apiPost('/admin/classes', payload);
         onNotify?.('Kelas baru berhasil ditambahkan.');
       }
       setClassForm(null);
@@ -159,8 +146,7 @@ export default function AdminKelasManager({ onNotify }) {
     if (!window.confirm(pesan)) return;
     setError('');
     try {
-      const { error: err } = await supabase.from('classes').delete().eq('id', c.id);
-      if (err) throw err;
+      await apiDelete(`/admin/classes/${c.id}`);
       onNotify?.('Kelas berhasil dihapus.');
       await load();
     } catch (err) {
@@ -171,11 +157,7 @@ export default function AdminKelasManager({ onNotify }) {
   const handleWaliChange = async (c, teacherId) => {
     setError('');
     try {
-      const { error: err } = await supabase
-        .from('classes')
-        .update({ wali_kelas_id: teacherId || null })
-        .eq('id', c.id);
-      if (err) throw err;
+      await apiPatch(`/admin/classes/${c.id}`, { wali_kelas_id: teacherId || null });
       onNotify?.(teacherId ? 'Wali kelas berhasil ditetapkan.' : 'Wali kelas dikosongkan.');
       await load();
     } catch (err) {
@@ -189,24 +171,24 @@ export default function AdminKelasManager({ onNotify }) {
     e.preventDefault();
     if (saving) return;
     const nama = studentForm.nama.trim();
+    const nisn = studentForm.nisn.trim();
     if (!nama) { setModalError('Nama siswa wajib diisi.'); return; }
+    if (!nisn) { setModalError('NISN wajib diisi (dipersyaratkan oleh API).'); return; }
     setSaving(true);
     setModalError('');
     const payload = {
       nama,
-      nisn: studentForm.nisn.trim() || null,
+      nisn,
       no_hp: studentForm.no_hp.trim() || null,
       alamat: studentForm.alamat.trim() || null,
       class_id: studentForm.class_id || null,
     };
     try {
       if (studentForm.mode === 'edit') {
-        const { error: err } = await supabase.from('students').update(payload).eq('id', studentForm.id);
-        if (err) throw err;
+        await apiPatch(`/admin/students/${studentForm.id}`, payload);
         onNotify?.('Data siswa berhasil diperbarui.');
       } else {
-        const { error: err } = await supabase.from('students').insert(payload);
-        if (err) throw err;
+        await apiPost('/admin/students', payload);
         onNotify?.('Siswa berhasil ditambahkan ke kelas.');
       }
       setStudentForm(null);
@@ -221,14 +203,11 @@ export default function AdminKelasManager({ onNotify }) {
   };
 
   const handleStudentDelete = async (s) => {
-    const pesan = s.profile_id
-      ? `Hapus siswa "${s.nama}" dari data kelas? Akun LMS-nya tetap ada dan bisa dikelola lewat menu Kelola Akun.`
-      : `Hapus siswa "${s.nama}" dari data kelas?`;
+    const pesan = `Hapus siswa "${s.nama}" dari data kelas? Akun LMS yang tertaut juga akan dihapus.`;
     if (!window.confirm(pesan)) return;
     setError('');
     try {
-      const { error: err } = await supabase.from('students').delete().eq('id', s.id);
-      if (err) throw err;
+      await apiDelete(`/admin/students/${s.id}`);
       onNotify?.('Data siswa berhasil dihapus.');
       await load();
     } catch (err) {
@@ -244,13 +223,13 @@ export default function AdminKelasManager({ onNotify }) {
     setSaving(true);
     setModalError('');
     try {
-      const { data, error: err } = await supabase
-        .from('students')
-        .update({ class_id: promote.targetId })
-        .eq('class_id', promote.sourceId)
-        .select('id');
-      if (err) throw err;
-      onNotify?.(`${data?.length || 0} siswa berhasil dinaikkan ke kelas tujuan.`);
+      const targets = studentsByClass.get(promote.sourceId) || [];
+      await Promise.all(targets.map((s) => apiPatch(`/admin/students/${s.id}`, {
+        nama: s.nama,
+        nisn: s.nisn,
+        class_id: promote.targetId,
+      })));
+      onNotify?.(`${targets.length} siswa berhasil dinaikkan ke kelas tujuan.`);
       setPromote(null);
       await load();
     } catch (err) {
@@ -286,15 +265,21 @@ export default function AdminKelasManager({ onNotify }) {
     setImporting(true);
     setModalError('');
     try {
+      const tanpaNisn = importState.rows.filter((r) => !r.nisn);
+      if (tanpaNisn.length > 0) {
+        setModalError(`Import gagal: ${tanpaNisn.length} baris tidak memiliki NISN. API mewajibkan NISN untuk setiap siswa.`);
+        return;
+      }
       const payload = importState.rows.map((r) => ({
         nama: r.nama,
-        nisn: r.nisn || null,
+        nisn: r.nisn,
         no_hp: r.no_hp || null,
         alamat: r.alamat || null,
         class_id: importState.classId || null,
       }));
-      const { error: err } = await supabase.from('students').insert(payload);
-      if (err) throw err;
+      for (const row of payload) {
+        await apiPost('/admin/students', row);
+      }
       onNotify?.(`${payload.length} siswa berhasil diimpor ke kelas.`);
       setImportState(null);
       await load();
@@ -669,12 +654,13 @@ export default function AdminKelasManager({ onNotify }) {
                     <input className="apm-input" value={studentForm.nama} onChange={setStudent('nama')} placeholder="Mis. Rian Pratama" required />
                   </div>
                   <div className="apm-field">
-                    <label>NISN</label>
+                    <label>NISN *</label>
                     <input
                       className="apm-input"
                       value={studentForm.nisn}
                       onChange={(e) => setStudentForm((f) => ({ ...f, nisn: e.target.value.replace(/[^0-9]/g, '') }))}
                       placeholder="10 digit NISN"
+                      required
                     />
                   </div>
                   <div className="apm-field">

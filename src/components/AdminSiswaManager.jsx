@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   GraduationCap, UserPlus, Edit3, Trash2, KeyRound, RefreshCw, AlertCircle, X, UserCheck, Search,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import Pagination from './ui/Pagination';
 import { TableSkeleton } from './ui/Skeleton';
 import './AdminPeopleManager.css';
@@ -37,24 +37,26 @@ export default function AdminSiswaManager({ onNotify }) {
   const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
-    const [sRes, cRes, aRes] = await Promise.all([
-      supabase
-        .from('students')
-        .select('id, nisn, nis, nama, no_hp, alamat, profile_id, class_id, classes(nama)')
-        .order('nama'),
-      supabase
-        .from('classes')
-        .select('id, nama, tingkat, tahun_ajaran, major_id, majors(kode, nama)')
-        .order('tingkat')
-        .order('nama'),
-      supabase.rpc('admin_list_accounts'),
-    ]);
     setError('');
-    if (sRes.error) setError('Gagal memuat data siswa: ' + sRes.error.message);
-    if (cRes.error) setError((prev) => prev || 'Gagal memuat daftar kelas: ' + cRes.error.message);
-    setRows(sRes.data || []);
-    setClasses(cRes.data || []);
-    setAccounts(aRes.data || []);
+    try {
+      const [students, kelas, accs] = await Promise.all([
+        apiListAll('/admin/students'),
+        apiListAll('/admin/classes'),
+        apiListAll('/admin/accounts').catch(() => []),
+      ]);
+      const classById = {};
+      kelas.forEach((c) => { classById[c.id] = c; });
+      setRows(students.map((s) => ({
+        ...s,
+        profile_id: s.user_id,
+        classes: s.class_id ? { nama: classById[s.class_id]?.nama } : null,
+      })));
+      setClasses(kelas.map((c) => ({ ...c, majors: c.major || null })));
+      setAccounts(accs);
+    } catch (err) {
+      setError('Gagal memuat data siswa: ' + err.message);
+      setRows([]);
+    }
     setLoading(false);
   }, []);
 
@@ -97,32 +99,25 @@ export default function AdminSiswaManager({ onNotify }) {
     setError('');
     setModalError('');
     try {
+      const profil = {
+        nama: form.nama.trim(),
+        nisn: form.nisn.trim(),
+        class_id: form.class_id || null,
+        no_hp: form.no_hp.trim() || null,
+        alamat: form.alamat.trim() || null,
+      };
       if (form.mode === 'add') {
-        const { error: err } = await supabase.rpc('admin_create_siswa', {
-          p_nama: form.nama.trim(),
-          p_nisn: form.nisn.trim(),
-          p_class_id: form.class_id || null,
-          p_no_hp: form.no_hp.trim() || null,
-          p_alamat: form.alamat.trim() || null,
-          p_password: form.password || null,
-          p_buat_akun: form.buat_akun,
-        });
-        if (err) throw err;
+        const payload = { ...profil, create_account: form.buat_akun };
+        if (form.buat_akun) {
+          payload.password = form.password;
+          payload.password_confirmation = form.password;
+        }
+        await apiPost('/admin/students', payload);
         onNotify?.(form.buat_akun
           ? 'Siswa baru beserta akun LMS-nya berhasil dibuat.'
           : 'Data siswa baru berhasil ditambahkan.');
       } else {
-        const { error: err } = await supabase
-          .from('students')
-          .update({
-            nama: form.nama.trim(),
-            nisn: form.nisn.trim(),
-            class_id: form.class_id || null,
-            no_hp: form.no_hp.trim() || null,
-            alamat: form.alamat.trim() || null,
-          })
-          .eq('id', form.id);
-        if (err) throw err;
+        await apiPatch(`/admin/students/${form.id}`, profil);
         onNotify?.('Data siswa berhasil diperbarui.');
       }
       setForm(null);
@@ -143,12 +138,7 @@ export default function AdminSiswaManager({ onNotify }) {
     if (!window.confirm(pesan)) return;
     setError('');
     try {
-      if (acc) {
-        const { error: err } = await supabase.rpc('admin_delete_account', { p_user_id: acc.user_id });
-        if (err) throw err;
-      }
-      const { error: err2 } = await supabase.from('students').delete().eq('id', row.id);
-      if (err2) throw err2;
+      await apiDelete(`/admin/students/${row.id}`);
       onNotify?.('Data siswa berhasil dihapus.');
       await load();
     } catch (err) {
@@ -162,12 +152,11 @@ export default function AdminSiswaManager({ onNotify }) {
     setError('');
     setModalError('');
     try {
-      const { error: err } = await supabase.rpc('admin_reset_password', {
-        p_user_id: resetTarget.user_id,
-        p_password: resetPw,
+      await apiPost(`/admin/accounts/${resetTarget.user_id}/reset-password`, {
+        password: resetPw,
+        password_confirmation: resetPw,
       });
-      if (err) throw err;
-      onNotify?.(`Kata sandi ${resetTarget.email} berhasil direset.`);
+      onNotify?.(`Kata sandi ${resetTarget.email || resetTarget.username} berhasil direset.`);
       setResetTarget(null);
       setResetPw('');
     } catch (err) {
@@ -284,7 +273,7 @@ export default function AdminSiswaManager({ onNotify }) {
                       {acc ? (
                         <span className="apm-badge apm-badge-ok">
                           <UserCheck size={12} />
-                          {acc.email}
+                          {acc.email || acc.username}
                         </span>
                       ) : (
                         <span className="apm-badge apm-badge-none">Belum punya akun</span>
@@ -427,12 +416,12 @@ export default function AdminSiswaManager({ onNotify }) {
                       {form.buat_akun && (
                         <div className="apm-account-box apm-field-full">
                           <div className="apm-field">
-                            <label>Kata sandi awal * (min. 6 karakter)</label>
-                            <input className="apm-input" type="text" value={form.password} onChange={set('password')} placeholder="mis. mapan2026" required minLength={6} />
+                            <label>Kata sandi awal * (min. 8 karakter)</label>
+                            <input className="apm-input" type="text" value={form.password} onChange={set('password')} placeholder="mis. mapan2026" required minLength={8} />
                           </div>
                           <div className="apm-hint" style={{ marginTop: 8 }}>
-                            Akun dibuat sebagai <code>{(form.nisn || 'NISN')}@siswa.smkmuh8.sch.id</code> dengan
-                            role <code>siswa</code> — format login LMS.
+                            Akun dibuat dengan username <code>{form.nisn || 'NISN'}</code> dan
+                            role <code>siswa</code>. Siswa masuk memakai NISN tersebut.
                           </div>
                         </div>
                       )}
@@ -472,10 +461,10 @@ export default function AdminSiswaManager({ onNotify }) {
                   </div>
                 )}
                 <div className="apm-hint" style={{ marginBottom: 14 }}>
-                  Akun: <code>{resetTarget.email}</code> ({resetTarget.nama})
+                  Akun: <code>{resetTarget.email || resetTarget.username}</code> ({resetTarget.nama})
                 </div>
                 <div className="apm-field apm-field-full">
-                  <label>Kata sandi baru * (min. 6 karakter)</label>
+                  <label>Kata sandi baru * (min. 8 karakter)</label>
                   <input
                     className="apm-input"
                     type="text"
@@ -483,7 +472,7 @@ export default function AdminSiswaManager({ onNotify }) {
                     onChange={(e) => setResetPw(e.target.value)}
                     placeholder="Kata sandi baru"
                     required
-                    minLength={6}
+                    minLength={8}
                     autoFocus
                   />
                 </div>

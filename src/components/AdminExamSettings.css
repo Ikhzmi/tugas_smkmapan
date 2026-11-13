@@ -101,6 +101,18 @@ html.dark .aes-header-icon {
   color: #10b981;
 }
 
+.aes-alert.is-info {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+  line-height: 1.5;
+}
+
+.aes-alert.is-info svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 /* Master Control Switch */
 .aes-master {
   display: flex;

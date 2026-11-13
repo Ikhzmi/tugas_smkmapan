@@ -35,7 +35,7 @@ import {
   School
 } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
-import { supabase } from '../lib/supabase';
+import { apiList } from '../lib/api';
 import { uploadImage } from '../lib/uploadImage';
 import AdminExamSettings from './AdminExamSettings';
 import AdminAttendance from './AdminAttendance';
@@ -320,10 +320,11 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
   // Jumlah siswa aktif untuk overview
   const [studentCount, setStudentCount] = useState(0);
   useEffect(() => {
-    supabase
-      .from('students')
-      .select('id', { count: 'exact', head: true })
-      .then(({ count }) => { if (count !== null) setStudentCount(count); });
+    let alive = true;
+    apiList('/admin/students', { per_page: 1 })
+      .then(({ meta }) => { if (alive) setStudentCount(Number(meta?.total) || 0); })
+      .catch(() => {});
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => {
@@ -3179,7 +3180,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
                   <div className="panel-title-strip">
                     <div>
                       <h3>Galeri Kegiatan Beranda</h3>
-                      <p>Kelola foto-foto pada bagian Galeri di beranda. Tabel `gallery` — jalankan md/supabase_gallery.sql di SQL Editor bila belum ada.</p>
+                      <p>Kelola foto-foto pada bagian Galeri di beranda. Perubahan tersimpan otomatis ke server.</p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={handleAddGaleri} className="btn btn-secondary">

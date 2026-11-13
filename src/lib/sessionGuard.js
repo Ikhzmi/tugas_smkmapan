@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { apiPost, apiGet, getToken } from './api';
 
 /** Sesi dianggap logout bila perangkat ditinggal lebih dari N menit. */
 export const GRACE_MINUTES = 5;
@@ -90,61 +90,58 @@ export function clearNotice() {
   try { sessionStorage.removeItem(SESSION_NOTICE_KEY); } catch { /* ignore */ }
 }
 
-const isUnsupported = (error) =>
-  /PGRST202|does not exist|Could not find the function|schema cache/i.test(String(error?.message || ''));
-
 /**
  * Klaim sesi untuk perangkat ini.
- * Hasil: { status: 'ok' | 'conflict' | 'unsupported', sessionId, otherLabel, otherLastSeen }
+ * Hasil: { status: 'ok' | 'conflict', sessionId, otherLabel, otherLastSeen }
  *
  * 'conflict' = akun sedang aktif di perangkat lain (masih dalam masa tenggang).
  * Perangkat lama MENANG; perangkat ini harus ditolak, bukan menendang yang lama.
  */
 export async function claimUserSession() {
-  const { data, error } = await supabase.rpc('claim_user_session', {
-    p_device_id: getDeviceId(),
-    p_device_label: deviceLabel(),
-    p_grace_minutes: GRACE_MINUTES,
-  });
-  if (error) {
-    if (isUnsupported(error)) return { status: 'ok', unsupported: true };
-    throw error;
+  try {
+    const session = await apiPost('/auth/session/claim', {
+      device_id: getDeviceId(),
+      device_label: deviceLabel(),
+      grace_minutes: GRACE_MINUTES,
+    });
+    if (session?.id) setSessionId(session.id);
+    markLocalSeen();
+    return { status: 'ok', sessionId: session?.id || '' };
+  } catch (err) {
+    if (err?.status === 409 || err?.code === 'SESSION_CONFLICT') {
+      return {
+        status: 'conflict',
+        sessionId: '',
+        otherLabel: err?.data?.other_device_label || '',
+        otherLastSeen: err?.data?.other_last_seen || null,
+      };
+    }
+    throw err;
   }
-  const row = Array.isArray(data) ? data[0] : data;
-  const status = row?.status === 'conflict' ? 'conflict' : 'ok';
-  if (status === 'ok' && row?.session_id) setSessionId(row.session_id);
-  return {
-    status,
-    sessionId: row?.session_id || '',
-    otherLabel: row?.other_device_label || '',
-    otherLastSeen: row?.other_last_seen || null,
-    unsupported: false,
-  };
 }
 
-/** Hasil: 'ok' | 'expired' | 'revoked' | 'none' | 'unsupported' */
+/** Hasil: 'ok' | 'expired' | 'none' */
 export async function resumeUserSession(graceMinutes = GRACE_MINUTES) {
-  const { data, error } = await supabase.rpc('resume_user_session', {
-    p_device_id: getDeviceId(),
-    p_grace_minutes: graceMinutes,
+  const result = await apiPost('/auth/session/resume', {
+    device_id: getDeviceId(),
+    grace_minutes: graceMinutes,
   });
-  if (error) {
-    if (isUnsupported(error)) return 'unsupported';
-    throw error;
-  }
-  return typeof data === 'string' ? data : 'none';
+  const status = result?.status || 'none';
+  if (status === 'ok' && result?.session?.id) setSessionId(result.session.id);
+  return status;
 }
 
 /** Heartbeat: true = sesi masih aktif, false = sudah dicabut. */
 export async function touchUserSession() {
   const sessionId = getSessionId();
   if (!sessionId) return true;
-  const { data, error } = await supabase.rpc('touch_user_session', { p_session_id: sessionId });
-  if (error) {
-    if (isUnsupported(error)) return true;
-    throw error;
-  }
-  return data === true;
+  const result = await apiPost('/auth/session/heartbeat', { session_id: sessionId });
+  return result?.active !== false;
+}
+
+/** Status sesi perangkat ini dari server (pengganti realtime Supabase). */
+export async function fetchSessionStatus() {
+  return apiGet('/auth/session/status', { query: { device_id: getDeviceId() } });
 }
 
 /** Logout sukarela: tandai sesi dicabut di server. */
@@ -153,7 +150,7 @@ export async function releaseUserSession() {
   clearLocalSession();
   if (!sessionId) return;
   try {
-    await supabase.rpc('release_user_session', { p_session_id: sessionId });
+    await apiPost('/auth/session/release', { session_id: sessionId });
   } catch { /* offline: biarkan kedaluwarsa sendiri */ }
 }
 
@@ -182,14 +179,12 @@ const hasilClaim = (claim) => {
     };
   }
   markLocalSeen();
-  return { status: 'ok', unsupported: !!claim.unsupported };
+  return { status: 'ok' };
 };
 
 async function runEnsure() {
-  // Belum login (mis. dibuka dari halaman publik): tidak ada yang perlu
-  // diklaim, dan RPC akan menolak dengan 'not authenticated'.
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { status: 'ok', anonymous: true };
+  // Belum login (mis. dibuka dari halaman publik): tidak ada yang perlu diklaim.
+  if (!getToken()) return { status: 'ok', anonymous: true };
 
   if (freshLogin) {
     freshLogin = false;
@@ -204,12 +199,10 @@ async function runEnsure() {
   }
 
   if (state === 'none') {
-    // Perangkat ini belum punya sesi (baris hilang / browser baru).
-    // Kalau perangkat lain masih aktif, klaim akan ditolak sebagai 'conflict'.
+    // Perangkat ini belum punya sesi aktif. Kalau perangkat lain masih aktif,
+    // klaim akan ditolak sebagai 'conflict'.
     return hasilClaim(await claimUserSession());
   }
-
-  if (state === 'unsupported') return { status: 'ok', unsupported: true };
 
   return { status: state };
 }

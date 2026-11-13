@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   CalendarDays, Plus, Edit3, Trash2, RefreshCw, AlertCircle, X,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import './AdminPeopleManager.css';
 
 const HARI_LIST = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
@@ -49,33 +49,30 @@ export default function AdminJadwalManager({ onNotify }) {
   const [filterHari, setFilterHari] = useState('');
 
   const load = useCallback(async () => {
-    const [jRes, cRes, sRes, tRes] = await Promise.all([
-      supabase
-        .from('schedules')
-        .select('id, class_id, subject_id, teacher_id, hari, jam_mulai, jam_selesai, classes(nama, tingkat), subjects(nama, kode), teachers(nama, gelar)'),
-      supabase
-        .from('classes')
-        .select('id, nama, tingkat, major_id, majors(kode, nama)')
-        .order('tingkat')
-        .order('nama'),
-      supabase
-        .from('subjects')
-        .select('id, kode, nama')
-        .order('nama'),
-      supabase
-        .from('teachers')
-        .select('id, nama, gelar')
-        .order('nama'),
-    ]);
     setError('');
-    if (jRes.error) setError('Gagal memuat jadwal roster: ' + jRes.error.message);
-    if (cRes.error) setError((prev) => prev || 'Gagal memuat daftar kelas: ' + cRes.error.message);
-    if (sRes.error) setError((prev) => prev || 'Gagal memuat daftar mapel: ' + sRes.error.message);
-    if (tRes.error) setError((prev) => prev || 'Gagal memuat daftar guru: ' + tRes.error.message);
-    setRows(jRes.data || []);
-    setClasses(cRes.data || []);
-    setSubjects(sRes.data || []);
-    setTeachers(tRes.data || []);
+    try {
+      const [jadwal, kelas, mapel, guru] = await Promise.all([
+        apiListAll('/admin/schedules'),
+        apiListAll('/admin/classes'),
+        apiListAll('/admin/subjects'),
+        apiListAll('/admin/teachers'),
+      ]);
+      setRows(jadwal.map((s) => ({
+        ...s,
+        classes: s.school_class || null,
+        subjects: s.subject || null,
+        teachers: s.teacher || null,
+      })));
+      setClasses(kelas.map((c) => ({ ...c, majors: c.major || null })));
+      setSubjects(mapel);
+      setTeachers(guru);
+    } catch (err) {
+      setError('Gagal memuat data jadwal: ' + err.message);
+      setRows([]);
+      setClasses([]);
+      setSubjects([]);
+      setTeachers([]);
+    }
     setLoading(false);
   }, []);
 
@@ -153,12 +150,10 @@ export default function AdminJadwalManager({ onNotify }) {
     };
     try {
       if (form.mode === 'edit') {
-        const { error: err } = await supabase.from('schedules').update(payload).eq('id', form.id);
-        if (err) throw err;
+        await apiPatch(`/admin/schedules/${form.id}`, payload);
         onNotify?.('Jadwal roster berhasil diperbarui.');
       } else {
-        const { error: err } = await supabase.from('schedules').insert(payload);
-        if (err) throw err;
+        await apiPost('/admin/schedules', payload);
         onNotify?.('Jadwal roster baru tersimpan & langsung tampil di dashboard siswa & guru terkait.');
       }
       setForm(null);
@@ -176,8 +171,7 @@ export default function AdminJadwalManager({ onNotify }) {
     if (!window.confirm(pesan)) return;
     setError('');
     try {
-      const { error: err } = await supabase.from('schedules').delete().eq('id', row.id);
-      if (err) throw err;
+      await apiDelete(`/admin/schedules/${row.id}`);
       onNotify?.('Jadwal roster berhasil dihapus.');
       await load();
     } catch (err) {

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   Users, UserPlus, Edit3, Trash2, KeyRound, RefreshCw, AlertCircle, X, UserCheck, Camera, Loader2, Search,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import { teacherPhoto } from '../lib/teacherPhoto';
 import { uploadImage } from '../lib/uploadImage';
 import Pagination from './ui/Pagination';
@@ -41,17 +41,18 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
   const photoInputRef = useRef(null);
 
   const load = useCallback(async () => {
-    const [tRes, aRes] = await Promise.all([
-      supabase.from('teachers').select('*').order('nama'),
-      supabase.rpc('admin_list_accounts'),
-    ]);
     setError('');
-    if (tRes.error) setError('Gagal memuat data guru: ' + tRes.error.message);
-    if (aRes.error && aRes.error.message !== 'Akses ditolak: hanya admin yang boleh melihat daftar akun.') {
-      setError((prev) => prev || 'Gagal memuat daftar akun: ' + aRes.error.message);
+    try {
+      const [teachers, accs] = await Promise.all([
+        apiListAll('/admin/teachers'),
+        apiListAll('/admin/accounts').catch(() => []),
+      ]);
+      setRows(teachers.map((t) => ({ ...t, profile_id: t.user_id })));
+      setAccounts(accs);
+    } catch (err) {
+      setError('Gagal memuat data guru: ' + err.message);
+      setRows([]);
     }
-    setRows(tRes.data || []);
-    setAccounts(aRes.data || []);
     setLoading(false);
   }, []);
 
@@ -96,45 +97,29 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
     setError('');
     setModalError('');
     try {
+      const fotoUrl = /^https?:\/\//i.test(form.foto_url || '') ? form.foto_url : null;
+      const profil = {
+        nama: form.nama.trim(),
+        gelar: form.gelar.trim() || null,
+        jabatan: form.jabatan.trim() || null,
+        department: form.department.trim() || null,
+        email: form.email.trim() || null,
+        jam_kerja: form.jam_kerja.trim() || null,
+        foto_url: fotoUrl,
+      };
       if (form.mode === 'add') {
-        const { data: teacherId, error: err } = await supabase.rpc('admin_create_guru', {
-          p_nama: form.nama.trim(),
-          p_gelar: form.gelar.trim() || null,
-          p_jabatan: form.jabatan.trim() || null,
-          p_department: form.department.trim() || null,
-          p_email: form.email.trim() || null,
-          p_jam_kerja: form.jam_kerja.trim() || null,
-          p_username: form.username.trim().toLowerCase() || null,
-          p_password: form.password || null,
-          p_buat_akun: form.buat_akun,
-        });
-        if (err) throw err;
-        if (form.foto_url && teacherId) {
-          const { error: photoErr } = await supabase
-            .from('teachers')
-            .update({ foto_url: form.foto_url })
-            .eq('id', teacherId);
-          if (photoErr) {
-            onNotify?.('Guru dibuat, tetapi foto gagal disimpan: ' + photoErr.message);
-          }
+        const payload = { ...profil, create_account: form.buat_akun };
+        if (form.buat_akun) {
+          payload.username = form.username.trim().toLowerCase() || undefined;
+          payload.password = form.password;
+          payload.password_confirmation = form.password;
         }
+        await apiPost('/admin/teachers', payload);
         onNotify?.(form.buat_akun
           ? 'Guru baru beserta akun loginnya berhasil dibuat.'
           : 'Data guru baru berhasil ditambahkan.');
       } else {
-        const { error: err } = await supabase
-          .from('teachers')
-          .update({
-            nama: form.nama.trim(),
-            gelar: form.gelar.trim() || null,
-            jabatan: form.jabatan.trim() || null,
-            department: form.department.trim() || null,
-            email: form.email.trim() || null,
-            jam_kerja: form.jam_kerja.trim() || null,
-            foto_url: form.foto_url || null,
-          })
-          .eq('id', form.id);
-        if (err) throw err;
+        await apiPatch(`/admin/teachers/${form.id}`, profil);
         onNotify?.('Data guru berhasil diperbarui.');
       }
       setForm(null);
@@ -156,12 +141,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
     if (!window.confirm(pesan)) return;
     setError('');
     try {
-      if (acc) {
-        const { error: err } = await supabase.rpc('admin_delete_account', { p_user_id: acc.user_id });
-        if (err) throw err;
-      }
-      const { error: err2 } = await supabase.from('teachers').delete().eq('id', row.id);
-      if (err2) throw err2;
+      await apiDelete(`/admin/teachers/${row.id}`);
       onNotify?.('Data guru berhasil dihapus.');
       await load();
       await onDataChange?.();
@@ -176,11 +156,10 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
     setError('');
     setModalError('');
     try {
-      const { error: err } = await supabase.rpc('admin_reset_password', {
-        p_user_id: resetTarget.user_id,
-        p_password: resetPw,
+      await apiPost(`/admin/accounts/${resetTarget.user_id}/reset-password`, {
+        password: resetPw,
+        password_confirmation: resetPw,
       });
-      if (err) throw err;
       onNotify?.(`Kata sandi ${resetTarget.email} berhasil direset.`);
       setResetTarget(null);
       setResetPw('');
@@ -470,13 +449,13 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                             />
                           </div>
                           <div className="apm-field">
-                            <label>Kata sandi awal * (min. 6 karakter)</label>
-                            <input className="apm-input" type="text" value={form.password} onChange={set('password')} placeholder="guru2026" required minLength={6} />
+                            <label>Kata sandi awal * (min. 8 karakter)</label>
+                            <input className="apm-input" type="text" value={form.password} onChange={set('password')} placeholder="guru2026" required minLength={8} />
                           </div>
                           <div className="apm-hint" style={{ marginTop: 8 }}>
-                            Akun dibuat sebagai <code>{(form.username || 'username')}@smkmuh8.sch.id</code> dengan
-                            role <code>guru</code> dan langsung tertaut ke data guru ini
-                            (syarat RLS dashboard guru).
+                            Akun dibuat dengan username <code>{form.username || 'username'}</code>,
+                            role <code>guru</code>, dan langsung tertaut ke data guru ini.
+                            Guru masuk memakai username tersebut.
                           </div>
                         </div>
                       )}
@@ -525,7 +504,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                   Akun: <code>{resetTarget.email}</code> ({resetTarget.nama})
                 </div>
                 <div className="apm-field apm-field-full">
-                  <label>Kata sandi baru * (min. 6 karakter)</label>
+                  <label>Kata sandi baru * (min. 8 karakter)</label>
                   <input
                     className="apm-input"
                     type="text"
@@ -533,7 +512,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                     onChange={(e) => setResetPw(e.target.value)}
                     placeholder="Kata sandi baru"
                     required
-                    minLength={6}
+                    minLength={8}
                     autoFocus
                   />
                 </div>

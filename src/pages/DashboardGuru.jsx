@@ -9,7 +9,7 @@ import {
   CalendarClock, ShieldAlert, BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
+import { apiGet, apiListAll, apiPost, apiPatch, apiDelete, apiUpload, ApiError } from '../lib/api';
 import { SCHOOL_INFO } from '../data/schoolData';
 import { ASSETS } from '../data/assets';
 import { getExamSession, formatExamSession, splitExamSchedule, joinExamSchedule } from '../lib/examSession';
@@ -95,6 +95,14 @@ const TIPE_META = {
   teks: { label: 'Teks', icon: FileText },
 };
 
+const formErrorMessage = (err, fallback) => {
+  const details = err?.errors && typeof err.errors === 'object'
+    ? Object.values(err.errors).flat().filter(Boolean)
+    : [];
+  if (details.length) return details.join(' ');
+  return err?.message || fallback;
+};
+
 const emptyMaterial = { judul: '', subject_id: '', class_id: '', tipe: 'video', file_url: '', deskripsi: '', is_published: false };
 const emptyAssignment = { judul: '', deskripsi: '', subject_id: '', class_id: '', deadline: '', is_published: false };
 const emptyExam = {
@@ -172,6 +180,7 @@ export default function DashboardGuru() {
   
   const [questionsExam, setQuestionsExam] = useState(null);
   const [questions, setQuestions] = useState([]);
+  const [questionsCache, setQuestionsCache] = useState({});
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [busyQuestion, setBusyQuestion] = useState(null);
 
@@ -203,12 +212,16 @@ export default function DashboardGuru() {
   const loadData = useCallback(async () => {
     if (!user) return;
 
-    const { data: t } = await supabase
-      .from('teachers')
-      .select('id, nama, gelar, jabatan')
-      .eq('profile_id', user.id)
-      .maybeSingle();
+    let dash = null;
+    try {
+      dash = await apiGet('/guru/dashboard');
+    } catch (err) {
+      if (!(err instanceof ApiError) || (err.status !== 403 && err.code !== 'GURU_PROFILE_NOT_FOUND')) {
+        setNotice(err?.message || 'Gagal memuat data guru.');
+      }
+    }
 
+    const t = dash?.teacher || null;
     if (!t) {
       setTeacher(null);
       setDataLoading(false);
@@ -216,87 +229,85 @@ export default function DashboardGuru() {
     }
     setTeacher(t);
 
-    const [sch, mats, asg, subs, exm, qs, cfg, codes, atp] = await Promise.all([
-      supabase
-        .from('schedules')
-        .select('id, hari, jam_mulai, jam_selesai, class_id, subject_id, classes(nama, tingkat), subjects(nama, kode)')
-        .eq('teacher_id', t.id),
-      supabase
-        .from('materials')
-        .select('id, judul, deskripsi, tipe, file_url, is_published, created_at, subject_id, class_id, subjects(nama), classes(nama)')
-        .eq('teacher_id', t.id)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('assignments')
-        .select('id, judul, deskripsi, deadline, is_published, subject_id, class_id, subjects(nama), classes(nama)')
-        .eq('teacher_id', t.id)
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('submissions')
-        .select('id, assignment_id, file_url, catatan, nilai, feedback, status, dikumpulkan_at, dinilai_at, students(nama, nisn)'),
-      supabase
-        .from('exams')
-        
-        .select('*, subjects(nama)')
-        .eq('teacher_id', t.id)
-        .order('created_at', { ascending: false }),
-      supabase.from('questions').select('id, exam_id'),
-      supabase.from('site_settings').select('value').eq('key', 'ujian').maybeSingle(),
-      supabase.from('exam_codes').select('exam_id, code, is_active'),
-      supabase
-        .from('attempts')
-        .select('id, exam_id, student_id, status, dimulai_at, dikumpulkan_at, nilai_akhir, alasan_berhenti, dihentikan_at, students(nama, nisn, classes(nama))')
-        .order('dimulai_at', { ascending: false }),
-    ]);
-
-    setSchedules(sch.data || []);
-    setMaterials(mats.data || []);
-    setAssignments(asg.data || []);
-    setSubmissions(subs.data || []);
-    setExamCodes(new Map((codes.data || []).map((c) => [c.exam_id, c])));
-    setAttempts(atp.error ? [] : (atp.data || []));
-
-    
-    const classIds = Array.from(new Set((sch.data || []).map((s) => s.class_id).filter(Boolean)));
-    if (classIds.length) {
-      const [stu, att] = await Promise.all([
-        supabase
-          .from('students')
-          .select('id, nama, nisn, class_id')
-          .in('class_id', classIds)
-          .order('nama', { ascending: true }),
-        supabase
-          .from('attendance')
-          .select('id, student_id, class_id, schedule_id, tanggal, jam_masuk, status, metode')
-          .in('class_id', classIds)
-          .order('tanggal', { ascending: false })
-          .limit(2000),
+    try {
+      const [schRaw, matRaw, asgRaw, exmRaw, attRaw, site] = await Promise.all([
+        apiListAll('/guru/schedules'),
+        apiListAll('/guru/materials'),
+        apiListAll('/guru/assignments'),
+        apiListAll('/guru/exams'),
+        apiListAll('/guru/attendance'),
+        apiGet('/public/site', { auth: false }).catch(() => ({})),
       ]);
-      setStudents(stu.data || []);
-      setAttendance(att.data || []);
-    } else {
-      setStudents([]);
-      setAttendance([]);
+
+      const scheduleRows = schRaw.map((s) => ({ ...s, classes: s.school_class || null, subjects: s.subject || null }));
+      const materialRows = matRaw.map((m) => ({ ...m, subjects: m.subject || null, classes: m.school_class || null }));
+      const assignmentRows = asgRaw.map((a) => ({ ...a, subjects: a.subject || null, classes: a.school_class || null }));
+      const examRows = exmRaw.map((x) => ({
+        ...x,
+        subjects: x.subject || null,
+        is_approved: x.is_approved ?? true,
+        butuh_kode: x.butuh_kode ?? false,
+        admin_override: !!x.admin_override,
+        acak_soal: x.acak_soal !== false,
+      }));
+
+      const counts = {};
+      const codes = new Map();
+      examRows.forEach((x) => {
+        counts[x.id] = Number(x.questions_count || 0);
+        if (x.code) codes.set(x.id, { exam_id: x.id, code: x.code.code, is_active: x.code.is_active });
+      });
+
+      // API hanya menyediakan pengumpulan per tugas dan pengerjaan per ujian.
+      const [subsNested, atpNested] = await Promise.all([
+        Promise.all(assignmentRows.map((a) => apiListAll(`/guru/assignments/${a.id}/submissions`).catch(() => []))),
+        Promise.all(examRows.map((x) => apiListAll(`/guru/exams/${x.id}/attempts`).catch(() => []))),
+      ]);
+
+      const classNameById = new Map(
+        scheduleRows.filter((s) => s.classes?.nama).map((s) => [s.class_id, s.classes.nama]),
+      );
+      const attachStudent = (row) => {
+        const stu = row.student || null;
+        const namaKelas = stu ? classNameById.get(stu.class_id) : null;
+        return { ...row, students: stu ? { ...stu, classes: namaKelas ? { nama: namaKelas } : null } : null };
+      };
+
+      const submissionRows = subsNested.flat().map(attachStudent);
+      const attemptRows = atpNested.flat().map(attachStudent)
+        .sort((a, b) => new Date(b.dimulai_at || 0) - new Date(a.dimulai_at || 0));
+      const attendanceRows = attRaw.map((a) => ({ ...a, students: a.student || null }));
+
+      // Roster siswa dihimpun dari presensi/pengumpulan/pengerjaan: API guru
+      // belum punya endpoint daftar siswa per kelas (hanya admin yang punya).
+      const roster = new Map();
+      const addStudent = (stu) => {
+        if (stu?.id && !roster.has(stu.id)) {
+          roster.set(stu.id, { id: stu.id, nama: stu.nama, nisn: stu.nisn, class_id: stu.class_id });
+        }
+      };
+      attRaw.forEach((a) => addStudent(a.student));
+      subsNested.flat().forEach((s) => addStudent(s.student));
+      atpNested.flat().forEach((a) => addStudent(a.student));
+      const studentRows = Array.from(roster.values())
+        .sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || '')));
+
+      setSchedules(scheduleRows);
+      setMaterials(materialRows);
+      setAssignments(assignmentRows);
+      setSubmissions(submissionRows);
+      setExams(examRows);
+      setQuestionCounts(counts);
+      setExamCodes(codes);
+      setAttempts(attemptRows);
+      setStudents(studentRows);
+      setAttendance(attendanceRows);
+      setExamFeatureOn(site?.ujian?.fitur_aktif !== false);
+    } catch (err) {
+      setNotice(err?.message || 'Gagal memuat data guru.');
+    } finally {
+      setDataLoading(false);
     }
-
-    
-    const examRows = (exm.data || []).map((x) => ({
-      ...x,
-      is_approved: x.is_approved ?? true,
-      butuh_kode: x.butuh_kode ?? false,
-      admin_override: !!x.admin_override,
-      acak_soal: x.acak_soal !== false,
-    }));
-    setExams(examRows);
-
-    const counts = {};
-    (qs.data || []).forEach((row) => {
-      counts[row.exam_id] = (counts[row.exam_id] || 0) + 1;
-    });
-    setQuestionCounts(counts);
-
-    setExamFeatureOn(cfg.data?.value?.fitur_aktif !== false);
-    setDataLoading(false);
   }, [user]);
 
   useEffect(() => {
@@ -322,31 +333,14 @@ export default function DashboardGuru() {
     enabled: !!teacher?.id,
   });
 
-  const loadQuestions = async (examId) => {
-    setQuestionsLoading(true);
-    const base = 'id, tipe, pertanyaan, opsi, kunci_jawaban, bobot';
-    let res = await supabase
-      .from('questions')
-      .select(`${base}, gambar_url`)
-      .eq('exam_id', examId)
-      .order('created_at');
-    // Kolom gambar_url belum ada (migrasi belum dijalankan) -> fallback tanpa gambar.
-    if (res.error) {
-      res = await supabase
-        .from('questions')
-        .select(base)
-        .eq('exam_id', examId)
-        .order('created_at');
-    }
-    setQuestions(res.data || []);
-    setQuestionsLoading(false);
-  };
-
-  const openQuestions = async (exam) => {
+  // API guru belum punya endpoint daftar soal. Soal yang ditampilkan adalah
+  // hasil tambah/ubah/hapus pada sesi ini, di-cache per ujian agar tetap ada
+  // saat modal dibuka ulang. Jumlah soal tetap akurat dari questions_count.
+  const openQuestions = (exam) => {
     setFormError('');
     setQuestionsExam(exam);
-    setQuestions([]);
-    await loadQuestions(exam.id);
+    setQuestions(questionsCache[exam.id] || []);
+    setQuestionsLoading(false);
   };
 
   const handleLogout = () => {
@@ -495,12 +489,7 @@ export default function DashboardGuru() {
     }
     setBusyMaterial(m.id);
     try {
-      const { error } = await supabase
-        .from('materials')
-        .update({ is_published: !m.is_published })
-        .eq('id', m.id);
-      if (error) throw error;
-
+      await apiPost(`/guru/materials/${m.id}/publish`);
       triggerNotice(!m.is_published ? 'Materi dipublikasikan ke siswa.' : 'Materi dikembalikan ke draft.');
       await loadData();
     } catch (err) {
@@ -524,8 +513,7 @@ export default function DashboardGuru() {
         setConfirmState((prev) => ({ ...prev, loading: true }));
         setBusyMaterial(m.id);
         try {
-          const { error } = await supabase.from('materials').delete().eq('id', m.id);
-          if (error) throw error;
+          await apiDelete(`/guru/materials/${m.id}`);
           triggerNotice('Materi berhasil dihapus.');
           await loadData();
         } catch (err) {
@@ -555,45 +543,44 @@ export default function DashboardGuru() {
 
     setSaving('materi');
     try {
-      let fileUrl = null;
-      if (materialForm.tipe === 'file') {
-        if (pdfFile) {
-          const safeName = pdfFile.name.replace(/[^\w.-]+/g, '_');
-          const path = `${teacher.id}/${Date.now()}-${safeName}`;
-          const { error: upErr } = await supabase.storage.from('materi').upload(path, pdfFile);
-          if (upErr) throw upErr;
-          const { data: pub } = supabase.storage.from('materi').getPublicUrl(path);
-          fileUrl = pub?.publicUrl || null;
-        } else {
-          fileUrl = editingMaterial?.file_url || null;
-        }
-      } else if (materialForm.tipe === 'video') {
-        fileUrl = toYouTubeEmbed(materialForm.file_url);
-      } else if (materialForm.tipe === 'link') {
-        fileUrl = materialForm.file_url.trim();
-      }
-
+      const tipe = materialForm.tipe;
       const payload = {
         subject_id: materialForm.subject_id || null,
         class_id: materialForm.class_id || null,
         judul: materialForm.judul.trim(),
         deskripsi: materialForm.deskripsi.trim() || null,
-        tipe: materialForm.tipe,
-        file_url: fileUrl,
+        tipe,
         is_published: materialForm.is_published,
       };
+      if (tipe === 'video') payload.file_url = toYouTubeEmbed(materialForm.file_url);
+      else if (tipe === 'link') payload.file_url = materialForm.file_url.trim();
+      else if (tipe === 'teks') payload.file_url = null;
 
-      const { error } = editingMaterial
-        ? await supabase.from('materials').update(payload).eq('id', editingMaterial.id)
-        : await supabase.from('materials').insert({ ...payload, teacher_id: teacher.id });
-      if (error) throw error;
+      if (editingMaterial) {
+        await apiPatch(`/guru/materials/${editingMaterial.id}`, payload);
+        if (tipe === 'file' && pdfFile) {
+          const form = new FormData();
+          form.append('file', pdfFile);
+          await apiUpload(`/guru/materials/${editingMaterial.id}/file`, form);
+        }
+      } else if (tipe === 'file' && pdfFile) {
+        const form = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value === null || value === undefined) return;
+          form.append(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
+        });
+        form.append('file', pdfFile);
+        await apiUpload('/guru/materials', form);
+      } else {
+        await apiPost('/guru/materials', payload);
+      }
 
       const wasEditing = !!editingMaterial;
       triggerNotice(wasEditing ? 'Perubahan materi disimpan.' : 'Materi berhasil disimpan.');
       closeMaterialModal();
       await loadData();
     } catch (err) {
-      setFormError(err.message || 'Gagal menyimpan materi.');
+      setFormError(formErrorMessage(err, 'Gagal menyimpan materi.'));
     } finally {
       setSaving('');
     }
@@ -637,12 +624,7 @@ export default function DashboardGuru() {
     }
     setBusyAssignment(a.id);
     try {
-      const { error } = await supabase
-        .from('assignments')
-        .update({ is_published: !a.is_published })
-        .eq('id', a.id);
-      if (error) throw error;
-
+      await apiPost(`/guru/assignments/${a.id}/publish`);
       triggerNotice(!a.is_published ? 'Tugas dipublikasikan ke siswa.' : 'Tugas dikembalikan ke draft.');
       await loadData();
     } catch (err) {
@@ -666,8 +648,7 @@ export default function DashboardGuru() {
         setConfirmState((prev) => ({ ...prev, loading: true }));
         setBusyAssignment(a.id);
         try {
-          const { error } = await supabase.from('assignments').delete().eq('id', a.id);
-          if (error) throw error;
+          await apiDelete(`/guru/assignments/${a.id}`);
           triggerNotice('Tugas berhasil dihapus.');
           await loadData();
         } catch (err) {
@@ -700,17 +681,15 @@ export default function DashboardGuru() {
         is_published: assignmentForm.is_published,
       };
 
-      const { error } = editingAssignment
-        ? await supabase.from('assignments').update(payload).eq('id', editingAssignment.id)
-        : await supabase.from('assignments').insert({ ...payload, teacher_id: teacher.id });
-      if (error) throw error;
+      if (editingAssignment) await apiPatch(`/guru/assignments/${editingAssignment.id}`, payload);
+      else await apiPost('/guru/assignments', payload);
 
       const wasEditing = !!editingAssignment;
       triggerNotice(wasEditing ? 'Perubahan tugas disimpan.' : 'Tugas berhasil dibuat.');
       closeAssignmentModal();
       await loadData();
     } catch (err) {
-      setFormError(err.message || 'Gagal membuat tugas.');
+      setFormError(formErrorMessage(err, 'Gagal membuat tugas.'));
     } finally {
       setSaving('');
     }
@@ -719,22 +698,15 @@ export default function DashboardGuru() {
   const handleGrade = async (submissionId, nilai, feedback) => {
     setSaving('nilai-' + submissionId);
     try {
-      const { error } = await supabase
-        .from('submissions')
-        .update({
-          nilai: nilai === '' ? null : Number(nilai),
-          feedback: feedback || null,
-          status: 'dinilai',
-          dinilai_at: new Date().toISOString(),
-        })
-        .eq('id', submissionId);
-      if (error) throw error;
-
+      await apiPatch(`/guru/submissions/${submissionId}/grade`, {
+        nilai: nilai === '' ? null : Number(nilai),
+        feedback: feedback || null,
+      });
       triggerNotice('Nilai berhasil disimpan.');
       setGrading(null);
       await loadData();
     } catch (err) {
-      triggerNotice(err.message || 'Gagal menyimpan nilai.');
+      triggerNotice(formErrorMessage(err, 'Gagal menyimpan nilai.'));
     } finally {
       setSaving('');
     }
@@ -780,12 +752,7 @@ export default function DashboardGuru() {
   const handleToggleActiveExam = async (x) => {
     setBusyExam(x.id);
     try {
-      const { error } = await supabase
-        .from('exams')
-        .update({ is_active: !x.is_active })
-        .eq('id', x.id);
-      if (error) throw error;
-
+      await apiPatch(`/guru/exams/${x.id}`, { is_active: !x.is_active });
       triggerNotice(!x.is_active ? 'Ujian diaktifkan untuk siswa.' : 'Ujian dinonaktifkan (draft).');
       await loadData();
     } catch (err) {
@@ -809,9 +776,7 @@ export default function DashboardGuru() {
         setConfirmState((prev) => ({ ...prev, loading: true }));
         setBusyExam(x.id);
         try {
-          const { error } = await supabase.from('exams').delete().eq('id', x.id);
-          if (error) throw error;
-
+          await apiDelete(`/guru/exams/${x.id}`);
           if (questionsExam && questionsExam.id === x.id) setQuestionsExam(null);
           triggerNotice('Ujian berhasil dihapus.');
           await loadData();
@@ -840,17 +805,11 @@ export default function DashboardGuru() {
         setConfirmState((prev) => ({ ...prev, loading: true }));
         setResettingAttempt(attempt.id);
         try {
-          const { error } = await supabase.rpc('reset_exam_attempt', { p_attempt_id: attempt.id });
-          if (error) throw error;
+          await apiPost(`/guru/attempts/${attempt.id}/reset`);
           triggerNotice(`Pengerjaan ${nama} direset. Siswa dapat mengerjakan ulang dari awal.`);
           await loadData();
         } catch (err) {
-          const msg = String(err?.message || '');
-          triggerNotice(
-            /reset_exam_attempt|schema cache/i.test(msg)
-              ? 'Fitur reset CBT belum terpasang. Jalankan md/supabase_cbt_session_guard.sql di Supabase.'
-              : (msg || 'Gagal mereset pengerjaan ujian.'),
-          );
+          triggerNotice(err?.message || 'Gagal mereset pengerjaan ujian.');
         } finally {
           setResettingAttempt(null);
           setConfirmState((prev) => ({ ...prev, loading: false, open: false }));
@@ -894,22 +853,15 @@ export default function DashboardGuru() {
         acak_soal: !!examForm.acak_soal,
       };
 
-      const { error } = editingExam
-        ? await supabase.from('exams').update(payload).eq('id', editingExam.id)
-        : await supabase.from('exams').insert({ ...payload, teacher_id: teacher.id });
-      if (error) throw error;
+      if (editingExam) await apiPatch(`/guru/exams/${editingExam.id}`, payload);
+      else await apiPost('/guru/exams', payload);
 
       const wasEditing = !!editingExam;
       triggerNotice(wasEditing ? 'Perubahan ujian disimpan.' : 'Ujian berhasil dibuat.');
       closeExamModal();
       await loadData();
     } catch (err) {
-      const msg = String(err?.message || '');
-      if (/acak_soal|admin_override|waktu_mulai|waktu_selesai/.test(msg)) {
-        setFormError('Skema sesi CBT belum terpasang. Jalankan md/supabase_cbt_session_guard.sql di Supabase, lalu coba lagi.');
-      } else {
-        setFormError(msg || 'Gagal membuat ujian.');
-      }
+      setFormError(formErrorMessage(err, 'Gagal membuat ujian.'));
     } finally {
       setSaving('');
     }
@@ -917,29 +869,20 @@ export default function DashboardGuru() {
 
   const handleAddQuestion = async ({ pertanyaan, opsi, kunci, bobot, gambar_url }) => {
     if (!questionsExam) return false;
+    const examId = questionsExam.id;
     setFormError('');
     setSaving('soal');
     try {
-      const payload = {
-        exam_id: questionsExam.id,
-        tipe: 'pg',
-        pertanyaan,
-        opsi,
-        kunci_jawaban: kunci,
-        bobot,
-      };
-      // Hanya kirim gambar_url bila memang ada gambar (aman walau migrasi belum jalan).
+      const payload = { tipe: 'pg', pertanyaan, opsi, kunci_jawaban: kunci, bobot };
       if (gambar_url) payload.gambar_url = gambar_url;
-
-      const { error } = await supabase.from('questions').insert(payload);
-      if (error) throw error;
-
+      const created = await apiPost(`/guru/exams/${examId}/questions`, payload);
+      setQuestions((prev) => [...prev, created]);
+      setQuestionsCache((prev) => ({ ...prev, [examId]: [...(prev[examId] || []), created] }));
+      setQuestionCounts((prev) => ({ ...prev, [examId]: (prev[examId] || 0) + 1 }));
       triggerNotice('Soal ditambahkan.');
-      await loadQuestions(questionsExam.id);
-      await loadData();
       return true;
     } catch (err) {
-      setFormError(err.message || 'Gagal menambah soal.');
+      setFormError(formErrorMessage(err, 'Gagal menambah soal.'));
       return false;
     } finally {
       setSaving('');
@@ -948,24 +891,18 @@ export default function DashboardGuru() {
 
   const handleUpdateQuestion = async (id, { pertanyaan, opsi, kunci, bobot, gambar_url }) => {
     if (!questionsExam || !id) return false;
+    const examId = questionsExam.id;
     setFormError('');
     setBusyQuestion(id);
     try {
-      const original = questions.find((q) => q.id === id);
-      const patch = { pertanyaan, opsi, kunci_jawaban: kunci, bobot };
-      // Tulis gambar_url hanya bila berubah (termasuk saat gambar dihapus).
-      if ((original?.gambar_url || null) !== (gambar_url || null)) {
-        patch.gambar_url = gambar_url || null;
-      }
-
-      const { error } = await supabase.from('questions').update(patch).eq('id', id);
-      if (error) throw error;
-
+      const patch = { pertanyaan, opsi, kunci_jawaban: kunci, bobot, gambar_url: gambar_url || null };
+      const updated = await apiPatch(`/guru/questions/${id}`, patch);
+      setQuestions((prev) => prev.map((q) => (q.id === id ? updated : q)));
+      setQuestionsCache((prev) => ({ ...prev, [examId]: (prev[examId] || []).map((q) => (q.id === id ? updated : q)) }));
       triggerNotice('Soal diperbarui.');
-      await loadQuestions(questionsExam.id);
       return true;
     } catch (err) {
-      setFormError(err.message || 'Gagal memperbarui soal.');
+      setFormError(formErrorMessage(err, 'Gagal memperbarui soal.'));
       return false;
     } finally {
       setBusyQuestion(null);
@@ -974,29 +911,31 @@ export default function DashboardGuru() {
 
   const handleImportQuestions = async (rows) => {
     if (!questionsExam || !rows?.length) return 0;
+    const examId = questionsExam.id;
     setFormError('');
     setSaving('import');
+    const created = [];
     try {
-      const payload = rows.map((row) => ({
-        exam_id: questionsExam.id,
-        tipe: 'pg',
-        pertanyaan: row.pertanyaan,
-        opsi: row.opsi,
-        kunci_jawaban: row.kunci,
-        bobot: row.bobot,
-      }));
-
-      const { error } = await supabase.from('questions').insert(payload);
-      if (error) throw error;
-
-      triggerNotice(`${rows.length} soal berhasil diimpor.`);
-      await loadQuestions(questionsExam.id);
-      await loadData();
-      return rows.length;
+      for (const row of rows) {
+        created.push(await apiPost(`/guru/exams/${examId}/questions`, {
+          tipe: 'pg',
+          pertanyaan: row.pertanyaan,
+          opsi: row.opsi,
+          kunci_jawaban: row.kunci,
+          bobot: row.bobot,
+        }));
+      }
+      triggerNotice(`${created.length} soal berhasil diimpor.`);
+      return created.length;
     } catch (err) {
-      setFormError(err.message || 'Gagal mengimpor soal.');
-      return 0;
+      setFormError(formErrorMessage(err, 'Gagal mengimpor soal.'));
+      return created.length;
     } finally {
+      if (created.length) {
+        setQuestions((prev) => [...prev, ...created]);
+        setQuestionsCache((prev) => ({ ...prev, [examId]: [...(prev[examId] || []), ...created] }));
+        setQuestionCounts((prev) => ({ ...prev, [examId]: (prev[examId] || 0) + created.length }));
+      }
       setSaving('');
     }
   };
@@ -1013,13 +952,15 @@ export default function DashboardGuru() {
       onConfirm: async () => {
         setConfirmState((prev) => ({ ...prev, loading: true }));
         setBusyQuestion(q.id);
+        const examId = questionsExam?.id;
         try {
-          const { error } = await supabase.from('questions').delete().eq('id', q.id);
-          if (error) throw error;
-
+          await apiDelete(`/guru/questions/${q.id}`);
+          setQuestions((prev) => prev.filter((x) => x.id !== q.id));
+          if (examId) {
+            setQuestionsCache((prev) => ({ ...prev, [examId]: (prev[examId] || []).filter((x) => x.id !== q.id) }));
+            setQuestionCounts((prev) => ({ ...prev, [examId]: Math.max(0, (prev[examId] || 0) - 1) }));
+          }
           triggerNotice('Soal dihapus.');
-          await loadQuestions(questionsExam.id);
-          await loadData();
         } catch (err) {
           triggerNotice(err.message || 'Gagal menghapus soal.');
         } finally {

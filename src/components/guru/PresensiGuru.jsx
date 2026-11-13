@@ -3,7 +3,7 @@ import {
   UserCheck, CalendarDays, Loader2, CheckCircle2, AlertTriangle,
   Users, Save, CheckCheck,
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { apiPost, apiPatch } from '../../lib/api';
 import './PresensiGuru.css';
 
 const STATUS = [
@@ -27,17 +27,10 @@ const formatTanggal = (iso) => {
 };
 
 const friendlyError = (err) => {
-  const msg = String(err?.message || '');
-  if (msg.includes('no unique or exclusion constraint')) {
-    return 'Database presensi belum diperbarui. Jalankan md/supabase_attendance.sql di Supabase SQL Editor, lalu coba simpan lagi.';
+  if (err?.code === 'ATTENDANCE_DUPLICATE') {
+    return 'Sebagian presensi sudah ada. Muat ulang lalu simpan lagi.';
   }
-  if (msg.includes('row-level security')) {
-    return 'Anda tidak berhak mengubah presensi kelas ini. Pastikan policy presensi sudah dipasang (md/supabase_attendance.sql).';
-  }
-  if (msg.includes('duplicate key')) {
-    return 'Sebagian data sudah ada. Muat ulang lalu simpan lagi.';
-  }
-  return msg || 'Gagal menyimpan presensi.';
+  return err?.message || 'Gagal menyimpan presensi.';
 };
 
 const EMPTY_EDITS = {};
@@ -140,19 +133,9 @@ export default function PresensiGuru({ schedules = [], students = [], attendance
 
   const handleSave = async () => {
     if (!schedule) return;
-    const rows = siswaKelas
-      .filter((s) => draft[s.id])
-      .map((s) => ({
-        student_id: s.id,
-        class_id: schedule.class_id,
-        schedule_id: schedule.id,
-        tanggal,
-        status: draft[s.id],
-        metode: 'guru',
-        jam_masuk: tersimpan.get(s.id)?.jam_masuk || null,
-      }));
+    const targets = siswaKelas.filter((s) => draft[s.id]);
 
-    if (!rows.length) {
+    if (!targets.length) {
       setError('Belum ada siswa yang ditandai.');
       return;
     }
@@ -161,12 +144,23 @@ export default function PresensiGuru({ schedules = [], students = [], attendance
     setError('');
     setFlash('');
     try {
-      const { error: upErr } = await supabase
-        .from('attendance')
-        .upsert(rows, { onConflict: 'student_id,schedule_id,tanggal' });
-      if (upErr) throw upErr;
+      for (const s of targets) {
+        const existing = tersimpan.get(s.id);
+        const status = draft[s.id];
+        if (existing) {
+          if (existing.status === status) continue;
+          await apiPatch(`/guru/attendance/${existing.id}`, { status });
+        } else {
+          await apiPost('/guru/attendance', {
+            student_id: s.id,
+            schedule_id: schedule.id,
+            tanggal,
+            status,
+          });
+        }
+      }
 
-      setFlash(`Presensi tersimpan untuk ${rows.length} siswa.`);
+      setFlash(`Presensi tersimpan untuk ${targets.length} siswa.`);
       setTimeout(() => setFlash(''), 4000);
       if (onChanged) await onChanged();
     } catch (err) {

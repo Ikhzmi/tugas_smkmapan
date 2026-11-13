@@ -1,10 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ListChecks, PlusCircle, Trash2, Loader2, CheckCircle2, AlertTriangle,
   Pencil, ImagePlus, FileSpreadsheet, FileText, Upload, Info,
 } from 'lucide-react';
 import GuruModal from './GuruModal';
-import { uploadSupabaseImage } from '../../lib/uploadImage';
 import { TEMPLATE_CSV_NAME, TEMPLATE_XLSX_NAME } from '../../lib/questionTemplateData';
 import './ExamQuestionsModal.css';
 
@@ -14,7 +13,7 @@ const emptyQuestion = {
   pertanyaan: '', a: '', b: '', c: '', d: '', kunci: 'A', bobot: 1, gambar_url: '',
 };
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const isImageUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
 
 export default function ExamQuestionsModal({
   open,
@@ -34,9 +33,6 @@ export default function ExamQuestionsModal({
   const [form, setForm] = useState(emptyQuestion);
   const [editingId, setEditingId] = useState(null);
   const [localError, setLocalError] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [imageBusy, setImageBusy] = useState(false);
 
   const [importFile, setImportFile] = useState(null);
   const [importResult, setImportResult] = useState(null);
@@ -44,28 +40,11 @@ export default function ExamQuestionsModal({
   const [importError, setImportError] = useState('');
   const [importDone, setImportDone] = useState(0);
 
-  const previewUrlRef = useRef('');
-
-  const setPreview = useCallback((url) => {
-    if (previewUrlRef.current) {
-      URL.revokeObjectURL(previewUrlRef.current);
-      previewUrlRef.current = '';
-    }
-    if (url && url.startsWith('blob:')) previewUrlRef.current = url;
-    setImagePreview(url || '');
-  }, []);
-
-  useEffect(() => () => {
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-  }, []);
-
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
   const resetForm = () => {
     setForm(emptyQuestion);
     setEditingId(null);
-    setImageFile(null);
-    setPreview('');
     setLocalError('');
   };
 
@@ -83,8 +62,6 @@ export default function ExamQuestionsModal({
   const startEdit = (q) => {
     setPane('manual');
     setEditingId(q.id);
-    setImageFile(null);
-    setPreview(q.gambar_url || '');
     setForm({
       pertanyaan: q.pertanyaan || '',
       a: q.opsi?.[0] || '',
@@ -98,29 +75,6 @@ export default function ExamQuestionsModal({
     setLocalError('');
   };
 
-  const handlePickImage = (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    if (!String(file.type || '').startsWith('image/')) {
-      setLocalError('Berkas harus berupa gambar (JPG, PNG, WEBP).');
-      return;
-    }
-    if (file.size > MAX_IMAGE_SIZE) {
-      setLocalError('Ukuran gambar maksimal 5 MB.');
-      return;
-    }
-    setLocalError('');
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setPreview('');
-    set({ gambar_url: '' });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
@@ -129,23 +83,9 @@ export default function ExamQuestionsModal({
     const opsi = [form.a, form.b, form.c, form.d].map((o) => o.trim());
     if (opsi.some((o) => !o)) return setLocalError('Semua opsi A–D wajib diisi.');
 
-    let gambarUrl = form.gambar_url || '';
-
-    if (imageFile) {
-      setImageBusy(true);
-      try {
-        gambarUrl = await uploadSupabaseImage('soal', imageFile);
-      } catch (err) {
-        setImageBusy(false);
-        const msg = String(err?.message || '');
-        setLocalError(
-          /bucket/i.test(msg)
-            ? 'Bucket storage "soal" belum tersedia. Jalankan md/supabase_question_images.sql di Supabase SQL Editor.'
-            : msg || 'Gagal mengunggah gambar soal.',
-        );
-        return undefined;
-      }
-      setImageBusy(false);
+    const gambarUrl = (form.gambar_url || '').trim();
+    if (gambarUrl && !isImageUrl(gambarUrl)) {
+      return setLocalError('URL gambar harus diawali http:// atau https://.');
     }
 
     const payload = {
@@ -202,7 +142,7 @@ export default function ExamQuestionsModal({
     }
   };
 
-  const busy = imageBusy || saving === 'soal';
+  const busy = saving === 'soal';
 
   return (
     <GuruModal
@@ -329,32 +269,34 @@ export default function ExamQuestionsModal({
               <div className="eqm-image-field">
                 <div className="eqm-image-head">
                   <span className="eqm-label">Gambar Soal (opsional)</span>
-                  {imagePreview && (
-                    <button type="button" className="eqm-image-del" onClick={handleRemoveImage}>
+                  {form.gambar_url && (
+                    <button type="button" className="eqm-image-del" onClick={() => set({ gambar_url: '' })}>
                       Hapus gambar
                     </button>
                   )}
                 </div>
 
-                {imagePreview ? (
+                <input
+                  type="url"
+                  className="eqm-input"
+                  placeholder="Tempel URL gambar (https://...)"
+                  value={form.gambar_url}
+                  onChange={(e) => set({ gambar_url: e.target.value })}
+                />
+
+                {isImageUrl(form.gambar_url) && (
                   <div className="eqm-image-preview">
-                    <img src={imagePreview} alt="Pratinjau gambar soal" />
+                    <img src={form.gambar_url.trim()} alt="Pratinjau gambar soal" />
                   </div>
-                ) : (
-                  <label className="eqm-image-drop">
-                    <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onChange={handlePickImage} hidden />
-                    <ImagePlus size={16} />
-                    <span>Pilih gambar (JPG/PNG/WEBP, maks 5 MB)</span>
-                  </label>
                 )}
 
-                {imagePreview && (
-                  <label className="eqm-image-replace">
-                    <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onChange={handlePickImage} hidden />
-                    <ImagePlus size={12} />
-                    <span>Ganti gambar</span>
-                  </label>
-                )}
+                <p className="eqm-note">
+                  <Info size={12} />
+                  <span>
+                    Gunakan URL gambar publik (JPG/PNG/WEBP). Unggah gambar ke hosting/CDN, lalu
+                    tempel tautannya di sini.
+                  </span>
+                </p>
               </div>
 
               {['a', 'b', 'c', 'd'].map((key) => (
@@ -406,7 +348,7 @@ export default function ExamQuestionsModal({
                 <button type="submit" className="gm-btn-primary eqm-submit" disabled={busy}>
                   {busy ? <Loader2 size={15} className="gm-spin" /> : <PlusCircle size={15} />}
                   <span>
-                    {imageBusy ? 'Mengunggah gambar...' : busy ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Soal'}
+                    {busy ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Soal'}
                   </span>
                 </button>
                 {editingId && (
@@ -457,7 +399,7 @@ export default function ExamQuestionsModal({
               <Info size={13} />
               <span>
                 Gambar di dalam file Excel/CSV <b>diabaikan</b> — sistem hanya membaca teks.
-                Setelah soal masuk, tambahkan gambar lewat tombol <b>pensil</b> pada daftar soal.
+                Setelah soal masuk, tambahkan URL gambar lewat tombol <b>pensil</b> pada daftar soal.
               </span>
             </p>
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { logout as apiLogout } from '../lib/auth';
 import { useAuth } from '../hooks/useAuth';
 import { SESSION_NOTICE, conflictNotice } from '../hooks/useSessionGuard';
 import { ensureSession, resetSessionCache, setNotice, clearNotice } from '../lib/sessionGuard';
@@ -46,7 +46,7 @@ export default function SessionResume() {
               : conflictNotice(result.otherLabel);
           setNotice(message);
           resetSessionCache();
-          try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* ignore */ }
+          try { await apiLogout(); } catch { /* ignore */ }
           return;
         }
       } else {

@@ -3,7 +3,7 @@ import {
   Users, AlertTriangle, Search,
   CheckCircle2, Download, ChevronLeft, ChevronRight,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiGet, apiListAll } from '../lib/api';
 import { ListSkeleton } from './ui/Skeleton';
 import './AdminAttendance.css';
 
@@ -25,10 +25,16 @@ const awalBulan = () => {
 
 const ITEMS_PER_PAGE = 10;
 
+const emptyCounts = () => ({ hadir: 0, terlambat: 0, izin: 0, sakit: 0, alpa: 0, total: 0 });
+
+const withPersen = (r) => {
+  const masuk = r.hadir + r.terlambat;
+  return { ...r, persen: r.total ? Math.round((masuk / r.total) * 100) : 0 };
+};
+
 export default function AdminAttendance() {
   const [classes, setClasses] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [attendance, setAttendance] = useState([]);
+  const [summary, setSummary] = useState({ total: 0, by_status: {}, by_class: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [kelas, setKelas] = useState('semua');
@@ -39,87 +45,57 @@ export default function AdminAttendance() {
 
   const loadData = useCallback(async () => {
     try {
-      const [cls, stu, att] = await Promise.all([
-        supabase.from('classes').select('id, nama, tingkat').order('nama'),
-        supabase.from('students').select('id, nama, nisn, class_id').order('nama'),
-        supabase
-          .from('attendance')
-          .select('id, student_id, class_id, schedule_id, tanggal, status, metode')
-          .gte('tanggal', dari)
-          .lte('tanggal', sampai)
-          .order('tanggal', { ascending: false })
-          .limit(5000),
+      const [cls, sum] = await Promise.all([
+        apiListAll('/admin/classes'),
+        apiGet('/admin/attendance/summary', {
+          query: {
+            date_from: dari,
+            date_to: sampai,
+            class_id: kelas !== 'semua' ? kelas : undefined,
+          },
+        }),
       ]);
       setError('');
-      if (cls.error) throw cls.error;
-      if (stu.error) throw stu.error;
-      if (att.error) throw att.error;
-      setClasses(cls.data || []);
-      setStudents(stu.data || []);
-      setAttendance(att.data || []);
+      setClasses(cls);
+      setSummary(sum || { total: 0, by_status: {}, by_class: [] });
     } catch (err) {
       setError(err.message || 'Gagal memuat data presensi.');
     } finally {
       setLoading(false);
     }
-  }, [dari, sampai]);
+  }, [dari, sampai, kelas]);
 
   useEffect(() => { queueMicrotask(loadData); }, [loadData]);
 
-  const namaKelas = useMemo(
-    () => new Map(classes.map((c) => [c.id, c.nama])),
-    [classes],
-  );
-
-  const siswaFilter = useMemo(() => {
-    const q = cari.trim().toLowerCase();
-    return students.filter((s) => {
-      if (kelas !== 'semua' && s.class_id !== kelas) return false;
-      if (!q) return true;
-      return (s.nama || '').toLowerCase().includes(q) || (s.nisn || '').includes(q);
-    });
-  }, [students, kelas, cari]);
-
-  
   const rekap = useMemo(() => {
-    const byStudent = new Map();
-    attendance.forEach((a) => {
-      let row = byStudent.get(a.student_id);
-      if (!row) {
-        row = { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alpa: 0, total: 0 };
-        byStudent.set(a.student_id, row);
-      }
-      row.total += 1;
-      if (row[a.status] != null) row[a.status] += 1;
+    const q = cari.trim().toLowerCase();
+    const rows = (summary.by_class || []).map((c) => {
+      const counts = emptyCounts();
+      STATUS.forEach((st) => { counts[st.key] = Number(c.by_status?.[st.key] || 0); });
+      counts.total = Number(c.total || 0);
+      return withPersen({
+        id: c.class_id || c.class_name,
+        kelas_nama: c.class_name || '-',
+        ...counts,
+      });
     });
-
-    return siswaFilter.map((s) => {
-      const r = byStudent.get(s.id) || { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alpa: 0, total: 0 };
-      const masuk = r.hadir + r.terlambat;
-      return {
-        ...s,
-        kelas_nama: namaKelas.get(s.class_id) || '-',
-        ...r,
-        persen: r.total ? Math.round((masuk / r.total) * 100) : 0,
-      };
-    }).sort((a, b) => b.persen - a.persen || a.nama.localeCompare(b.nama));
-  }, [attendance, siswaFilter, namaKelas]);
+    return rows
+      .filter((r) => !q || (r.kelas_nama || '').toLowerCase().includes(q))
+      .sort((a, b) => b.persen - a.persen || a.kelas_nama.localeCompare(b.kelas_nama));
+  }, [summary, cari]);
 
   const ringkasan = useMemo(() => {
-    const c = { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alpa: 0, total: 0 };
-    rekap.forEach((r) => {
-      STATUS.forEach((st) => { c[st.key] += r[st.key]; });
-      c.total += r.total;
-    });
-    const masuk = c.hadir + c.terlambat;
-    return { ...c, persen: c.total ? Math.round((masuk / c.total) * 100) : 0 };
-  }, [rekap]);
+    const c = emptyCounts();
+    STATUS.forEach((st) => { c[st.key] = Number(summary.by_status?.[st.key] || 0); });
+    c.total = Number(summary.total || 0);
+    return withPersen(c);
+  }, [summary]);
 
   const exportCsv = () => {
-    const header = ['Nama', 'NISN', 'Kelas', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa', 'Total', 'Persentase'];
+    const header = ['Kelas', 'Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpa', 'Total', 'Persentase'];
     const lines = [header.join(';')].concat(
       rekap.map((r) => [
-        r.nama, r.nisn || '', r.kelas_nama,
+        r.kelas_nama,
         r.hadir, r.terlambat, r.izin, r.sakit, r.alpa, r.total, `${r.persen}%`,
       ].join(';')),
     );
@@ -175,13 +151,13 @@ export default function AdminAttendance() {
           <input id="adm-sampai" type="date" value={sampai} onChange={(e) => { setSampai(e.target.value); setPage(1); }} />
         </div>
         <div className="adm-att-field is-search">
-          <label htmlFor="adm-cari">Cari siswa</label>
+          <label htmlFor="adm-cari">Cari kelas</label>
           <div className="adm-att-search">
             <Search size={14} />
             <input
               id="adm-cari"
               type="text"
-              placeholder="Nama atau NISN..."
+              placeholder="Nama kelas..."
               value={cari}
               onChange={(e) => { setCari(e.target.value); setPage(1); }}
             />
@@ -226,7 +202,7 @@ export default function AdminAttendance() {
         <>
           <div className="adm-att-table-header-info">
             <span>
-              Menampilkan <strong>{rekap.length ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</strong> - <strong>{Math.min(currentPage * ITEMS_PER_PAGE, rekap.length)}</strong> dari <strong>{rekap.length}</strong> siswa
+              Menampilkan <strong>{rekap.length ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</strong> - <strong>{Math.min(currentPage * ITEMS_PER_PAGE, rekap.length)}</strong> dari <strong>{rekap.length}</strong> kelas
             </span>
             {totalPages > 1 && (
               <span>Halaman <strong>{currentPage}</strong> dari <strong>{totalPages}</strong></span>
@@ -238,7 +214,6 @@ export default function AdminAttendance() {
               <thead>
                 <tr>
                   <th style={{ width: '48px', textAlign: 'center' }}>No</th>
-                  <th>Siswa</th>
                   <th>Kelas</th>
                   {STATUS.map((st) => <th key={st.key} className="is-num">{st.short}</th>)}
                   <th className="is-num">Total</th>
@@ -250,12 +225,6 @@ export default function AdminAttendance() {
                   <tr key={r.id}>
                     <td className="adm-att-row-num">
                       {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
-                    </td>
-                    <td>
-                      <div className="adm-att-who">
-                        <strong>{r.nama}</strong>
-                        <span>{r.nisn || '-'}</span>
-                      </div>
                     </td>
                     <td className="adm-att-kelas">{r.kelas_nama}</td>
                     {STATUS.map((st) => (

@@ -1,6 +1,8 @@
 /* oxlint-disable react/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import {
+  apiGet, apiPost, apiPatch, apiPut, apiDelete, apiListAll, getToken, getStoredUser, onAuthChange,
+} from '../lib/api';
 import { ASSETS } from '../data/assets';
 import { SCHOOL_INFO, MAJORS_DATA, TEACHERS_DATA, SHOWCASE_EPISODES } from '../data/schoolData';
 import { teacherPhoto } from '../lib/teacherPhoto';
@@ -19,6 +21,11 @@ const rupiah = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const isDbId = (value) =>
   typeof value === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
+// Kolom *_url di API divalidasi sebagai URL absolut; aset bundel lokal
+// (path relatif) tidak boleh dikirim ke server.
+const httpUrlOrNull = (value) =>
+  (typeof value === 'string' && /^https?:\/\//i.test(value)) ? value : null;
 
 const mapMajor = (m) => ({
   id: m.kode.toLowerCase(),
@@ -377,107 +384,116 @@ export function ContentProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [
-      settingsRes,
-      majorsRes,
-      teachersRes,
-      eskulRes,
-      facilitiesRes,
-      videosRes,
-      galleryRes,
-    ] = await Promise.all([
-      supabase.from('site_settings').select('key, value'),
-      supabase.from('majors').select('*').order('kode'),
-      supabase.from('teachers').select('*').eq('is_active', true).order('sort_order'),
-      supabase.from('eskul').select('*').eq('is_active', true).order('nama'),
-      supabase.from('facilities').select('*').eq('is_active', true).order('sort_order'),
-      supabase.from('videos').select('*').eq('is_published', true).eq('kategori', 'showreel').order('sort_order'),
-      supabase.from('gallery').select('*').eq('is_active', true).order('sort_order'),
-    ]);
+    const isAdmin = !!getToken() && getStoredUser()?.role === 'admin';
+    const list = (path, query) => apiListAll(path, query).catch(() => []);
 
-    const settings = {};
-    (settingsRes.data || []).forEach((r) => { settings[r.key] = r.value; });
+    try {
+      const [
+        settings,
+        majorsRows,
+        teacherRows,
+        eskulRows,
+        facilityRows,
+        videoRows,
+        galleryRows,
+      ] = await Promise.all([
+        apiGet('/public/site').catch(() => ({})),
+        list(isAdmin ? '/admin/majors' : '/public/majors'),
+        list(isAdmin ? '/admin/teachers' : '/public/teachers'),
+        list(isAdmin ? '/admin/eskul' : '/public/eskul'),
+        list(isAdmin ? '/admin/facilities' : '/public/facilities'),
+        list(isAdmin ? '/admin/videos' : '/public/videos', { category: 'showreel' }),
+        list(isAdmin ? '/admin/gallery' : '/public/gallery'),
+      ]);
 
-    const schoolInfo = mapSchoolInfo(settings);
+      const schoolInfo = mapSchoolInfo(settings || {});
 
-    const rawTeachers = (teachersRes.data || []).map(mapTeacher);
-    const mappedTeachers = rawTeachers.map((t) => {
-      if (t.name.includes('Sulastri')) {
-        return { ...t, role: 'Kepala Sekolah', image: t.image || ASSETS.teachers.umiSulastri };
+      const rawTeachers = (teacherRows || [])
+        .filter((t) => t.is_active !== false)
+        .map(mapTeacher);
+      const mappedTeachers = rawTeachers.map((t) => {
+        if (t.name.includes('Sulastri')) {
+          return { ...t, role: 'Kepala Sekolah', image: t.image || ASSETS.teachers.umiSulastri };
+        }
+        if (t.name.includes('Luliadi') && t.role === 'Kepala Sekolah') {
+          return { ...t, role: 'Wakil Kepala Sekolah & Pengajar Senior' };
+        }
+        return t;
+      });
+      if (mappedTeachers.length > 0) {
+        mappedTeachers.sort((a, b) => (a.role === 'Kepala Sekolah' ? -1 : b.role === 'Kepala Sekolah' ? 1 : 0));
       }
-      if (t.name.includes('Luliadi') && t.role === 'Kepala Sekolah') {
-        return { ...t, role: 'Wakil Kepala Sekolah & Pengajar Senior' };
+
+      // Jurusan non-aktif tetap dibutuhkan CMS supaya bisa ditampilkan lagi,
+      // tetapi tidak boleh dipakai komponen landing page.
+      const mappedMajors = (majorsRows && majorsRows.length > 0)
+        ? majorsRows.map(mapMajor)
+        : MAJORS_DATA;
+
+      const showcaseRows = (videoRows || [])
+        .filter((v) => v.kategori === 'showreel' && v.is_published !== false);
+
+      setContent({
+        schoolInfo,
+        appearance: mapAppearance(settings || {}),
+        sectionCopy: mapSectionCopy(settings || {}),
+        profileExtras: {
+          visi: settings.profil?.visi || '',
+          misi: settings.profil?.misi || [],
+          tujuan: settings.profil?.tujuan || '',
+          sejarahJudul: settings.profil?.sejarah_judul || '',
+          sejarahParagraf: settings.profil?.sejarah_paragraf || [],
+          sejarahMilestones: settings.profil?.sejarah_milestones || [],
+          kepsekSambutan: settings.profil?.kepsek_sambutan || '',
+          kepsekPesan: settings.profil?.kepsek_pesan || [],
+          sejarahFoto: settings.profil?.sejarah_foto || '',
+          kartuDepan: settings.profil?.kartu_depan || '',
+          kartuBelakang: settings.profil?.kartu_belakang || '',
+        },
+        hero: { ...HERO_DEFAULTS, ...(settings.hero || {}) },
+        majors: mappedMajors.filter((m) => m.isActive !== false),
+        allMajors: mappedMajors,
+        teachers: (mappedTeachers && mappedTeachers.length > 0) ? mappedTeachers : TEACHERS_DATA,
+        eskul: (eskulRows || []).filter((e) => e.is_active !== false).map(mapEskul),
+        facilities: (facilityRows || []).filter((f) => f.is_active !== false).map(mapFacility),
+        galeri: (galleryRows || []).filter((g) => g.is_active !== false).map(mapGallery),
+        showcase: showcaseRows.length > 0 ? showcaseRows.map(mapVideo) : SHOWCASE_EPISODES,
+      });
+
+      // PPDB & pesan masuk hanya bisa dibaca admin.
+      if (isAdmin) {
+        const majorByKode = {};
+        (majorsRows || []).forEach((m) => { majorByKode[m.id] = m; });
+        const [ppdbRows, msgRows] = await Promise.all([
+          list('/admin/ppdb'),
+          list('/admin/suggestions'),
+        ]);
+        setPpdbSubmissions((ppdbRows || []).map((p) => mapPpdb({
+          ...p,
+          majors: majorByKode[p.major_id] || null,
+        })));
+        setContactMessages((msgRows || []).map(mapMessage));
+      } else {
+        setPpdbSubmissions([]);
+        setContactMessages([]);
       }
-      return t;
-    });
-    if (mappedTeachers.length > 0) {
-      mappedTeachers.sort((a, b) => (a.role === 'Kepala Sekolah' ? -1 : b.role === 'Kepala Sekolah' ? 1 : 0));
+    } catch (err) {
+      console.warn('[ContentContext] Gagal memuat konten dari API:', err?.message || err);
+    } finally {
+      setLoading(false);
     }
-
-    // Jurusan non-aktif tetap dibutuhkan CMS supaya bisa ditampilkan lagi,
-    // tetapi tidak boleh dipakai komponen landing page.
-    const mappedMajors = (majorsRes.data && majorsRes.data.length > 0)
-      ? majorsRes.data.map(mapMajor)
-      : MAJORS_DATA;
-
-    setContent({
-      schoolInfo,
-      appearance: mapAppearance(settings),
-      sectionCopy: mapSectionCopy(settings),
-      profileExtras: {
-        visi: settings.profil?.visi || '',
-        misi: settings.profil?.misi || [],
-        tujuan: settings.profil?.tujuan || '',
-        sejarahJudul: settings.profil?.sejarah_judul || '',
-        sejarahParagraf: settings.profil?.sejarah_paragraf || [],
-        sejarahMilestones: settings.profil?.sejarah_milestones || [],
-        kepsekSambutan: settings.profil?.kepsek_sambutan || '',
-        kepsekPesan: settings.profil?.kepsek_pesan || [],
-        sejarahFoto: settings.profil?.sejarah_foto || '',
-        kartuDepan: settings.profil?.kartu_depan || '',
-        kartuBelakang: settings.profil?.kartu_belakang || '',
-      },
-      hero: { ...HERO_DEFAULTS, ...(settings.hero || {}) },
-      majors: mappedMajors.filter((m) => m.isActive !== false),
-      allMajors: mappedMajors,
-      teachers: (mappedTeachers && mappedTeachers.length > 0) ? mappedTeachers : TEACHERS_DATA,
-      eskul: (eskulRes.data || []).map(mapEskul),
-      facilities: (facilitiesRes.data || []).map(mapFacility),
-      galeri: (galleryRes.data || []).map(mapGallery),
-      showcase: (videosRes.data && videosRes.data.length > 0) ? videosRes.data.map(mapVideo) : SHOWCASE_EPISODES,
-    });
-
-    const ppdbRes = await supabase
-      .from('ppdb_registrations')
-      .select('*, majors(kode, nama)')
-      .order('created_at', { ascending: false });
-    if (!ppdbRes.error) setPpdbSubmissions((ppdbRes.data || []).map(mapPpdb));
-
-    const msgRes = await supabase
-      .from('suggestions')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (!msgRes.error) setContactMessages((msgRes.data || []).map(mapMessage));
-
-    setLoading(false);
   }, []);
 
   useEffect(() => { queueMicrotask(fetchAll); }, [fetchAll]);
 
-  // PPDB & pesan masuk hanya bisa dibaca admin (RLS), jadi saat app dibuka
+  // PPDB & pesan masuk hanya bisa dibaca admin, jadi saat app dibuka
   // dalam keadaan anonim hasilnya kosong. Muat ulang tiap sesi berubah.
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') fetchAll();
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [fetchAll]);
+  useEffect(() => onAuthChange(() => { fetchAll(); }), [fetchAll]);
 
   const updateSiteSetting = async (key, patch) => {
-    const { data: cur } = await supabase.from('site_settings').select('value').eq('key', key).single();
-    const merged = { ...(cur?.value || {}), ...patch };
-    const { error } = await supabase.from('site_settings').upsert({ key, value: merged });
-    if (error) throw error;
+    const settings = (await apiGet('/admin/site-settings').catch(() => ({}))) || {};
+    const merged = { ...(settings[key] || {}), ...patch };
+    await apiPut(`/admin/site-settings/${encodeURIComponent(key)}`, { value: merged });
     await fetchAll();
   };
 
@@ -537,10 +553,8 @@ export function ContentProvider({ children }) {
 
   const updateMajors = async (majors) => {
     for (const m of majors) {
-      const useDbId = isDbId(m.dbId);
-      const matchValue = useDbId ? m.dbId : m.code;
-      if (!matchValue) continue;
-      const { error } = await supabase.from('majors').update({
+      if (!isDbId(m.dbId)) continue;
+      await apiPatch(`/admin/majors/${m.dbId}`, {
         kode: m.code,
         nama: m.name,
         tagline: m.tagline,
@@ -555,32 +569,26 @@ export function ContentProvider({ children }) {
         warna_soft: m.colorSoft,
         ikon: m.icon,
         is_active: m.isActive !== false,
-        foto_url: typeof m.photo === 'string' ? (m.photo || null) : (typeof m.image === 'string' && m.image ? m.image : null),
-      }).eq(useDbId ? 'id' : 'kode', matchValue);
-      if (error) throw error;
+        foto_url: httpUrlOrNull(m.photo) || httpUrlOrNull(m.image),
+      });
     }
     await fetchAll();
   };
 
   const createMajor = async (data = {}) => {
-    const { data: row, error } = await supabase
-      .from('majors')
-      .insert({
-        kode: String(data.kode || '').toUpperCase(),
-        nama: data.nama || 'Program Keahlian Baru',
-        tagline: data.tagline || '',
-        deskripsi: data.deskripsi || '',
-        biaya_pendaftaran: data.biaya_pendaftaran ?? 0,
-        spp_bulanan: data.spp_bulanan ?? 0,
-        warna: data.warna || '#0284C7',
-        warna_soft: data.warna_soft || '#E0F2FE',
-        ikon: data.ikon || 'Network',
-        foto_url: data.foto_url || data.image_url || '',
-        is_active: data.is_active === true,
-      })
-      .select()
-      .single();
-    if (error) throw error;
+    const row = await apiPost('/admin/majors', {
+      kode: String(data.kode || '').toUpperCase(),
+      nama: data.nama || 'Program Keahlian Baru',
+      tagline: data.tagline || '',
+      deskripsi: data.deskripsi || '',
+      biaya_pendaftaran: data.biaya_pendaftaran ?? 0,
+      spp_bulanan: data.spp_bulanan ?? 0,
+      warna: data.warna || '#0284C7',
+      warna_soft: data.warna_soft || '#E0F2FE',
+      ikon: data.ikon || 'Network',
+      foto_url: httpUrlOrNull(data.foto_url) || httpUrlOrNull(data.image_url),
+      is_active: data.is_active === true,
+    });
     return mapMajor(row);
   };
 
@@ -588,19 +596,14 @@ export function ContentProvider({ children }) {
     if (!isDbId(id)) {
       throw new Error('Data jurusan ini belum tersinkron dari database. Muat ulang halaman lalu coba lagi.');
     }
-    const { data: deleted, error } = await supabase
-      .from('majors').delete().eq('id', id).select('id');
-    if (error) throw error;
-    if (!deleted || deleted.length === 0) {
-      throw new Error('Ditolak database (RLS): akun Anda tidak punya hak hapus jurusan.');
-    }
+    await apiDelete(`/admin/majors/${id}`);
   };
 
   const updateTeachers = async (teachers) => {
     let saved = 0;
     for (const t of teachers) {
       if (!isDbId(t.id)) continue;
-      const { error } = await supabase.from('teachers').update({
+      await apiPatch(`/admin/teachers/${t.id}`, {
         nama: t.name,
         jabatan: t.role,
         department: t.department,
@@ -608,9 +611,8 @@ export function ContentProvider({ children }) {
         sertifikasi: t.certifications,
         jam_kerja: t.hours,
         email: t.email,
-        foto_url: typeof t.image === 'string' && t.image.startsWith('http') ? t.image : undefined,
-      }).eq('id', t.id);
-      if (error) throw error;
+        foto_url: httpUrlOrNull(t.image),
+      });
       saved++;
     }
     if (saved === 0 && teachers.length > 0) {
@@ -619,37 +621,35 @@ export function ContentProvider({ children }) {
     await fetchAll();
   };
 
+  const eskulPayload = (e) => ({
+    nama: e.name,
+    kategori: e.category,
+    image_url: httpUrlOrNull(e.image),
+    warna: e.color || '#e55a00',
+    warna_soft: e.colorSoft || '#fff7ed',
+    deskripsi: e.description,
+    jadwal: e.schedule,
+    pembina: e.coach,
+    prestasi: e.achievements,
+    jumlah_anggota: e.members,
+    max_anggota: e.maxMembers,
+  });
+
   const updateEskul = async (list) => {
     for (const e of list) {
       if (isDbId(e.id)) {
-        const { error } = await supabase.from('eskul').update({
-          nama: e.name,
-          kategori: e.category,
-          image_url: e.image || null,
-          warna: e.color || '#e55a00',
-          warna_soft: e.colorSoft || '#fff7ed',
-          deskripsi: e.description,
-          jadwal: e.schedule,
-          pembina: e.coach,
-          prestasi: e.achievements,
-          jumlah_anggota: e.members,
-          max_anggota: e.maxMembers,
-        }).eq('id', e.id);
-        if (error) throw error;
+        await apiPatch(`/admin/eskul/${e.id}`, eskulPayload(e));
       } else {
-        const { error } = await supabase.from('eskul').insert({
+        await apiPost('/admin/eskul', {
+          ...eskulPayload(e),
           nama: e.name || 'Eskul Baru',
           kategori: e.category || 'Olahraga & Seni',
-          image_url: e.image || null,
-          warna: e.color || '#e55a00',
-          warna_soft: e.colorSoft || '#fff7ed',
           deskripsi: e.description || '',
           jadwal: e.schedule || '',
           pembina: e.coach || '',
           prestasi: e.achievements || '',
           is_active: true,
         });
-        if (error) throw error;
       }
     }
     await fetchAll();
@@ -659,12 +659,11 @@ export function ContentProvider({ children }) {
     let nama = data.nama || 'Eskul Baru';
     let attempts = 0;
     while (attempts < 5) {
-      const { data: row, error } = await supabase
-        .from('eskul')
-        .insert({
+      try {
+        const row = await apiPost('/admin/eskul', {
           nama,
           kategori: data.kategori || 'Olahraga & Seni',
-          image_url: data.image_url || null,
+          image_url: httpUrlOrNull(data.image_url),
           warna: data.warna || '#e55a00',
           warna_soft: data.warna_soft || '#fff7ed',
           deskripsi: data.deskripsi || '',
@@ -672,25 +671,22 @@ export function ContentProvider({ children }) {
           pembina: data.pembina || '',
           prestasi: data.prestasi || '',
           is_active: true,
-        })
-        .select()
-        .single();
+        });
+        return mapEskul(row);
+      } catch (error) {
+        const isDuplicate =
+          error?.status === 422 &&
+          (error?.errors?.nama || String(error?.message || '').includes('nama'));
 
-      if (!error) return mapEskul(row);
+        if (isDuplicate) {
+          attempts++;
+          const rand = Math.floor(100 + Math.random() * 900);
+          nama = `Eskul Baru ${Date.now().toString().slice(-4)}${rand}`;
+          continue;
+        }
 
-      const isDuplicate =
-        error.code === '23505' ||
-        String(error.message || '').includes('nama') ||
-        String(error.details || '').includes('Key (nama)');
-
-      if (isDuplicate) {
-        attempts++;
-        const rand = Math.floor(100 + Math.random() * 900);
-        nama = `Eskul Baru ${Date.now().toString().slice(-4)}${rand}`;
-        continue;
+        throw error;
       }
-
-      throw error;
     }
   };
 
@@ -698,35 +694,29 @@ export function ContentProvider({ children }) {
     if (!isDbId(id)) {
       throw new Error('Data eskul ini belum tersinkron dari database. Muat ulang halaman lalu coba lagi.');
     }
-    const { data: deleted, error } = await supabase
-      .from('eskul').delete().eq('id', id).select('id');
-    if (error) throw error;
-    if (!deleted || deleted.length === 0) {
-      throw new Error('Ditolak database (RLS): akun Anda tidak punya hak hapus eskul.');
-    }
+    await apiDelete(`/admin/eskul/${id}`);
   };
 
   const updateFacilities = async (list) => {
     for (const f of list) {
       if (isDbId(f.id)) {
-        const { error } = await supabase.from('facilities').update({
+        await apiPatch(`/admin/facilities/${f.id}`, {
           judul: f.title,
           kategori: f.category,
-          image_url: f.image || null,
+          image_url: httpUrlOrNull(f.image),
           specs: f.specs,
           deskripsi: f.description,
           tags: f.tags,
           badge: f.badge,
-        }).eq('id', f.id);
-        if (error) throw error;
+        });
       } else {
         const tags = (Array.isArray(f.tags) && f.tags.length > 0)
           ? f.tags
           : String(f.specs || '').split(',').map((s) => s.trim()).filter(Boolean);
-        const { error } = await supabase.from('facilities').insert({
+        await apiPost('/admin/facilities', {
           judul: f.title || 'Fasilitas Baru',
           kategori: f.category || 'campus',
-          image_url: f.image || null,
+          image_url: httpUrlOrNull(f.image),
           specs: f.specs || '',
           deskripsi: f.description || '',
           tags,
@@ -734,7 +724,6 @@ export function ContentProvider({ children }) {
           sort_order: 99,
           is_active: true,
         });
-        if (error) console.warn('[updateFacilities] Insert fallback item error:', error);
       }
     }
     await fetchAll();
@@ -744,22 +733,17 @@ export function ContentProvider({ children }) {
     const tags = (Array.isArray(data.tags) && data.tags.length > 0)
       ? data.tags
       : String(data.specs || '').split(',').map((s) => s.trim()).filter(Boolean);
-    const { data: row, error } = await supabase
-      .from('facilities')
-      .insert({
-        judul: data.judul || 'Fasilitas Baru',
-        kategori: data.kategori || 'campus',
-        image_url: data.image_url || null,
-        specs: data.specs || '',
-        deskripsi: data.deskripsi || '',
-        tags,
-        badge: data.badge || 'Fasilitas Baru',
-        sort_order: data.sort_order ?? 99,
-        is_active: true,
-      })
-      .select()
-      .single();
-    if (error) throw error;
+    const row = await apiPost('/admin/facilities', {
+      judul: data.judul || 'Fasilitas Baru',
+      kategori: data.kategori || 'campus',
+      image_url: httpUrlOrNull(data.image_url),
+      specs: data.specs || '',
+      deskripsi: data.deskripsi || '',
+      tags,
+      badge: data.badge || 'Fasilitas Baru',
+      sort_order: data.sort_order ?? 99,
+      is_active: true,
+    });
     return mapFacility(row);
   };
 
@@ -767,30 +751,20 @@ export function ContentProvider({ children }) {
     if (!isDbId(id)) {
       throw new Error('Data fasilitas ini belum tersinkron dari database. Muat ulang halaman lalu coba lagi.');
     }
-    const { data: deleted, error } = await supabase
-      .from('facilities').delete().eq('id', id).select('id');
-    if (error) throw error;
-    if (!deleted || deleted.length === 0) {
-      throw new Error('Ditolak database (RLS): akun Anda tidak punya hak hapus fasilitas.');
-    }
+    await apiDelete(`/admin/facilities/${id}`);
   };
 
   const createGalleryItem = async (data = {}) => {
-    const { data: row, error } = await supabase
-      .from('gallery')
-      .insert({
-        judul: data.judul || 'Foto baru',
-        kategori: data.kategori || 'Kegiatan',
-        tanggal: data.tanggal || '',
-        deskripsi: data.deskripsi || '',
-        image_url: data.image_url || '',
-        rotate: data.rotate ?? 0,
-        sort_order: data.sort_order ?? 99,
-        is_active: true,
-      })
-      .select()
-      .single();
-    if (error) throw error;
+    const row = await apiPost('/admin/gallery', {
+      judul: data.judul || 'Foto baru',
+      kategori: data.kategori || 'Kegiatan',
+      tanggal: data.tanggal || null,
+      deskripsi: data.deskripsi || '',
+      image_url: httpUrlOrNull(data.image_url),
+      rotate: data.rotate ?? 0,
+      sort_order: data.sort_order ?? 99,
+      is_active: true,
+    });
     return row;
   };
 
@@ -798,27 +772,21 @@ export function ContentProvider({ children }) {
     if (!isDbId(id)) {
       throw new Error('Foto galeri ini belum tersinkron dari database. Muat ulang halaman lalu coba lagi.');
     }
-    const { data: deleted, error } = await supabase
-      .from('gallery').delete().eq('id', id).select('id');
-    if (error) throw error;
-    if (!deleted || deleted.length === 0) {
-      throw new Error('Ditolak database (RLS): akun Anda tidak punya hak hapus galeri.');
-    }
+    await apiDelete(`/admin/gallery/${id}`);
   };
 
   const updateGallery = async (list) => {
     for (const g of list) {
       if (!isDbId(g.id)) continue;
-      const { error } = await supabase.from('gallery').update({
+      await apiPatch(`/admin/gallery/${g.id}`, {
         judul: g.title,
         kategori: g.category,
-        tanggal: g.date,
+        tanggal: g.date || null,
         deskripsi: g.description,
-        image_url: g.image,
+        image_url: httpUrlOrNull(g.image),
         rotate: Number(g.rotate) || 0,
         is_active: g.is_active !== false,
-      }).eq('id', g.id);
-      if (error) throw error;
+      });
     }
     await fetchAll();
   };
@@ -826,37 +794,28 @@ export function ContentProvider({ children }) {
   const addPpdbSubmission = async (sub) => {
     let majorId = null;
     if (sub.major) {
-      const { data } = await supabase.from('majors').select('id')
-        .eq('kode', String(sub.major).toUpperCase()).single();
-      majorId = data?.id || null;
+      const match = content.allMajors.find(
+        (m) => String(m.code).toLowerCase() === String(sub.major).toLowerCase(),
+      );
+      majorId = match?.dbId || null;
     }
-    const { error } = await supabase.from('ppdb_registrations').insert({
+    await apiPost('/public/ppdb', {
       nama_lengkap: sub.fullName,
-      nisn: sub.nisn,
-      asal_sekolah: sub.schoolOrigin,
-      no_hp: sub.phone,
+      nisn: sub.nisn || null,
+      asal_sekolah: sub.schoolOrigin || null,
+      no_hp: sub.phone || null,
       email: sub.email || null,
       major_id: majorId,
-      status: 'baru',
-    });
-    if (error) throw error;
+    }, { auth: false });
   };
 
   const deletePpdbSubmission = async (id) => {
-    // .select() memaksa PostgREST mengembalikan baris yang benar-benar
-    // terhapus; kalau kosong berarti ditolak RLS (bukan sukses diam-diam).
-    const { data: deleted, error } = await supabase
-      .from('ppdb_registrations').delete().eq('id', id).select('id');
-    if (error) throw error;
-    if (!deleted || deleted.length === 0) {
-      throw new Error('Ditolak database (RLS): akun Anda tidak punya hak hapus data PPDB.');
-    }
+    await apiDelete(`/admin/ppdb/${id}`);
     setPpdbSubmissions((prev) => prev.filter((p) => p.id !== id));
   };
 
   const updatePpdbStatus = async (id, status) => {
-    const { error } = await supabase.from('ppdb_registrations').update({ status }).eq('id', id);
-    if (error) throw error;
+    await apiPatch(`/admin/ppdb/${id}`, { status });
     const label =
       status === 'baru' ? 'Baru Masuk'
       : status === 'menunggu_verifikasi' ? 'Menunggu Verifikasi'
@@ -866,24 +825,17 @@ export function ContentProvider({ children }) {
   };
 
   const addContactMessage = async (msg) => {
-    const { error } = await supabase.from('suggestions').insert({
+    await apiPost('/public/suggestions', {
       nama: msg.name,
       email: msg.email || null,
       no_hp: msg.phone || null,
       kategori: msg.category || null,
       pesan: msg.message,
-      status: 'baru',
-    });
-    if (error) throw error;
+    }, { auth: false });
   };
 
   const deleteContactMessage = async (id) => {
-    const { data: deleted, error } = await supabase
-      .from('suggestions').delete().eq('id', id).select('id');
-    if (error) throw error;
-    if (!deleted || deleted.length === 0) {
-      throw new Error('Ditolak database (RLS): akun Anda tidak punya hak hapus pesan.');
-    }
+    await apiDelete(`/admin/suggestions/${id}`);
     setContactMessages((prev) => prev.filter((m) => m.id !== id));
   };
 
@@ -891,42 +843,25 @@ export function ContentProvider({ children }) {
     const nama = String(data.nama || '').trim();
     if (!nama) throw new Error('Nama lengkap guru wajib diisi.');
 
-    const { data: row, error } = await supabase
-      .from('teachers')
-      .insert({
-        nama,
-        jabatan: data.jabatan || null,
-        department: data.department || null,
-        email: data.email || null,
-        jam_kerja: data.jam_kerja || null,
-        bio: data.bio || null,
-        sertifikasi: data.sertifikasi || [],
-        is_active: true,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      const isDuplicate =
-        error.code === '23505' ||
-        String(error.message || '').includes('teachers_nama_key') ||
-        String(error.details || '').includes('Key (nama)');
-      if (isDuplicate) {
-        throw new Error('Nama guru tersebut sudah terdaftar. Tambahkan gelar atau pembeda pada namanya.');
-      }
-      throw error;
-    }
+    const res = await apiPost('/admin/teachers', {
+      nama,
+      jabatan: data.jabatan || null,
+      department: data.department || null,
+      email: data.email || null,
+      jam_kerja: data.jam_kerja || null,
+      bio: data.bio || null,
+      sertifikasi: data.sertifikasi || [],
+    });
 
     await fetchAll();
-    return row;
+    return res?.teacher ?? res;
   };
 
   const deleteTeacher = async (id) => {
     if (!isDbId(id)) {
       throw new Error('Data guru ini belum tersinkron dari database. Muat ulang halaman lalu coba lagi.');
     }
-    const { error } = await supabase.from('teachers').delete().eq('id', id);
-    if (error) throw error;
+    await apiDelete(`/admin/teachers/${id}`);
   };
 
   const importContentJson = async (jsonString) => {
@@ -947,7 +882,7 @@ export function ContentProvider({ children }) {
   };
 
   const resetToDefaults = async () => {
-    alert('Reset data hanya bisa lewat Supabase: jalankan ulang file supabase_all_in_one.sql di SQL Editor, lalu refresh halaman ini.');
+    alert('Reset data hanya bisa lewat server API: jalankan ulang seeder database, lalu refresh halaman ini.');
     await fetchAll();
     return true;
   };

@@ -4,7 +4,7 @@ import {
   Loader2, Send, ListChecks, Flag, Trophy, RotateCcw, Circle, Lock, Unlock,
   CalendarClock, ShieldAlert,
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { apiGet, apiPost, apiPut, ApiError } from '../../lib/api';
 import {
   getExamSession, formatExamSession, markReloadPending, isReloadPending,
   setActiveExam, clearActiveExam,
@@ -37,44 +37,16 @@ const formatWaktu = (iso) => {
 };
 
 const friendlyExamError = (err) => {
-  const msg = String(err?.message || '');
-  if (msg.includes('terminate_attempt') || msg.includes('reset_exam_attempt')) {
-    return 'Fitur pengawasan CBT belum terpasang di database. Jalankan md/supabase_cbt_session_guard.sql.';
-  }
-  if (msg.includes('verify_exam_code') || msg.includes('exam_unlocks')) {
-    return 'Fitur kode akses belum terpasang di database. Jalankan md/supabase_exam_code.sql.';
-  }
-  if (msg.includes('dihentikan karena pelanggaran')) {
-    return 'Ujian ini dihentikan karena pelanggaran. Hubungi admin/guru pengawas untuk mereset ujian.';
-  }
-  if (msg.includes('sudah Anda kerjakan') || msg.includes('tidak dapat diulang')) {
-    return 'Ujian ini sudah Anda kerjakan dan tidak dapat diulang. Nilai Anda sudah tersimpan.';
-  }
-  if (msg.includes('sedang berjalan')) {
-    return 'Anda masih punya ujian ini yang sedang berjalan. Pilih "Lanjutkan Ujian" di dashboard.';
-  }
-  if (msg.includes('does not exist') && msg.includes('function')) {
-    return 'Fungsi penilaian belum dipasang di database. Jalankan md/supabase_exam_attempt.sql terlebih dahulu.';
-  }
-  if (msg.includes('row-level security')) {
-    return 'Sesi ujian belum dibuka atau ujian ini belum tersedia untuk dikerjakan.';
-  }
-  if (msg.includes('duplicate key')) {
-    return 'Anda sudah memiliki percobaan aktif untuk ujian ini.';
-  }
-  return msg || 'Terjadi kesalahan saat memproses ujian.';
+  const code = err?.code;
+  if (code === 'EXAM_CODE_REQUIRED') return 'Ujian ini memerlukan kode akses. Masukkan kode dari guru.';
+  if (code === 'EXAM_SESSION_CLOSED') return 'Sesi ujian tidak sedang berlangsung. Periksa jadwal dari guru.';
+  if (code === 'EXAM_NOT_AVAILABLE') return 'Ujian belum tersedia atau belum memiliki soal. Hubungi guru Anda.';
+  if (code === 'ATTEMPT_COMPLETED') return 'Ujian ini sudah Anda kerjakan dan tidak dapat diulang. Nilai Anda sudah tersimpan.';
+  if (code === 'ATTEMPT_ACTIVE') return 'Anda masih punya ujian ini yang sedang berjalan. Pilih "Lanjutkan Ujian" di dashboard.';
+  if (code === 'ATTEMPT_CLOSED') return 'Ujian ini sudah tidak aktif.';
+  if (code === 'ATTEMPT_EXPIRED') return 'Waktu ujian sudah habis. Jawaban Anda dikumpulkan otomatis.';
+  return err?.message || 'Terjadi kesalahan saat memproses ujian.';
 };
-
-
-const shuffleIds = (ids) => {
-  const arr = [...ids];
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-};
-
 
 
 const TERMINATION_PREFIX = 'smk_cbt_terminated_';
@@ -84,14 +56,6 @@ const rememberTermination = (attemptId, reason) => {
     localStorage.setItem(`${TERMINATION_PREFIX}${attemptId}`, reason || 'Ganti tab');
   } catch {
     
-  }
-};
-const recallTermination = (attemptId) => {
-  if (!attemptId) return null;
-  try {
-    return localStorage.getItem(`${TERMINATION_PREFIX}${attemptId}`);
-  } catch {
-    return null;
   }
 };
 
@@ -171,6 +135,63 @@ export default function ExamRunner({
     clearActiveExam();
   }, []);
 
+  // Kumpulkan lewat server lalu tampilkan layar hasil; dipakai saat waktu habis.
+  const submitById = useCallback(async (id) => {
+    if (!id) return;
+    try {
+      const payload = await apiPost(`/siswa/attempts/${id}/submit`);
+      markSubmitted(payload || { id });
+    } catch {
+      markSubmitted({ id });
+    }
+  }, [markSubmitted]);
+
+  // Server mengirim payload attempt (soal terurut, jawaban, peringatan, status).
+  const applyPayload = useCallback((payload) => {
+    if (!payload) return;
+    const id = payload.id;
+    setAttemptId(id);
+
+    if (payload.status === 'dibatalkan') {
+      setTerminatedInfo({
+        alasan: payload.alasan_berhenti || completedReason || 'Ganti tab',
+        at: payload.dihentikan_at || completedAt,
+        stored: true,
+      });
+      setPhase('terminated');
+      return;
+    }
+
+    if (payload.status !== 'berjalan') {
+      markSubmitted(payload);
+      return;
+    }
+
+    setQuestions(Array.isArray(payload.questions) ? payload.questions : []);
+    setAnswers(payload.answers && typeof payload.answers === 'object' ? payload.answers : {});
+    const warn = Number(payload.warnings) || 0;
+    warningsRef.current = warn;
+    setWarnings(warn);
+
+    const startedMs = payload.dimulai_at ? new Date(payload.dimulai_at).getTime() : Date.now();
+    startedAtRef.current = startedMs;
+    const elapsed = (Date.now() - startedMs) / 1000;
+    let left = (exam?.durasi_menit || 60) * 60 - elapsed;
+    if (!exam?.admin_override && session.endMs) {
+      left = Math.min(left, (session.endMs - Date.now()) / 1000);
+    }
+
+    if (left <= 0) {
+      submitById(id);
+      return;
+    }
+
+    setRemaining(left);
+    setIndex(0);
+    setActiveExam(exam.id);
+    setPhase('running');
+  }, [exam, session, markSubmitted, submitById, completedReason, completedAt]);
+
   
   useEffect(() => {
     if (!open) return undefined;
@@ -197,10 +218,12 @@ export default function ExamRunner({
   useEffect(() => {
     if (!open || !exam || !needsCode || !alreadyUnlocked) return undefined;
     let alive = true;
-    supabase.rpc('has_exam_unlock', { p_exam_id: exam.id }).then(({ data, error }) => {
-      if (!alive || error) return;
-      if (data === false) setUnlocked(false);
-    });
+    apiGet(`/siswa/exams/${exam.id}/unlock`)
+      .then((data) => {
+        if (!alive) return;
+        if (data && data.unlocked === false) setUnlocked(false);
+      })
+      .catch(() => {});
     return () => { alive = false; };
   }, [open, exam, needsCode, alreadyUnlocked]);
 
@@ -219,20 +242,22 @@ export default function ExamRunner({
     submittingRef.current = true;
     setSubmitting(true);
     setError('');
-    try {
-      const { error: rpcErr } = await supabase.rpc('submit_attempt', {
-        p_attempt_id: attemptId,
-      });
-      if (rpcErr) throw rpcErr;
-
-      
-      
-      markSubmitted({ id: attemptId, dikumpulkan_at: new Date().toISOString() });
+    const collected = () => {
       playNotificationSound('success');
       setConfirmSubmit(false);
       if (timerRef.current) clearInterval(timerRef.current);
       if (onFinished) onFinished();
+    };
+    try {
+      const payload = await apiPost(`/siswa/attempts/${attemptId}/submit`);
+      markSubmitted(payload || { id: attemptId, dikumpulkan_at: new Date().toISOString() });
+      collected();
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'ATTEMPT_CLOSED') {
+        markSubmitted({ id: attemptId, dikumpulkan_at: new Date().toISOString() });
+        collected();
+        return;
+      }
       setError(friendlyExamError(err));
       submittingRef.current = false;
     } finally {
@@ -241,10 +266,8 @@ export default function ExamRunner({
   }, [attemptId, onFinished, markSubmitted]);
 
   
-  const terminateExam = useCallback(async (reason) => {
-    if (terminatedRef.current || submittingRef.current) return;
-    if (phaseRef.current !== 'running') return;
-
+  // Transisi lokal ke layar "dihentikan" (tanpa memanggil server).
+  const enterTerminated = useCallback((reason, stored = false) => {
     terminatedRef.current = true;
     rememberTermination(attemptId, reason);
     clearActiveExam();
@@ -253,16 +276,24 @@ export default function ExamRunner({
     setConfirmSubmit(false);
     setWarningModal(null);
     setSavedFlash('');
-    setTerminatedInfo({ alasan: reason, at: new Date().toISOString(), pending: !!attemptId });
+    setTerminatedInfo({
+      alasan: reason,
+      at: new Date().toISOString(),
+      pending: !stored && !!attemptId,
+      stored,
+    });
     setPhase('terminated');
+  }, [attemptId]);
+
+  const terminateExam = useCallback(async (reason) => {
+    if (terminatedRef.current || submittingRef.current) return;
+    if (phaseRef.current !== 'running') return;
+
+    enterTerminated(reason);
 
     if (!attemptId) return;
     try {
-      const { error: rpcErr } = await supabase.rpc('terminate_attempt', {
-        p_attempt_id: attemptId,
-        p_alasan: reason,
-      });
-      if (rpcErr) throw rpcErr;
+      await apiPost(`/siswa/attempts/${attemptId}/terminate`, { alasan: reason });
       setTerminatedInfo((prev) => ({ ...prev, pending: false }));
     } catch (err) {
       setTerminatedInfo((prev) => ({
@@ -271,7 +302,7 @@ export default function ExamRunner({
         error: friendlyExamError(err),
       }));
     }
-  }, [attemptId]);
+  }, [attemptId, enterTerminated]);
 
   
   const handleViolation = useCallback(async (reason) => {
@@ -286,31 +317,44 @@ export default function ExamRunner({
     warningsRef.current = optimistic;
     setWarnings(optimistic);
 
-    
-    if (attemptId) {
-      try {
-        const { data, error: rpcErr } = await supabase.rpc('record_exam_warning', {
-          p_attempt_id: attemptId,
-        });
-        if (!rpcErr && typeof data === 'number' && data > 0) {
-          warningsRef.current = data;
-          setWarnings(data);
-        }
-      } catch {
-        
+    const showWarning = (count) => {
+      if (count >= MAX_WARNINGS) {
+        terminateExam(`${reason} (peringatan ke-${count})`);
+        return;
       }
-    }
+      playNotificationSound('warning');
+      setWarningModal({ no: count, reason });
+    };
 
-    const count = warningsRef.current;
-
-    if (count >= MAX_WARNINGS) {
-      await terminateExam(`${reason} (peringatan ke-${count})`);
+    if (!attemptId) {
+      showWarning(optimistic);
       return;
     }
 
-    playNotificationSound('warning');
-    setWarningModal({ no: count, reason });
-  }, [attemptId, terminateExam]);
+    try {
+      const data = await apiPost(`/siswa/attempts/${attemptId}/warnings`);
+      // Pada peringatan ke-3 server langsung menghentikan attempt dan
+      // mengembalikan payload penuh (status dibatalkan) — bukan { warnings }.
+      if (data && (data.status === 'dibatalkan' || Array.isArray(data.questions))) {
+        warningsRef.current = MAX_WARNINGS;
+        setWarnings(MAX_WARNINGS);
+        enterTerminated(`${reason} (peringatan ke-${MAX_WARNINGS})`, true);
+        if (onFinished) onFinished();
+        return;
+      }
+      const count = Number(data?.warnings) || optimistic;
+      warningsRef.current = count;
+      setWarnings(count);
+      showWarning(count);
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'ATTEMPT_CLOSED') {
+        enterTerminated(reason, true);
+        if (onFinished) onFinished();
+        return;
+      }
+      showWarning(warningsRef.current);
+    }
+  }, [attemptId, terminateExam, enterTerminated, onFinished]);
 
   useEffect(() => {
     if (phase !== 'running') return undefined;
@@ -416,21 +460,17 @@ export default function ExamRunner({
     setCodeBusy(true);
     setCodeError('');
     try {
-      const { data, error: rpcErr } = await supabase.rpc('verify_exam_code', {
-        p_exam_id: exam.id,
-        p_code: kode,
-      });
-      if (rpcErr) throw rpcErr;
-      if (!data) {
-        setCodeTries((n) => n + 1);
-        setCodeError('Kode salah. Periksa kembali atau minta kode baru kepada guru.');
-        return;
-      }
+      await apiPost(`/siswa/exams/${exam.id}/unlock`, { code: kode });
       setUnlocked(true);
       setCodeInput('');
       if (onUnlocked) onUnlocked();
     } catch (err) {
-      setCodeError(friendlyExamError(err));
+      if (err instanceof ApiError && err.code === 'INVALID_EXAM_CODE') {
+        setCodeTries((n) => n + 1);
+        setCodeError('Kode salah. Periksa kembali atau minta kode baru kepada guru.');
+      } else {
+        setCodeError(friendlyExamError(err));
+      }
     } finally {
       setCodeBusy(false);
     }
@@ -442,246 +482,46 @@ export default function ExamRunner({
     setError('');
     setLoading(true);
     try {
-      let att = resumeAttempt;
-
-      if (att) {
-        
-        let freshRes = await supabase
-          .from('attempts')
-          .select('id, exam_id, status, dimulai_at, dikumpulkan_at, question_order, alasan_berhenti, dihentikan_at')
-          .eq('id', att.id)
-          .maybeSingle();
-        if (freshRes.error) {
-          
-          freshRes = await supabase
-            .from('attempts')
-            .select('id, exam_id, status, dimulai_at, dikumpulkan_at')
-            .eq('id', att.id)
-            .maybeSingle();
-        }
-        if (freshRes.data) att = freshRes.data;
-
-        if (att.status === 'dibatalkan') {
-          setAttemptId(att.id);
-          setTerminatedInfo({
-            alasan: att.alasan_berhenti || 'Ganti tab',
-            at: att.dihentikan_at,
-            stored: true,
-          });
-          setPhase('terminated');
-          return;
-        }
-
-        
-        
-        const localReason = recallTermination(att.id);
-        if (localReason && att.status === 'berjalan') {
-          setAttemptId(att.id);
-          setTerminatedInfo({
-            alasan: localReason,
-            at: new Date().toISOString(),
-            stored: true,
-            pending: true,
-          });
-          setPhase('terminated');
-          try {
-            const { error: rpcErr } = await supabase.rpc('terminate_attempt', {
-              p_attempt_id: att.id,
-              p_alasan: localReason,
-            });
-            if (rpcErr) throw rpcErr;
-            setTerminatedInfo((prev) => ({ ...prev, pending: false }));
-          } catch (err) {
-            setTerminatedInfo((prev) => ({
-              ...prev,
-              pending: false,
-              error: friendlyExamError(err),
-            }));
-          }
-          return;
-        }
-
-        if (att.status !== 'berjalan') {
-          markSubmitted(att);
-          return;
-        }
-
-        
-        if (session.ended) {
-          const { error: rpcErr } = await supabase.rpc('submit_attempt', {
-            p_attempt_id: att.id,
-          });
-          if (rpcErr) throw rpcErr;
-          markSubmitted({ id: att.id, dikumpulkan_at: new Date().toISOString() });
-          return;
-        }
-      } else {
-        
-        
-        let doneRes = await supabase
-          .from('attempts')
-          .select('id, exam_id, dikumpulkan_at, status, alasan_berhenti, dihentikan_at')
-          .eq('exam_id', exam.id)
-          .eq('student_id', student.id)
-          .neq('status', 'berjalan')
-          .order('dimulai_at', { ascending: false })
-          .limit(1);
-        if (doneRes.error) {
-          doneRes = await supabase
-            .from('attempts')
-            .select('id, exam_id, dikumpulkan_at, status')
-            .eq('exam_id', exam.id)
-            .eq('student_id', student.id)
-            .neq('status', 'berjalan')
-            .order('dimulai_at', { ascending: false })
-            .limit(1);
-        }
-        if (doneRes.data && doneRes.data.length) {
-          const done = doneRes.data[0];
-          if (done.status === 'dibatalkan') {
-            setAttemptId(done.id);
-            setTerminatedInfo({
-              alasan: done.alasan_berhenti || 'Ganti tab',
-              at: done.dihentikan_at,
-              stored: true,
-            });
-            setPhase('terminated');
-          } else {
-            markSubmitted(done);
-          }
-          return;
-        }
-
-        if (!session.canStart) {
-          setError(session.message);
-          return;
-        }
-      }
-
-      let qsRes = await supabase
-        .from('questions_safe')
-        .select('id, pertanyaan, opsi, tipe, bobot, gambar_url')
-        .eq('exam_id', exam.id)
-        .order('created_at', { ascending: true });
-      // View lama belum punya kolom gambar_url -> fallback tanpa gambar.
-      if (qsRes.error) {
-        qsRes = await supabase
-          .from('questions_safe')
-          .select('id, pertanyaan, opsi, tipe, bobot')
-          .eq('exam_id', exam.id)
-          .order('created_at', { ascending: true });
-      }
-      const { data: qs, error: qErr } = qsRes;
-      if (qErr) throw qErr;
-
-      if (!qs || qs.length === 0) {
-        setError('Sesi ujian belum dibuka atau ujian ini belum memiliki soal. Hubungi guru Anda.');
+      if (resumeAttempt?.id) {
+        const payload = await apiGet(`/siswa/attempts/${resumeAttempt.id}`);
+        applyPayload(payload);
         return;
       }
 
-      let ordered = qs;
-
-      if (!att) {
-        
-        
-        const ids = qs.map((q) => q.id);
-        const finalOrder = exam.acak_soal === false ? ids : shuffleIds(ids);
-
-        let ins = await supabase
-          .from('attempts')
-          .insert({
-            exam_id: exam.id,
-            student_id: student.id,
-            status: 'berjalan',
-            question_order: finalOrder,
-          })
-          .select('id, dimulai_at, question_order')
-          .single();
-
-        if (ins.error && /question_order/i.test(String(ins.error.message || ''))) {
-          
-          ins = await supabase
-            .from('attempts')
-            .insert({ exam_id: exam.id, student_id: student.id, status: 'berjalan' })
-            .select('id, dimulai_at')
-            .single();
-        }
-        if (ins.error) throw ins.error;
-
-        att = { ...ins.data, question_order: ins.data?.question_order || finalOrder };
-        const byId = new Map(qs.map((q) => [q.id, q]));
-        ordered = finalOrder.map((id) => byId.get(id)).filter(Boolean);
-      } else {
-        const order = Array.isArray(att.question_order) ? att.question_order : [];
-        if (order.length) {
-          const byId = new Map(qs.map((q) => [q.id, q]));
-          const arranged = order.map((id) => byId.get(id)).filter(Boolean);
-          const included = new Set(arranged.map((q) => q.id));
-          ordered = arranged.concat(qs.filter((q) => !included.has(q.id)));
-        }
-      }
-
-      
-      const { data: saved } = await supabase
-        .from('answers')
-        .select('question_id, jawaban')
-        .eq('attempt_id', att.id);
-      const restored = {};
-      (saved || []).forEach((r) => {
-        if (r.jawaban) restored[r.question_id] = r.jawaban;
-      });
-      setAnswers(restored);
-
-      const startedMs = att.dimulai_at ? new Date(att.dimulai_at).getTime() : Date.now();
-      const elapsed = (Date.now() - startedMs) / 1000;
-      const limit = (exam.durasi_menit || 60) * 60;
-
-      let left = limit - elapsed;
-      if (!exam.admin_override && session.endMs) {
-        left = Math.min(left, (session.endMs - Date.now()) / 1000);
-      }
-
-      if (left <= 0) {
-        const { error: rpcErr } = await supabase.rpc('submit_attempt', {
-          p_attempt_id: att.id,
-        });
-        if (rpcErr) throw rpcErr;
-        markSubmitted({ id: att.id, dikumpulkan_at: new Date().toISOString() });
+      if (!session.canStart) {
+        setError(session.message);
         return;
       }
 
-      setAttemptId(att.id);
-      startedAtRef.current = startedMs;
-      setRemaining(left);
-      setIndex(0);
-      setQuestions(ordered);
-      setActiveExam(exam.id);
-      setPhase('running');
+      const payload = await apiPost(`/siswa/exams/${exam.id}/attempts`);
+      applyPayload(payload);
     } catch (err) {
       setError(friendlyExamError(err));
+      if (err instanceof ApiError && (err.code === 'ATTEMPT_ACTIVE' || err.code === 'ATTEMPT_COMPLETED')) {
+        if (onFinished) onFinished();
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  
   const pickAnswer = async (qid, val) => {
     if (!attemptId || submitting) return;
     setAnswers((prev) => ({ ...prev, [qid]: val }));
     setSavedFlash('Menyimpan...');
-    const { error: upErr } = await supabase
-      .from('answers')
-      .upsert(
-        { attempt_id: attemptId, question_id: qid, jawaban: val },
-        { onConflict: 'attempt_id,question_id' },
-      );
-    if (upErr) {
+    try {
+      await apiPut(`/siswa/attempts/${attemptId}/answers/${qid}`, { jawaban: val });
+      setSavedFlash('Tersimpan');
+      setTimeout(() => setSavedFlash(''), 1400);
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'ATTEMPT_EXPIRED') {
+        setSavedFlash('');
+        finishAttempt();
+        return;
+      }
       setSavedFlash('Gagal menyimpan');
-      setError(friendlyExamError(upErr));
-      return;
+      setError(friendlyExamError(err));
     }
-    setSavedFlash('Tersimpan');
-    setTimeout(() => setSavedFlash(''), 1400);
   };
 
   if (!open || !exam) return null;

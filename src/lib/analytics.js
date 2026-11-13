@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { apiPost } from './api';
 
 const SESSION_KEY = 'smk_mapan_visit_session';
 
@@ -13,13 +13,11 @@ function getSessionId() {
   return sid;
 }
 
-// Catat satu page view. `profile` boleh null untuk pengunjung anonim.
-export async function trackVisit(path, user, profile) {
+// Catat satu page view ke API. Role/user diambil dari token oleh server.
+export async function trackVisit(path) {
   try {
-    await supabase.from('site_visits').insert({
+    await apiPost('/public/visits', {
       path,
-      role: profile?.role ?? 'anon',
-      user_id: user?.id ?? null,
       session_id: getSessionId(),
       user_agent: navigator.userAgent.slice(0, 300),
     });
@@ -28,16 +26,6 @@ export async function trackVisit(path, user, profile) {
   }
 }
 
-// Catat satu login berhasil beserta snapshot role + nama.
-export async function trackLogin(user, profile) {
-  if (!user || !profile?.role) return;
-  try {
-    await supabase.from('login_events').insert({
-      user_id: user.id,
-      role: profile.role,
-      nama: profile.nama ?? null,
-    });
-  } catch {
-    // analytics tidak boleh mengganggu UX
-  }
-}
+// Login event dicatat otomatis oleh server saat POST /auth/login berhasil,
+// jadi tidak ada pencatatan terpisah dari klien.
+export async function trackLogin() {}

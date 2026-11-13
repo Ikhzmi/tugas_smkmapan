@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { UserCheck, Clock, CheckCircle2, CalendarDays, Loader2, AlertTriangle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { apiPost } from '../../lib/api';
 import './PresensiSiswa.css';
 
 const HARI = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
@@ -45,14 +45,13 @@ const jamSekarang = () => {
 const currentDate = () => new Date();
 
 const friendlyError = (err) => {
-  const msg = String(err?.message || '');
-  if (err?.code === '23505' || msg.includes('duplicate key')) {
+  if (err?.code === 'ATTENDANCE_DUPLICATE') {
     return 'Presensi untuk jadwal ini sudah tercatat hari ini.';
   }
-  if (msg.includes('row-level security')) {
-    return 'Presensi belum dibuka untuk akun Anda. Hubungi wali kelas.';
+  if (err?.code === 'ATTENDANCE_DATE_NOT_ALLOWED') {
+    return 'Presensi mandiri hanya dapat diisi untuk hari ini.';
   }
-  return msg || 'Gagal menyimpan presensi.';
+  return err?.message || 'Gagal menyimpan presensi.';
 };
 
 export default function PresensiSiswa({ student, schedules = [], attendance = [], onChanged }) {
@@ -129,16 +128,12 @@ export default function PresensiSiswa({ student, schedules = [], attendance = []
       const [jh, jm] = String(schedule.jam_mulai || '00:00').split(':').map(Number);
       const late = nowMinutes > (jh * 60 + jm) + 10;
 
-      const { error: insErr } = await supabase.from('attendance').insert({
-        student_id: student.id,
-        class_id: student.class_id || schedule.class_id,
+      await apiPost('/siswa/attendance', {
         schedule_id: schedule.id,
         tanggal: todayKey,
-        jam_masuk: `${jamSekarang()}:00`,
+        jam_masuk: jamSekarang(),
         status: late ? 'terlambat' : 'hadir',
-        metode: 'mandiri',
       });
-      if (insErr) throw insErr;
 
       setFlash(`Presensi ${schedule.subjects?.nama || 'mata pelajaran'} tercatat pada ${jamSekarang()}.`);
       setTimeout(() => setFlash(''), 4000);

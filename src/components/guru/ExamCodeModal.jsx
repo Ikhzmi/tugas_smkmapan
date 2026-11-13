@@ -1,22 +1,10 @@
 import React, { useState } from 'react';
 import { KeyRound, Copy, RefreshCw, Check, Loader2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import AppModal from '../ui/AppModal';
-import { supabase } from '../../lib/supabase';
+import { apiPost, apiPatch } from '../../lib/api';
 import './ExamCodeModal.css';
 
-const friendlyError = (err) => {
-  const msg = String(err?.message || '');
-  if (msg.includes('Could not find the function') || (msg.includes('does not exist') && msg.includes('function'))) {
-    return 'Fitur kode belum terpasang. Jalankan md/supabase_exam_code.sql di Supabase SQL Editor, lalu coba lagi.';
-  }
-  if (msg.includes('butuh_kode')) {
-    return 'Kolom butuh_kode belum ada. Jalankan md/supabase_exam_code.sql di Supabase SQL Editor.';
-  }
-  if (msg.includes('exam_codes')) {
-    return 'Tabel exam_codes belum ada. Jalankan md/supabase_exam_code.sql di Supabase SQL Editor.';
-  }
-  return msg || 'Terjadi kesalahan.';
-};
+const friendlyError = (err) => err?.message || 'Terjadi kesalahan.';
 
 export default function ExamCodeModal({ open, exam, codeRow, onClose, onSaved }) {
   const [code, setCode] = useState(codeRow?.code || '');
@@ -30,34 +18,10 @@ export default function ExamCodeModal({ open, exam, codeRow, onClose, onSaved })
     setBusy('generate');
     setError('');
     try {
-      const { data, error: rpcErr } = await supabase.rpc('generate_exam_code', {
-        p_exam_id: exam.id,
-        p_length: 6,
-      });
-      if (rpcErr) throw rpcErr;
-      setCode(String(data || ''));
+      const data = await apiPost(`/guru/exams/${exam.id}/code`, { length: 6 });
+      setCode(String(data?.code || ''));
       setAktif(true);
       setWajib(true);
-      if (onSaved) await onSaved();
-    } catch (err) {
-      setError(friendlyError(err));
-    } finally {
-      setBusy('');
-    }
-  };
-
-  const handleToggleAktif = async () => {
-    if (!code) return;
-    setBusy('aktif');
-    setError('');
-    try {
-      const next = !aktif;
-      const { error: upErr } = await supabase
-        .from('exam_codes')
-        .update({ is_active: next })
-        .eq('exam_id', exam.id);
-      if (upErr) throw upErr;
-      setAktif(next);
       if (onSaved) await onSaved();
     } catch (err) {
       setError(friendlyError(err));
@@ -71,11 +35,7 @@ export default function ExamCodeModal({ open, exam, codeRow, onClose, onSaved })
     setError('');
     try {
       const next = !wajib;
-      const { error: upErr } = await supabase
-        .from('exams')
-        .update({ butuh_kode: next })
-        .eq('id', exam.id);
-      if (upErr) throw upErr;
+      await apiPatch(`/guru/exams/${exam.id}`, { butuh_kode: next });
       setWajib(next);
       if (onSaved) await onSaved();
     } catch (err) {
@@ -163,22 +123,6 @@ export default function ExamCodeModal({ open, exam, codeRow, onClose, onSaved })
               onClick={handleToggleWajib}
               disabled={busy === 'wajib'}
               aria-pressed={wajib}
-            >
-              <span />
-            </button>
-          </div>
-
-          <div className="ecm-row">
-            <div className="ecm-row-text">
-              <strong>Kode aktif</strong>
-              <span>Matikan untuk menutup akses tanpa menghapus kode.</span>
-            </div>
-            <button
-              type="button"
-              className={`ecm-switch ${aktif && code ? 'is-on' : ''}`}
-              onClick={handleToggleAktif}
-              disabled={!code || busy === 'aktif'}
-              aria-pressed={aktif && !!code}
             >
               <span />
             </button>

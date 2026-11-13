@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { logout as apiLogout } from '../lib/auth';
 import {
-  GRACE_MINUTES, ensureSession, touchUserSession, getSessionId, setNotice, markLocalSeen,
+  GRACE_MINUTES, ensureSession, touchUserSession, fetchSessionStatus,
+  getSessionId, setNotice, markLocalSeen,
 } from '../lib/sessionGuard';
 
 export const SESSION_NOTICE = {
@@ -22,7 +23,7 @@ const HEARTBEAT_MS = 30000;
  * Menjaga aturan "1 akun = 1 perangkat".
  * - Saat halaman dibuka: cek sesi (resume). Lewat 5 menit -> dipaksa logout.
  * - Heartbeat 30 detik: kalau sesi dicabut, langsung keluar.
- * - Realtime: perangkat tahu seketika ketika sesinya dicabut.
+ * - Polling status sesi: perangkat tahu ketika sesinya dicabut perangkat lain.
  *
  * Role 'admin' DIKECUALIKAN: admin boleh login di banyak perangkat
  * (mis. memantau ujian dari komputer lab sambil tetap terbuka di laptop).
@@ -45,7 +46,6 @@ export function useSessionGuard(user, role = '', ready = true) {
 
     let alive = true;
     let timer = null;
-    let channel = null;
 
     const kick = async (message) => {
       if (kickedRef.current) return;
@@ -53,9 +53,7 @@ export function useSessionGuard(user, role = '', ready = true) {
       setNotice(message);
       setStatus('blocked');
       try {
-        // 'local' -> hanya sesi di perangkat ini yang dibersihkan,
-        // jangan sampai ikut mematikan sesi perangkat yang menang.
-        await supabase.auth.signOut({ scope: 'local' });
+        await apiLogout();
       } catch { /* biarkan RequireRole mengarahkan ke login */ }
     };
 
@@ -85,6 +83,12 @@ export function useSessionGuard(user, role = '', ready = true) {
         let stillActive = true;
         try {
           stillActive = await touchUserSession();
+          // Heartbeat hanya menyentuh baris sesi perangkat ini; cek juga
+          // apakah sesi sudah dicabut (mis. login dari perangkat lain).
+          if (stillActive && getSessionId()) {
+            const st = await fetchSessionStatus();
+            stillActive = st?.active !== false;
+          }
         } catch {
           stillActive = true;
         }
@@ -95,30 +99,6 @@ export function useSessionGuard(user, role = '', ready = true) {
         }
         markLocalSeen();
       }, HEARTBEAT_MS);
-
-      const myId = getSessionId();
-      if (!myId) return;
-
-      channel = supabase
-        .channel(`session-guard-${userId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'user_sessions',
-            filter: `user_id=eq.${userId}`,
-          },
-          (payload) => {
-            const row = payload?.new;
-            if (!row?.revoked_at || row.id !== myId) return;
-            const reason = String(row.revoked_reason || '');
-            if (reason === 'login_device_lain') kick(SESSION_NOTICE.revoked);
-            else if (reason === 'idle_timeout') kick(SESSION_NOTICE.idle);
-            else kick(SESSION_NOTICE.logout);
-          },
-        )
-        .subscribe();
     };
 
     boot();
@@ -138,7 +118,6 @@ export function useSessionGuard(user, role = '', ready = true) {
     return () => {
       alive = false;
       if (timer) clearInterval(timer);
-      if (channel) supabase.removeChannel(channel);
       window.removeEventListener('pagehide', touch);
       document.removeEventListener('visibilitychange', onVisibility);
     };

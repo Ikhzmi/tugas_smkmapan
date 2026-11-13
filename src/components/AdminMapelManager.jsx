@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   BookOpen, Plus, Edit3, Trash2, RefreshCw, AlertCircle, X, Search,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import './AdminPeopleManager.css';
 
 const emptyForm = { mode: 'add', kode: '', nama: '', major_id: '' };
@@ -21,21 +21,19 @@ export default function AdminMapelManager({ onNotify }) {
   const [q, setQ] = useState('');
 
   const load = useCallback(async () => {
-    const [sRes, mRes] = await Promise.all([
-      supabase
-        .from('subjects')
-        .select('id, kode, nama, major_id, majors(kode, nama)')
-        .order('nama'),
-      supabase
-        .from('majors')
-        .select('id, kode, nama')
-        .order('kode'),
-    ]);
     setError('');
-    if (sRes.error) setError('Gagal memuat mata pelajaran: ' + sRes.error.message);
-    if (mRes.error) setError((prev) => prev || 'Gagal memuat daftar jurusan: ' + mRes.error.message);
-    setRows(sRes.data || []);
-    setMajors(mRes.data || []);
+    try {
+      const [subjects, majorList] = await Promise.all([
+        apiListAll('/admin/subjects'),
+        apiListAll('/admin/majors'),
+      ]);
+      setRows(subjects.map((s) => ({ ...s, majors: s.major || null })));
+      setMajors(majorList);
+    } catch (err) {
+      setError('Gagal memuat data: ' + err.message);
+      setRows([]);
+      setMajors([]);
+    }
     setLoading(false);
   }, []);
 
@@ -70,12 +68,10 @@ export default function AdminMapelManager({ onNotify }) {
     };
     try {
       if (form.mode === 'edit') {
-        const { error: err } = await supabase.from('subjects').update(payload).eq('id', form.id);
-        if (err) throw err;
+        await apiPatch(`/admin/subjects/${form.id}`, payload);
         onNotify?.('Mata pelajaran berhasil diperbarui.');
       } else {
-        const { error: err } = await supabase.from('subjects').insert(payload);
-        if (err) throw err;
+        await apiPost('/admin/subjects', payload);
         onNotify?.('Mata pelajaran baru berhasil ditambahkan.');
       }
       setForm(null);
@@ -92,8 +88,7 @@ export default function AdminMapelManager({ onNotify }) {
     if (!window.confirm(pesan)) return;
     setError('');
     try {
-      const { error: err } = await supabase.from('subjects').delete().eq('id', row.id);
-      if (err) throw err;
+      await apiDelete(`/admin/subjects/${row.id}`);
       onNotify?.('Mata pelajaran berhasil dihapus.');
       await load();
     } catch (err) {

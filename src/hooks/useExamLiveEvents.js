@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiList } from '../lib/api';
 
 /**
- * Berlangganan event ujian (warning / submitted / terminated) secara realtime
- * untuk guru pemilik ujian.
+ * Memantau event ujian (warning / submitted / terminated) untuk guru pemilik
+ * ujian dengan polling REST GET /guru/exams/events?since=ISO.
  *
  * @param {object} options
  * @param {string|null} options.teacherId  id guru (tabel teachers)
@@ -20,24 +20,31 @@ export function useExamLiveEvents({ teacherId, onEvent, enabled = true }) {
   useEffect(() => {
     if (!enabled || !teacherId) return undefined;
 
-    const channel = supabase
-      .channel(`exam-events-${teacherId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'exam_events',
-          filter: `teacher_id=eq.${teacherId}`,
-        },
-        (payload) => {
-          if (payload?.new && handlerRef.current) handlerRef.current(payload.new);
-        },
-      )
-      .subscribe();
+    let cancelled = false;
+    let timer = null;
+    let since = new Date().toISOString();
+
+    const poll = async () => {
+      try {
+        const { items } = await apiList('/guru/exams/events', { since, per_page: 100 });
+        if (cancelled) return;
+        const fresh = items
+          .filter((e) => e?.created_at && e.created_at > since)
+          .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+        fresh.forEach((e) => { if (handlerRef.current) handlerRef.current(e); });
+        since = items.reduce(
+          (max, e) => (e?.created_at && e.created_at > max ? e.created_at : max),
+          since,
+        );
+      } catch { /* gangguan polling diabaikan, coba lagi siklus berikut */ }
+      if (!cancelled) timer = setTimeout(poll, 5000);
+    };
+
+    timer = setTimeout(poll, 5000);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (timer) clearTimeout(timer);
     };
   }, [teacherId, enabled]);
 }

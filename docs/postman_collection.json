@@ -144,6 +144,14 @@
         {
             "key": "tanggal",
             "value": "2026-11-13"
+        },
+        {
+            "key": "upload_path",
+            "value": ""
+        },
+        {
+            "key": "upload_url",
+            "value": ""
         }
     ],
     "auth": {
@@ -2123,6 +2131,46 @@
                                 },
                                 "description": "Context yang tersedia: major, hero, profile, teacher-photo, eskul, facility, gallery. Ubah variable upload_context."
                             }
+                        },
+                        {
+                            "name": "URL upload gambar",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/uploads/{{upload_context}}/url",
+                                "description": "Presigned PUT URL untuk unggah gambar langsung ke Supabase Storage. Respons berisi upload_url, path, dan url publik. Hanya tersedia bila media disk memakai driver s3.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"filename\": \"gambar.jpg\",\n    \"content_type\": \"image/jpeg\",\n    \"size\": 524288\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const data = pm.response.json().data || {};",
+                                                "if (data.path) { pm.collectionVariables.set('upload_path', data.path); }",
+                                                "if (data.upload_url) { pm.collectionVariables.set('upload_url', data.upload_url); }"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     ],
                     "auth": {
@@ -2351,6 +2399,73 @@
                                     ]
                                 },
                                 "description": "Unggah berkas PDF maksimal 25 MB."
+                            }
+                        },
+                        {
+                            "name": "URL upload materi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials/{{material_id}}/upload-url",
+                                "description": "Buat presigned PUT URL, lalu unggah PDF langsung ke Supabase Storage dengan header Content-Type: application/pdf.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"filename\": \"materi.pdf\",\n    \"content_type\": \"application/pdf\",\n    \"size\": 1048576\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const data = pm.response.json().data || {};",
+                                                "if (data.path) { pm.collectionVariables.set('upload_path', data.path); }",
+                                                "if (data.upload_url) { pm.collectionVariables.set('upload_url', data.upload_url); }"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Konfirmasi upload materi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials/{{material_id}}/upload-confirm",
+                                "description": "Simpan path hasil unggah langsung sebagai berkas materi.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"path\": \"{{upload_path}}\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
                             }
                         },
                         {
@@ -3171,6 +3286,46 @@
                                                 "if (value) {",
                                                 "    pm.collectionVariables.set('submission_id', value);",
                                                 "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "URL upload tugas",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/assignments/{{assignment_id}}/upload-url",
+                                "description": "Buat presigned PUT URL untuk berkas tugas, lalu unggah langsung ke Supabase Storage. Setelah itu panggil Kumpulkan tugas dengan file_path dari response.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"filename\": \"jawaban.pdf\",\n    \"content_type\": \"application/pdf\",\n    \"size\": 1048576\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const data = pm.response.json().data || {};",
+                                                "if (data.path) { pm.collectionVariables.set('upload_path', data.path); }",
+                                                "if (data.upload_url) { pm.collectionVariables.set('upload_url', data.upload_url); }"
                                             ]
                                         }
                                     }

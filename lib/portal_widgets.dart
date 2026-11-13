@@ -6,7 +6,6 @@ import 'models.dart';
 import 'screens/misc_screens.dart';
 import 'theme.dart';
 import 'widgets.dart';
-
 // ── Fixed glass header with mac traffic lights ──────────────
 class PortalHeader extends StatelessWidget {
   final String title;
@@ -27,91 +26,96 @@ class PortalHeader extends StatelessWidget {
     final state = AppScope.of(context);
     final p = context.pal;
     final dark = p.isDark;
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-        child: Container(
-          decoration: BoxDecoration(
-            color: dark ? const Color(0x12FFFFFF) : const Color(0xB8FFFFFF),
-            border: Border(
-              bottom: BorderSide(color: p.glassBorder, width: 1),
-            ),
-          ),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 9, 12, 9),
-              child: Row(
-                children: [
-                  const TrafficLights(compact: true),
-                  const SizedBox(width: 9),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(7),
-                    child: Image.asset('assets/logo.png', width: 27, height: 27, fit: BoxFit.cover),
-                  ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.4,
-                            color: p.text,
-                            height: 1.1,
-                          ),
-                        ),
-                        Text(
-                          kSchoolName,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w600,
-                            color: p.muted,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: onProfile,
-                    child: Avatar(account.initials, size: 28),
-                  ),
-                  const SizedBox(width: 8),
-                  _HeaderButton(
-                    icon: Icons.notifications_none_rounded,
-                    color: p.textSoft,
-                    badge: state.unreadCount(account.role),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                    ),
-                    tooltip: 'Notifikasi',
-                  ),
-                  const SizedBox(width: 6),
-                  _HeaderButton(
-                    icon: dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                    color: dark ? const Color(0xFFFACC15) : const Color(0xFF475569),
-                    onTap: state.toggleTheme,
-                    tooltip: dark ? 'Mode terang' : 'Mode gelap',
-                  ),
-                  const SizedBox(width: 6),
-                  _HeaderButton(
-                    icon: Icons.logout_rounded,
-                    color: const Color(0xFFEF4444),
-                    onTap: onLogout,
-                    tooltip: 'Keluar',
-                  ),
-                ],
+    const r = BorderRadius.vertical(bottom: Radius.circular(18));
+    final inner = Container(
+      decoration: BoxDecoration(
+        color: dark ? const Color(0x12FFFFFF) : const Color(0xB8FFFFFF),
+        border: Border(
+          bottom: BorderSide(color: p.glassBorder, width: 1),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 9, 12, 9),
+          child: Row(
+            children: [
+              const TrafficLights(compact: true),
+              const SizedBox(width: 9),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Image.asset('assets/logo.png', width: 27, height: 27, fit: BoxFit.cover),
               ),
-            ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                        color: p.text,
+                        height: 1.1,
+                      ),
+                    ),
+                    Text(
+                      kSchoolName,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w600,
+                        color: p.muted,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: onProfile,
+                child: Avatar(account.initials, size: 28),
+              ),
+              const SizedBox(width: 8),
+              _HeaderButton(
+                icon: Icons.notifications_none_rounded,
+                color: p.textSoft,
+                badge: state.unreadCount(account.role),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                ),
+                tooltip: 'Notifikasi',
+              ),
+              const SizedBox(width: 6),
+              _HeaderButton(
+                icon: dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                color: dark ? const Color(0xFFFACC15) : const Color(0xFF475569),
+                onTap: state.toggleTheme,
+                tooltip: dark ? 'Mode terang' : 'Mode gelap',
+              ),
+              const SizedBox(width: 6),
+              _HeaderButton(
+                icon: Icons.logout_rounded,
+                color: const Color(0xFFEF4444),
+                onTap: onLogout,
+                tooltip: 'Keluar',
+              ),
+            ],
           ),
         ),
+      ),
+    );
+    if (DeviceTier.isLow) {
+      return ClipRRect(borderRadius: r, child: inner);
+    }
+    return ClipRRect(
+      borderRadius: r,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+        child: inner,
       ),
     );
   }

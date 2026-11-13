@@ -102,8 +102,8 @@ class _TeacherShellState extends State<TeacherShell> {
 }
 
 /// Shared portal layout: full-bleed background image, fixed glass header,
-/// tab content, and the floating sliding pill bottom nav.
-class PortalShell extends StatelessWidget {
+/// lazy tab loading, and the floating sliding pill bottom nav.
+class PortalShell extends StatefulWidget {
   final String systemName;
   final bool isGuru;
   final int index;
@@ -124,6 +124,25 @@ class PortalShell extends StatelessWidget {
   });
 
   @override
+  State<PortalShell> createState() => _PortalShellState();
+}
+
+class _PortalShellState extends State<PortalShell> {
+  final Set<int> _loadedTabs = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadedTabs.add(widget.index);
+  }
+
+  @override
+  void didUpdateWidget(covariant PortalShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadedTabs.add(widget.index);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final acc = state.current!;
@@ -132,22 +151,35 @@ class PortalShell extends StatelessWidget {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              state.darkMode ? 'assets/bg-dark.png' : 'assets/bg-light.png',
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
+            child: RepaintBoundary(
+              child: Image.asset(
+                state.darkMode ? 'assets/bg-dark.png' : 'assets/bg-light.png',
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                cacheWidth: 1080,
+              ),
             ),
           ),
           Column(
             children: [
-              PortalHeader(
-                title: systemName,
-                account: acc,
-                onProfile: () => onChanged(profileIndex),
-                onLogout: () => confirmLogout(context, isGuru: isGuru),
+              RepaintBoundary(
+                child: PortalHeader(
+                  title: widget.systemName,
+                  account: acc,
+                  onProfile: () => widget.onChanged(widget.profileIndex),
+                  onLogout: () => confirmLogout(context, isGuru: widget.isGuru),
+                ),
               ),
               Expanded(
-                child: IndexedStack(index: index, children: pages),
+                child: IndexedStack(
+                  index: widget.index,
+                  children: [
+                    for (int i = 0; i < widget.pages.length; i++)
+                      _loadedTabs.contains(i)
+                          ? KeyedSubtree(key: ValueKey(i), child: widget.pages[i])
+                          : const SizedBox.shrink(),
+                  ],
+                ),
               ),
             ],
           ),
@@ -159,10 +191,12 @@ class PortalShell extends StatelessWidget {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: GlassBottomNav(
-                  index: index,
-                  onChanged: onChanged,
-                  items: navItems,
+                child: RepaintBoundary(
+                  child: GlassBottomNav(
+                    index: widget.index,
+                    onChanged: widget.onChanged,
+                    items: widget.navItems,
+                  ),
                 ),
               ),
             ),

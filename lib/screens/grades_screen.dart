@@ -274,17 +274,24 @@ class _MiniScore extends StatelessWidget {
           const SizedBox(height: 5),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: value / 100),
-              duration: const Duration(milliseconds: 700),
-              curve: Curves.easeOutCubic,
-              builder: (context, v, _) => LinearProgressIndicator(
-                value: v,
-                minHeight: 4,
-                backgroundColor: p.fill,
-                valueColor: AlwaysStoppedAnimation(color),
-              ),
-            ),
+            child: DeviceTier.isLow
+                ? LinearProgressIndicator(
+                    value: value / 100,
+                    minHeight: 4,
+                    backgroundColor: p.fill,
+                    valueColor: AlwaysStoppedAnimation(color),
+                  )
+                : TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: value / 100),
+                    duration: const Duration(milliseconds: 700),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, v, _) => LinearProgressIndicator(
+                      value: v,
+                      minHeight: 4,
+                      backgroundColor: p.fill,
+                      valueColor: AlwaysStoppedAnimation(color),
+                    ),
+                  ),
           ),
         ],
       ),

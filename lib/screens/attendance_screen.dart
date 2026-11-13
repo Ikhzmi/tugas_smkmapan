@@ -72,25 +72,40 @@ class AttendanceScreen extends StatelessWidget {
                 const SizedBox(height: 13),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: pct),
-                    duration: const Duration(milliseconds: 800),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, v, _) => Stack(
-                      children: [
-                        Container(height: 7, color: p.fill),
-                        FractionallySizedBox(
-                          widthFactor: v.clamp(0.0, 1.0),
-                          child: Container(
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(colors: [Color(0xFF34D399), Color(0xFF059669)]),
+                  child: DeviceTier.isLow
+                      ? Stack(
+                          children: [
+                            Container(height: 7, color: p.fill),
+                            FractionallySizedBox(
+                              widthFactor: pct.clamp(0.0, 1.0),
+                              child: Container(
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(colors: [Color(0xFF34D399), Color(0xFF059669)]),
+                                ),
+                              ),
                             ),
+                          ],
+                        )
+                      : TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: pct),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, v, _) => Stack(
+                            children: [
+                              Container(height: 7, color: p.fill),
+                              FractionallySizedBox(
+                                widthFactor: v.clamp(0.0, 1.0),
+                                child: Container(
+                                  height: 7,
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(colors: [Color(0xFF34D399), Color(0xFF059669)]),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 9),
                 Text(

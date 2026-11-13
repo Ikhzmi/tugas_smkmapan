@@ -91,17 +91,24 @@ class _TasksScreenState extends State<TasksScreen> {
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: progress),
-                    duration: const Duration(milliseconds: 700),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, v, _) => LinearProgressIndicator(
-                      value: v,
-                      minHeight: 6,
-                      backgroundColor: p.fill,
-                      valueColor: const AlwaysStoppedAnimation(kSuccess),
-                    ),
-                  ),
+                  child: DeviceTier.isLow
+                      ? LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 6,
+                          backgroundColor: p.fill,
+                          valueColor: const AlwaysStoppedAnimation(kSuccess),
+                        )
+                      : TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: progress),
+                          duration: const Duration(milliseconds: 700),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, v, _) => LinearProgressIndicator(
+                            value: v,
+                            minHeight: 6,
+                            backgroundColor: p.fill,
+                            valueColor: const AlwaysStoppedAnimation(kSuccess),
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 8),
                 Text(

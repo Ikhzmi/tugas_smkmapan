@@ -3,6 +3,24 @@ import 'package:flutter/material.dart';
 import 'models.dart';
 import 'theme.dart';
 
+// ── Performance helper ───────────────────────────────────────
+/// Deteksi apakah device mendukung blur berat.
+/// Gunakan ini untuk matikan efek glassmorphism di device low-end.
+class DeviceTier {
+  DeviceTier._();
+  static bool? _isLow;
+
+  /// true = device low-end → skip BackdropFilter blur
+  static bool get isLow {
+    if (_isLow != null) return _isLow!;
+    // Heuristik: logical pixel density rendah biasanya low-end
+    final view = PlatformDispatcher.instance.views.first;
+    final dpr = view.devicePixelRatio;
+    _isLow = dpr < 1.5;
+    return _isLow!;
+  }
+}
+
 // ── Date / format helpers ───────────────────────────────────
 const kDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 const kDaysShort = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
@@ -64,6 +82,10 @@ class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    if (DeviceTier.isLow) {
+      _c.value = 1.0;
+      return;
+    }
     Future.delayed(Duration(milliseconds: 70 * widget.index.clamp(0, 8)), () {
       if (mounted) _c.forward();
     });
@@ -77,16 +99,22 @@ class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _anim,
-      builder: (context, child) => Opacity(
-        opacity: _anim.value,
-        child: Transform.translate(
-          offset: Offset(0, 18 * (1 - _anim.value)),
-          child: child,
-        ),
+    if (DeviceTier.isLow) return widget.child;
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _anim,
+        builder: (context, child) {
+          if (_anim.value >= 1.0) return child!;
+          return Opacity(
+            opacity: _anim.value,
+            child: Transform.translate(
+              offset: Offset(0, 18 * (1 - _anim.value)),
+              child: child,
+            ),
+          );
+        },
+        child: widget.child,
       ),
-      child: widget.child,
     );
   }
 }
@@ -145,6 +173,10 @@ class Glass extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(onTap: onTap, borderRadius: r, child: body),
       );
+    }
+    // Skip BackdropFilter di device low-end → hemat GPU
+    if (DeviceTier.isLow) {
+      return ClipRRect(borderRadius: r, child: body);
     }
     return ClipRRect(
       borderRadius: r,

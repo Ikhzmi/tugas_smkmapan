@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rive/rive.dart' as rive;
 import '../app_state.dart';
 import '../data.dart';
 import '../shells.dart';
 import '../theme.dart';
 import '../widgets.dart';
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -78,16 +78,37 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       _loading = false;
     });
     _shake.forward(from: 0);
+    HapticFeedback.mediumImpact();
   }
 
   Future<void> _submit() async {
     if (_loading) return;
     setState(() => _error = null);
     final id = _idCtrl.text.trim();
-    if (id.isEmpty || _passCtrl.text.isEmpty) {
-      _fail('Username dan kata sandi wajib diisi.');
+
+    // Validasi kosong
+    if (id.isEmpty) {
+      _fail('NISN / Username wajib diisi.');
       return;
     }
+    if (_passCtrl.text.isEmpty) {
+      _fail('Kata sandi wajib diisi.');
+      return;
+    }
+
+    // Validasi format: jika semua angka harus 10 digit (NISN)
+    final isAllDigits = RegExp(r'^\d+$').hasMatch(id);
+    if (isAllDigits && id.length != 10) {
+      _fail('NISN harus 10 digit angka. Periksa kembali.');
+      return;
+    }
+
+    // Validasi panjang minimum password
+    if (_passCtrl.text.length < 6) {
+      _fail('Kata sandi minimal 6 karakter.');
+      return;
+    }
+
     setState(() => _loading = true);
     FocusScope.of(context).unfocus();
     final state = AppScope.of(context);
@@ -316,177 +337,190 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
   Widget _formGlass(LoginPal lp) {
     final dark = identical(lp, LoginPal.dark);
+    final inner = Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+      decoration: BoxDecoration(
+        color: lp.formBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: lp.formBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: dark ? 0.35 : 0.08),
+            blurRadius: 34,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Login', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: lp.text, letterSpacing: -0.3)),
+          const SizedBox(height: 3),
+          Text('Masuk ke akun portal Anda', style: TextStyle(fontSize: 12.5, color: lp.muted)),
+          const SizedBox(height: 18),
+          _label(lp, 'NISN / Username'),
+          const SizedBox(height: 7),
+          _input(
+            lp,
+            controller: _idCtrl,
+            focusNode: _idFocus,
+            hint: 'Masukkan NISN atau username',
+            icon: Icons.person_outline_rounded,
+            action: TextInputAction.next,
+            keyboardType: TextInputType.number,
+            suffix: _idCtrl.text.trim().isNotEmpty
+                ? GestureDetector(
+                    onTap: () => setState(() {
+                      _idCtrl.clear();
+                      _error = null;
+                    }),
+                    child: Icon(Icons.cancel_rounded, size: 18, color: lp.muted),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 14),
+          _label(lp, 'Kata Sandi'),
+          const SizedBox(height: 7),
+          _input(
+            lp,
+            controller: _passCtrl,
+            focusNode: _passFocus,
+            hint: 'Masukkan kata sandi',
+            icon: Icons.lock_outline_rounded,
+            obscure: !_show,
+            action: TextInputAction.done,
+            onSubmit: (_) => _submit(),
+            suffix: GestureDetector(
+              onTap: () => setState(() => _show = !_show),
+              child: Icon(
+                _show ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                size: 18,
+                color: lp.muted,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _remember = !_remember),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 160),
+                      width: 19,
+                      height: 19,
+                      decoration: BoxDecoration(
+                        color: _remember ? lp.accent : lp.inputBg,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: _remember ? lp.accent : lp.inputBorder, width: 1.4),
+                      ),
+                      child: _remember ? const Icon(Icons.check_rounded, size: 13, color: Colors.white) : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Ingat ID saya', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: lp.label)),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: _showForgot,
+                child: Text(
+                  'Lupa sandi?',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: lp.accent),
+                ),
+              ),
+            ],
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            child: _error == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: AnimatedBuilder(
+                      animation: _shake,
+                      builder: (context, child) {
+                        final t = _shake.value;
+                        final dx = math.sin(t * math.pi * 5) * 7 * (1 - t);
+                        return Transform.translate(offset: Offset(dx, 0), child: child);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: lp.errorBg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: lp.errorBorder),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.error_outline_rounded, size: 16, color: lp.errorText),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: TextStyle(fontSize: 12, color: lp.errorText, height: 1.4, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: _loading ? null : _submit,
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                gradient: LinearGradient(colors: [lp.ctaFrom, lp.ctaTo]),
+                boxShadow: [
+                  BoxShadow(
+                    color: lp.ctaTo.withValues(alpha: 0.38),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: _loading
+                  ? const Center(
+                      child: SizedBox(
+                        width: 21,
+                        height: 21,
+                        child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.login_rounded, size: 18, color: Colors.white),
+                        SizedBox(width: 9),
+                        Text(
+                          'Masuk',
+                          style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800, letterSpacing: 0.4),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Skip BackdropFilter di low-end device
+    if (DeviceTier.isLow) {
+      return ClipRRect(borderRadius: BorderRadius.circular(24), child: inner);
+    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
-          decoration: BoxDecoration(
-            color: lp.formBg,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: lp.formBorder),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: dark ? 0.35 : 0.08),
-                blurRadius: 34,
-                offset: const Offset(0, 14),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Login', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: lp.text, letterSpacing: -0.3)),
-              const SizedBox(height: 3),
-              Text('Masuk ke akun portal Anda', style: TextStyle(fontSize: 12.5, color: lp.muted)),
-              const SizedBox(height: 18),
-              _label(lp, 'NISN / Username'),
-              const SizedBox(height: 7),
-              _input(
-                lp,
-                controller: _idCtrl,
-                focusNode: _idFocus,
-                hint: 'Masukkan NISN atau username',
-                icon: Icons.person_outline_rounded,
-                action: TextInputAction.next,
-                suffix: _idCtrl.text.trim().isNotEmpty
-                    ? const Icon(Icons.check_circle_rounded, size: 18, color: kSuccess)
-                    : null,
-              ),
-              const SizedBox(height: 14),
-              _label(lp, 'Kata Sandi'),
-              const SizedBox(height: 7),
-              _input(
-                lp,
-                controller: _passCtrl,
-                focusNode: _passFocus,
-                hint: 'Masukkan kata sandi',
-                icon: Icons.lock_outline_rounded,
-                obscure: !_show,
-                action: TextInputAction.done,
-                onSubmit: (_) => _submit(),
-                suffix: GestureDetector(
-                  onTap: () => setState(() => _show = !_show),
-                  child: Icon(
-                    _show ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    size: 18,
-                    color: lp.muted,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => setState(() => _remember = !_remember),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 160),
-                          width: 19,
-                          height: 19,
-                          decoration: BoxDecoration(
-                            color: _remember ? lp.accent : lp.inputBg,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: _remember ? lp.accent : lp.inputBorder, width: 1.4),
-                          ),
-                          child: _remember ? const Icon(Icons.check_rounded, size: 13, color: Colors.white) : null,
-                        ),
-                        const SizedBox(width: 8),
-                        Text('Ingat ID saya', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: lp.label)),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _showForgot,
-                    child: Text(
-                      'Lupa sandi?',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: lp.accent),
-                    ),
-                  ),
-                ],
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                child: _error == null
-                    ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: AnimatedBuilder(
-                          animation: _shake,
-                          builder: (context, child) {
-                            final t = _shake.value;
-                            final dx = math.sin(t * math.pi * 5) * 7 * (1 - t);
-                            return Transform.translate(offset: Offset(dx, 0), child: child);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: lp.errorBg,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: lp.errorBorder),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(Icons.error_outline_rounded, size: 16, color: lp.errorText),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _error!,
-                                    style: TextStyle(fontSize: 12, color: lp.errorText, height: 1.4, fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: _loading ? null : _submit,
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    gradient: LinearGradient(colors: [lp.ctaFrom, lp.ctaTo]),
-                    boxShadow: [
-                      BoxShadow(
-                        color: lp.ctaTo.withValues(alpha: 0.38),
-                        blurRadius: 18,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: _loading
-                      ? const Center(
-                          child: SizedBox(
-                            width: 21,
-                            height: 21,
-                            child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                          ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.login_rounded, size: 18, color: Colors.white),
-                            SizedBox(width: 9),
-                            Text(
-                              'Masuk',
-                              style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800, letterSpacing: 0.4),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: inner,
       ),
     );
   }
@@ -506,14 +540,16 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     TextInputAction action = TextInputAction.next,
     ValueChanged<String>? onSubmit,
     Widget? suffix,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     return TextField(
       controller: controller,
       focusNode: focusNode,
       obscureText: obscure,
       textInputAction: action,
+      keyboardType: keyboardType,
       onSubmitted: onSubmit,
-      onChanged: (_) => setState(() {}),
+      onChanged: (_) => setState(() => _error = null),
       style: TextStyle(fontSize: 14, color: lp.text, fontWeight: FontWeight.w600),
       cursorColor: lp.accent,
       decoration: InputDecoration(
@@ -929,6 +965,8 @@ class _DriftOrbsState extends State<_DriftOrbs> with SingleTickerProviderStateMi
 
   @override
   Widget build(BuildContext context) {
+    // Skip orbs di device low-end — hemat GPU
+    if (DeviceTier.isLow) return const SizedBox.shrink();
     final size = MediaQuery.of(context).size;
     return AnimatedBuilder(
       animation: _c,

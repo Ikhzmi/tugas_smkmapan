@@ -1115,6 +1115,26 @@ paths:
         '403': {$ref: '#/components/responses/Forbidden'}
         '422': {$ref: '#/components/responses/ValidationError'}
 
+  /admin/uploads/{context}/url:
+    post:
+      tags: [Admin]
+      x-required-role: admin
+      operationId: presignAdminUpload
+      description: Membuat presigned PUT URL untuk unggah gambar langsung ke object storage. Hanya tersedia bila media disk memakai driver s3.
+      parameters:
+        - {$ref: '#/components/parameters/UploadContext'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectUploadRequest'
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
   /admin/attempts/{attempt}/reset:
     post:
       tags: [Admin]
@@ -1237,6 +1257,48 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PdfUploadRequest'
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /guru/materials/{material}/upload-url:
+    post:
+      tags: [Guru]
+      x-required-role: guru
+      operationId: presignMaterialUpload
+      description: Membuat presigned PUT URL PDF materi. Klien mengunggah langsung ke storage lalu memanggil upload-confirm.
+      parameters:
+        - {$ref: '#/components/parameters/MaterialId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectUploadRequest'
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /guru/materials/{material}/upload-confirm:
+    post:
+      tags: [Guru]
+      x-required-role: guru
+      operationId: confirmMaterialUpload
+      description: Menyimpan path hasil unggah langsung sebagai berkas materi.
+      parameters:
+        - {$ref: '#/components/parameters/MaterialId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialUploadConfirmRequest'
       responses:
         '200': {$ref: '#/components/responses/Success'}
         '401': {$ref: '#/components/responses/Unauthorized'}
@@ -1745,6 +1807,28 @@ paths:
               $ref: '#/components/schemas/SubmissionLinkRequest'
       responses:
         '201': {$ref: '#/components/responses/Created'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /siswa/assignments/{assignment}/upload-url:
+    post:
+      tags: [Siswa]
+      x-required-role: siswa
+      operationId: presignSubmissionUpload
+      description: Membuat presigned PUT URL berkas tugas. Setelah unggah, panggil endpoint submissions dengan file_path.
+      parameters:
+        - {$ref: '#/components/parameters/AssignmentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectUploadRequest'
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
         '401': {$ref: '#/components/responses/Unauthorized'}
         '403': {$ref: '#/components/responses/Forbidden'}
         '404': {$ref: '#/components/responses/NotFound'}
@@ -2547,6 +2631,25 @@ components:
           type: string
           format: binary
           description: JPG, JPEG, PNG, WEBP, atau GIF; maksimum 5 MB.
+    DirectUploadRequest:
+      type: object
+      required: [filename, content_type, size]
+      properties:
+        filename: {type: string, maxLength: 255}
+        content_type: {type: string, maxLength: 150}
+        size:
+          type: integer
+          minimum: 1
+          maximum: 26214400
+          description: Ukuran berkas dalam byte; maksimum 25 MB.
+    MaterialUploadConfirmRequest:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+          maxLength: 2048
+          description: Nilai data.path dari response upload-url.
     MaterialRequest:
       type: object
       required: [judul, tipe]
@@ -2593,11 +2696,24 @@ components:
           format: binary
           description: PDF, dokumen, spreadsheet, presentasi, arsip, gambar, atau TXT; maksimum 25 MB.
         file_url: {type: string, format: uri, maxLength: 2048, nullable: true}
+        file_path:
+          type: string
+          maxLength: 2048
+          nullable: true
+          description: Path dari response upload-url untuk unggah langsung.
+        file_name: {type: string, maxLength: 255, nullable: true}
+        file_size: {type: integer, minimum: 0, nullable: true}
         catatan: {type: string, maxLength: 5000, nullable: true}
     SubmissionLinkRequest:
       type: object
       properties:
         file_url: {type: string, format: uri, maxLength: 2048}
+        file_path:
+          type: string
+          maxLength: 2048
+          description: Path dari response upload-url untuk unggah langsung.
+        file_name: {type: string, maxLength: 255, nullable: true}
+        file_size: {type: integer, minimum: 0, nullable: true}
         catatan: {type: string, maxLength: 5000, nullable: true}
     ExamRequest:
       type: object

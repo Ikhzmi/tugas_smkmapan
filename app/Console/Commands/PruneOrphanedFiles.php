@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PruneOrphanedFiles extends Command
 {
-    protected $signature = 'storage:prune-orphans {--disk=public : Disk public atau local} {--delete : Hapus file orphan setelah daftar kandidat ditampilkan}';
+    protected $signature = 'storage:prune-orphans {--disk=public : Nama disk pada config/filesystems.php} {--delete : Hapus file orphan setelah daftar kandidat ditampilkan}';
 
     protected $description = 'Find orphaned Laravel Storage files without deleting them unless --delete is supplied.';
 
@@ -26,8 +26,8 @@ class PruneOrphanedFiles extends Command
     {
         $disk = (string) $this->option('disk');
 
-        if (! in_array($disk, ['public', 'local'], true)) {
-            $this->error('Disk harus public atau local.');
+        if (! array_key_exists($disk, (array) config('filesystems.disks'))) {
+            $this->error('Disk tidak terdaftar di config/filesystems.php: '.$disk);
 
             return self::INVALID;
         }
@@ -62,7 +62,9 @@ class PruneOrphanedFiles extends Command
     /** @return Collection<int, string> */
     private function referencedPaths(string $disk): Collection
     {
-        if ($disk === 'local') {
+        $privateDisks = ['local', (string) config('filesystems.private_disk', 'local')];
+
+        if (in_array($disk, $privateDisks, true)) {
             return Submission::query()->whereNotNull('file_path')->pluck('file_path')->map(fn (string $path): string => $this->normalize($path));
         }
 
@@ -113,6 +115,9 @@ class PruneOrphanedFiles extends Command
         if (str_starts_with($path, 'storage/')) {
             $path = substr($path, strlen('storage/'));
         }
+
+        // Supabase: /storage/v1/object/public/{bucket}/path dan varian signed.
+        $path = preg_replace('#^storage/v1/object/(?:public|sign|authenticated)/[^/]+/#', '', $path) ?? $path;
 
         return $path;
     }

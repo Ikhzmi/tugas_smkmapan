@@ -5,10 +5,19 @@ Diperbarui setiap fase. Isi detail analisis ada di `docs/analysis/`.
 
 ## Keputusan lingkungan
 
-- Database = PostgreSQL Supabase **project baru**, diakses HANYA oleh Laravel melalui Session pooler (port 5432). Tidak memakai Supabase Auth/Storage/Realtime/PostgREST.
-- Kredensial DB tidak pernah ditulis di repo; `.env` di-ignore git.
+- Database = PostgreSQL Supabase **project baru**, diakses HANYA oleh Laravel melalui Session pooler (port 5432). Tidak memakai Supabase Auth/Realtime/PostgREST.
+- Supabase Storage dipakai lewat **protokol S3** dan hanya dari server Laravel. Kunci S3 tidak pernah dikirim ke mobile dan `supabase-js` tidak dipakai.
+- Kredensial DB dan storage tidak ditulis di kode; `.env` di-ignore git.
 - Test otomatis memakai SQLite in-memory. Query khusus PostgreSQL (mis. `ILIKE`) dibuat portabel/fallback agar test lulus.
 - Timezone aplikasi `Asia/Jakarta`; timestamp disimpan UTC dan dikirim ISO 8601.
+
+## Storage dan deployment
+
+- Dua bucket: publik untuk gambar CMS dan privat untuk materi/tugas. URL publik memakai format `/storage/v1/object/public/{bucket}/{path}`.
+- Disk lokal tetap default agar development dan test tidak butuh kredensial cloud. Deploy mengarahkan `MEDIA_DISK` dan `PRIVATE_DISK` ke disk Supabase.
+- Berkas lebih dari 4,5 MB memakai presigned PUT agar tidak melewati batas body Vercel.
+- Vercel di-deploy sebagai container (Dockerfile + FrankenPHP). Filesystem container tidak persisten, jadi semua upload wajib masuk object storage.
+- Migrasi database dijalankan dari lokal/CI, bukan saat container start.
 
 ## Larangan sumber rahasia Web
 

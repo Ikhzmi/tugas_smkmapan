@@ -16,6 +16,7 @@ use App\Models\Video;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class ContentController extends Controller
@@ -190,18 +191,67 @@ class ContentController extends Controller
 
     public function upload(Request $request, string $context): JsonResponse
     {
-        $folders = [
-            'major' => 'branding/jurusan', 'hero' => 'branding/hero', 'profile' => 'branding/profile',
-            'teacher-photo' => 'teachers', 'eskul' => 'eskul', 'facility' => 'fasilitas', 'gallery' => 'galeri',
-        ];
+        $folders = $this->uploadFolders();
+
         if (! isset($folders[$context])) {
             return ApiResponse::error('Konteks upload tidak valid.', [], 422, 'UPLOAD_CONTEXT_INVALID');
         }
 
         $request->validate(['file' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120']]);
-        $path = $request->file('file')->store($folders[$context], 'public');
+        $disk = (string) config('filesystems.media_disk', 'public');
+        $path = $request->file('file')->store($folders[$context], $disk);
 
-        return ApiResponse::created(['url' => Storage::disk('public')->url($path), 'path' => $path], 'Berkas berhasil diunggah.');
+        return ApiResponse::created(['url' => Storage::disk($disk)->url($path), 'path' => $path], 'Berkas berhasil diunggah.');
+    }
+
+    public function presignUpload(Request $request, string $context): JsonResponse
+    {
+        $folders = $this->uploadFolders();
+
+        if (! isset($folders[$context])) {
+            return ApiResponse::error('Konteks upload tidak valid.', [], 422, 'UPLOAD_CONTEXT_INVALID');
+        }
+
+        $data = $request->validate([
+            'filename' => ['required', 'string', 'max:255'],
+            'content_type' => ['required', 'string', 'in:image/jpeg,image/png,image/webp,image/gif'],
+            'size' => ['required', 'integer', 'min:1', 'max:5242880'],
+        ]);
+
+        $diskName = (string) config('filesystems.media_disk', 'public');
+        $disk = Storage::disk($diskName);
+
+        if ((string) config("filesystems.disks.{$diskName}.driver") !== 's3') {
+            return ApiResponse::error('Direct upload memerlukan disk cloud. Gunakan unggah multipart.', [], 422, 'DIRECT_UPLOAD_UNSUPPORTED');
+        }
+
+        $extension = match ($data['content_type']) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+        };
+        $path = $folders[$context].'/'.Str::uuid().'.'.$extension;
+        $expiresAt = now()->addMinutes(15);
+        $url = $disk->temporaryUploadUrl($path, $expiresAt, ['ContentType' => $data['content_type']]);
+
+        return ApiResponse::created([
+            'upload_url' => $url,
+            'method' => 'PUT',
+            'path' => $path,
+            'url' => $disk->url($path),
+            'headers' => ['Content-Type' => $data['content_type']],
+            'expires_at' => $expiresAt->toISOString(),
+        ], 'URL unggah berkas dibuat.');
+    }
+
+    /** @return array<string, string> */
+    private function uploadFolders(): array
+    {
+        return [
+            'major' => 'branding/jurusan', 'hero' => 'branding/hero', 'profile' => 'branding/profile',
+            'teacher-photo' => 'teachers', 'eskul' => 'eskul', 'facility' => 'fasilitas', 'gallery' => 'galeri',
+        ];
     }
 
     /** @return array<string, list<string>> */

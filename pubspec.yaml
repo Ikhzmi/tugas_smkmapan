@@ -61,7 +61,6 @@ flutter:
 
   assets:
     - assets/logo.png
-    - assets/image/logo.png
     - assets/teddy.riv
     - assets/bg-light.png
     - assets/bg-dark.png

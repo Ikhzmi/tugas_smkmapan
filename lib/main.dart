@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_state.dart';
 import 'screens/login_screen.dart';
 import 'theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Kunci orientasi portrait saja — hemat memory, stabil di semua device
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(const SmkApp());
 }
 
@@ -17,6 +24,17 @@ class SmkApp extends StatefulWidget {
 class _SmkAppState extends State<SmkApp> {
   final AppState _state = AppState();
 
+  // Cache theme agar tidak rebuild tiap frame
+  ThemeData? _lightTheme;
+  ThemeData? _darkTheme;
+
+  @override
+  void initState() {
+    super.initState();
+    _lightTheme = buildTheme(Brightness.light);
+    _darkTheme = buildTheme(Brightness.dark);
+  }
+
   @override
   void dispose() {
     _state.dispose();
@@ -27,13 +45,14 @@ class _SmkAppState extends State<SmkApp> {
   Widget build(BuildContext context) {
     return AppScope(
       state: _state,
-      child: AnimatedBuilder(
-        animation: _state,
+      // ListenableBuilder hanya rebuild MaterialApp saat darkMode berubah
+      child: ListenableBuilder(
+        listenable: _state,
         builder: (context, _) => MaterialApp(
-          title: 'SMK Muhammadiyah 8 Medan — Portal Akademik',
+          title: 'Portal Akademik SMK',
           debugShowCheckedModeBanner: false,
-          theme: buildTheme(Brightness.light),
-          darkTheme: buildTheme(Brightness.dark),
+          theme: _lightTheme,
+          darkTheme: _darkTheme,
           themeMode: _state.darkMode ? ThemeMode.dark : ThemeMode.light,
           scrollBehavior: AppScrollBehavior(),
           home: const LoginScreen(),

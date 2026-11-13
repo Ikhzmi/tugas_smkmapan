@@ -1,6 +1,6 @@
 # PROGRESS — SMKM 8 Medan API
 
-Terakhir diperbarui: 2026-11-04
+Terakhir diperbarui: 2026-11-13
 
 ## Ringkasan
 
@@ -68,3 +68,20 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 - `db:secure-rls` akan menolak koneksi PostgreSQL bila `SUPABASE_NEW_PROJECT_CONFIRMED` tidak true.
 - `migrate:fresh --seed` pada project baru berhasil; 37 tabel `public` kemudian dikunci RLS tanpa policy.
 - Smoke test HTTPS Herd login admin + `/auth/me` berhasil tanpa mencetak token.
+
+### Catatan sesi lanjutan 2026-11-13
+
+- Project Supabase lama tidak lagi tersedia: pooler mengembalikan
+  `tenant/user ... not found` dan domain project NXDOMAIN. Ini penyebab 500 pada
+  login dan seluruh endpoint ber-DB, bukan bug kode.
+- Project Supabase baru dikonfigurasi melalui Session pooler port 5432 dan
+  `.env` diperbarui. Kredensial tidak dicatat di dokumen.
+- `php artisan migrate:fresh --seed --force` berhasil; percobaan pertama
+  terputus di tengah karena koneksi pooler, lalu diulang dari awal.
+- `php artisan db:secure-rls` mengaktifkan RLS pada 37 tabel public tanpa policy.
+- Data development: 14 user (1 admin, 3 guru, 10 siswa), 2 kelas, 2 jurusan,
+  2 mapel, 2 jadwal, 1 materi, 1 tugas, dan 1 ujian dengan 10 soal.
+- Smoke test HTTPS Herd: ping 200, public site/facilities 200, login admin 200,
+  `/auth/me` 200, admin accounts 200, login siswa NISN 200, dashboard siswa 200,
+  logout admin/siswa 204.
+- Test suite SQLite: 20 lulus, 825 assertions.

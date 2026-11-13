@@ -1,4 +1,4 @@
-# Endpoint Audit — 2026-11-04
+# Endpoint Audit — 2026-11-13
 
 Audit ini membandingkan route Laravel yang terdaftar dengan
 `docs/analysis/09-frontend-migration-map.md`. Perintah pemeriksaan:
@@ -41,9 +41,13 @@ Hasil terakhir: **132 route API** terdaftar.
 - Query pencarian menggunakan `LOWER(...) LIKE` sebagai bentuk portable untuk
   perilaku case-insensitive PostgreSQL/SQLite.
 - Upload gambar/PDF/submission tervalidasi MIME dan ukuran server-side.
-- Smoke HTTPS Herd berhasil untuk ping, public site, login admin, `/auth/me`,
-  analytics admin, dan logout; HTTP perlu memakai URL HTTPS langsung agar POST
-  tidak berubah menjadi GET saat redirect.
+- Smoke HTTPS Herd berhasil untuk ping, public site/facilities, login admin,
+  `/auth/me`, admin accounts, login siswa NISN, dashboard siswa, dan logout
+  admin/siswa; HTTP perlu memakai URL HTTPS langsung agar POST tidak berubah
+  menjadi GET saat redirect.
+- Jika pooler mengembalikan `tenant/user ... not found`, periksa status project
+  Supabase (paused/deleted) dan samakan host serta `postgres.<project-ref>`
+  dengan connection string Session pooler di dashboard.
 - `tests/Feature/ApiContractTest.php` memverifikasi OpenAPI dan route terdaftar
   dua arah, operationId unik, seluruh `$ref` lokal valid, dan Postman dapat
   dibaca JSON.

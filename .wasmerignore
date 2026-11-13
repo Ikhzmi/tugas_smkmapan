@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+tests/
+database/database.sqlite
+docs/
+node_modules/
+storage/logs/*.log
+

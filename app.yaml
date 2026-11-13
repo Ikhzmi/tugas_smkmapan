@@ -1,0 +1,37 @@
+kind: wasmer.io/App.v0
+name: smkm8medan-api
+package: .
+env:
+  APP_NAME: "SMKM 8 Medan API"
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_KEY: "base64:ifp+20fRdWxbsdU/nzIETwaVzeBfNTJDuMlLni02WmU="
+  APP_URL: "https://smkm8medan-api.wasmer.app"
+  APP_TIMEZONE: Asia/Jakarta
+  LOG_CHANNEL: stderr
+
+  # Database Supabase Session Pooler
+  DB_CONNECTION: pgsql
+  DB_HOST: aws-0-ap-northeast-2.pooler.supabase.com
+  DB_PORT: "5432"
+  DB_DATABASE: postgres
+  DB_USERNAME: postgres.kwxfkacounktglsrtnap
+  DB_PASSWORD: smkm08medan
+  DB_SSLMODE: require
+  SUPABASE_NEW_PROJECT_CONFIRMED: "true"
+
+  # Session, Cache & Queue
+  SESSION_DRIVER: database
+  CACHE_STORE: database
+  QUEUE_CONNECTION: database
+
+  # Supabase Storage S3 Compatible
+  FILESYSTEM_DISK: local
+  MEDIA_DISK: supabase-public
+  PRIVATE_DISK: supabase
+  SUPABASE_S3_REGION: ap-northeast-2
+  SUPABASE_S3_ENDPOINT: "https://kwxfkacounktglsrtnap.supabase.co/storage/v1/s3"
+  SUPABASE_S3_BUCKET: smkm8-private
+  SUPABASE_S3_PUBLIC_BUCKET: smkm8-public
+  SUPABASE_S3_PUBLIC_URL: "https://kwxfkacounktglsrtnap.supabase.co/storage/v1/object/public/smkm8-public"
+

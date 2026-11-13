@@ -1,7 +1,7 @@
 {
     "info": {
         "name": "SMKM 8 Medan API v1",
-        "description": "Koleksi lengkap 132 route API v1.\n\nGunakan base_url HTTPS. URL HTTP akan di-redirect 301 dan Postman mengubah POST menjadi GET sehingga muncul 405.\n\nAlur cepat:\n1. Jalankan Login admin, Login guru, atau Login siswa. Token tersimpan otomatis.\n2. Isi variable ID dari response request Buat/Daftar, atau dari data seeder.\n3. Folder Admin memakai admin_token, folder Guru memakai guru_token, folder Siswa memakai siswa_token.\n\nPenamaan memakai bahasa Indonesia untuk istilah umum, tetapi tetap bahasa Inggris untuk istilah yang lazim dipakai (login, logout, upload, attempt, submission, dashboard, analytics).",
+        "description": "Koleksi lengkap 132 route API v1.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [

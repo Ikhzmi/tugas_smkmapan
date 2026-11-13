@@ -97,8 +97,9 @@ test('postman collection is valid and covers core role flows', function () {
         ->and($collection['variable'])->toContainEqual(['key' => 'base_url', 'value' => 'https://smkm8medan-api.test/api/v1']);
 
     $requests = [];
+    $normalized = [];
 
-    $collect = function (array $items) use (&$collect, &$requests): void {
+    $collect = function (array $items) use (&$collect, &$requests, &$normalized): void {
         foreach ($items as $item) {
             if (isset($item['item'])) {
                 $collect($item['item']);
@@ -106,7 +107,12 @@ test('postman collection is valid and covers core role flows', function () {
                 continue;
             }
 
-            $requests[] = strtoupper($item['request']['method']).' '.$item['request']['url'];
+            $method = strtoupper($item['request']['method']);
+            $url = $item['request']['url'];
+            $requests[] = $method.' '.$url;
+
+            $path = parse_url(str_replace('{{base_url}}', '', $url), PHP_URL_PATH) ?: '/';
+            $normalized[$method.' '.preg_replace('/\{\{[^}]+\}\}/', '{param}', $path)] = true;
         }
     };
 
@@ -118,4 +124,28 @@ test('postman collection is valid and covers core role flows', function () {
         'GET {{base_url}}/guru/exams/{{exam_id}}/recap',
         'GET {{base_url}}/siswa/grades',
     );
+
+    $registered = [];
+
+    foreach (Route::getRoutes() as $route) {
+        $uri = $route->uri();
+
+        if (! str_starts_with($uri, 'api/v1')) {
+            continue;
+        }
+
+        $path = '/'.ltrim(substr($uri, strlen('api/v1')), '/');
+        $path = preg_replace('/\{[^}]+\}/', '{param}', $path);
+
+        foreach ($route->methods() as $method) {
+            if (in_array($method, ['HEAD', 'OPTIONS'], true)) {
+                continue;
+            }
+
+            $registered[strtoupper($method).' '.$path] = true;
+        }
+    }
+
+    expect(array_keys(array_diff_key($registered, $normalized)))->toBe([])
+        ->and(array_keys(array_diff_key($normalized, $registered)))->toBe([]);
 });

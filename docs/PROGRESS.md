@@ -85,3 +85,6 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
   `/auth/me` 200, admin accounts 200, login siswa NISN 200, dashboard siswa 200,
   logout admin/siswa 204.
 - Test suite SQLite: 20 lulus, 825 assertions.
+- Koleksi Postman diperluas menjadi 132 route dengan login admin/guru/siswa,
+  token otomatis, pengisian ID dari response create, dan guard cakupan route
+  di `tests/Feature/ApiContractTest.php`.

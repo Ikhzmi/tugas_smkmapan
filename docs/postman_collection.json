@@ -1,120 +1,3515 @@
 {
-  "info": {
-    "name": "SMKM 8 Medan API v1",
-    "description": "Import this collection into Postman. Set token from POST /auth/login. Gunakan base_url HTTPS; URL HTTP akan di-redirect 301 dan Postman mengubah POST menjadi GET sehingga muncul 405.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    { "key": "base_url", "value": "https://smkm8medan-api.test/api/v1" },
-    { "key": "token", "value": "" },
-    { "key": "admin_email", "value": "admin@smkm8medan.test" },
-    { "key": "dev_password", "value": "password" },
-    { "key": "major_id", "value": "" },
-    { "key": "class_id", "value": "" },
-    { "key": "assignment_id", "value": "" },
-    { "key": "submission_id", "value": "" },
-    { "key": "exam_id", "value": "" },
-    { "key": "attempt_id", "value": "" },
-    { "key": "question_id", "value": "" }
-  ],
-  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
-  "item": [
-    {
-      "name": "Health",
-      "item": [{ "name": "Ping", "request": { "method": "GET", "url": "{{base_url}}/ping" } }]
+    "info": {
+        "name": "SMKM 8 Medan API v1",
+        "description": "Koleksi lengkap 132 route API v1.\n\nGunakan base_url HTTPS. URL HTTP akan di-redirect 301 dan Postman mengubah POST menjadi GET sehingga muncul 405.\n\nAlur cepat:\n1. Jalankan Login admin, Login guru, atau Login siswa. Token tersimpan otomatis.\n2. Isi variable ID dari response request Buat/Daftar, atau dari data seeder.\n3. Folder Admin memakai admin_token, folder Guru memakai guru_token, folder Siswa memakai siswa_token.\n\nPenamaan memakai bahasa Indonesia untuk istilah umum, tetapi tetap bahasa Inggris untuk istilah yang lazim dipakai (login, logout, upload, attempt, submission, dashboard, analytics).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    {
-      "name": "Auth",
-      "item": [
+    "variable": [
         {
-          "name": "Login admin",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"identifier\": \"{{admin_email}}\",\n  \"password\": \"{{dev_password}}\",\n  \"device_id\": \"postman-device\",\n  \"device_label\": \"Postman\"\n}" },
-            "url": "{{base_url}}/auth/login"
-          }
+            "key": "base_url",
+            "value": "https://smkm8medan-api.test/api/v1"
         },
-        { "name": "Me", "request": { "method": "GET", "url": "{{base_url}}/auth/me" } },
-        { "name": "Logout", "request": { "method": "POST", "url": "{{base_url}}/auth/logout" } },
-        { "name": "Session status", "request": { "method": "GET", "url": "{{base_url}}/auth/session/status?device_id=postman-device" } }
-      ]
-    },
-    {
-      "name": "Public",
-      "item": [
-        { "name": "Site", "request": { "method": "GET", "url": "{{base_url}}/public/site" } },
-        { "name": "Majors", "request": { "method": "GET", "url": "{{base_url}}/public/majors?per_page=20" } },
-        { "name": "Teachers", "request": { "method": "GET", "url": "{{base_url}}/public/teachers?per_page=20" } },
-        { "name": "Facilities", "request": { "method": "GET", "url": "{{base_url}}/public/facilities?per_page=20" } },
-        { "name": "Eskul", "request": { "method": "GET", "url": "{{base_url}}/public/eskul?per_page=20" } },
-        { "name": "Gallery", "request": { "method": "GET", "url": "{{base_url}}/public/gallery?per_page=20" } },
-        { "name": "Videos", "request": { "method": "GET", "url": "{{base_url}}/public/videos?category=showreel&per_page=20" } },
         {
-          "name": "Suggestion",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"nama\": \"Pengunjung\",\n  \"pesan\": \"Saran untuk sekolah\"\n}" },
-            "url": "{{base_url}}/public/suggestions"
-          }
+            "key": "admin_token",
+            "value": ""
         },
-        { "name": "Visit", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"path\": \"/\",\n  \"session_id\": \"postman-session\"\n}" }, "url": "{{base_url}}/public/visits" } }
-      ]
+        {
+            "key": "guru_token",
+            "value": ""
+        },
+        {
+            "key": "siswa_token",
+            "value": ""
+        },
+        {
+            "key": "token",
+            "value": ""
+        },
+        {
+            "key": "admin_email",
+            "value": "admin@smkm8medan.test"
+        },
+        {
+            "key": "guru_email",
+            "value": "guru1@smkm8medan.test"
+        },
+        {
+            "key": "student_nisn",
+            "value": "2026000001"
+        },
+        {
+            "key": "dev_password",
+            "value": "password"
+        },
+        {
+            "key": "device_id",
+            "value": "postman-device"
+        },
+        {
+            "key": "user_id",
+            "value": ""
+        },
+        {
+            "key": "teacher_id",
+            "value": ""
+        },
+        {
+            "key": "student_id",
+            "value": ""
+        },
+        {
+            "key": "major_id",
+            "value": ""
+        },
+        {
+            "key": "class_id",
+            "value": ""
+        },
+        {
+            "key": "subject_id",
+            "value": ""
+        },
+        {
+            "key": "schedule_id",
+            "value": ""
+        },
+        {
+            "key": "material_id",
+            "value": ""
+        },
+        {
+            "key": "assignment_id",
+            "value": ""
+        },
+        {
+            "key": "submission_id",
+            "value": ""
+        },
+        {
+            "key": "exam_id",
+            "value": ""
+        },
+        {
+            "key": "question_id",
+            "value": ""
+        },
+        {
+            "key": "attempt_id",
+            "value": ""
+        },
+        {
+            "key": "attendance_id",
+            "value": ""
+        },
+        {
+            "key": "facility_id",
+            "value": ""
+        },
+        {
+            "key": "eskul_id",
+            "value": ""
+        },
+        {
+            "key": "gallery_id",
+            "value": ""
+        },
+        {
+            "key": "video_id",
+            "value": ""
+        },
+        {
+            "key": "ppdb_id",
+            "value": ""
+        },
+        {
+            "key": "suggestion_id",
+            "value": ""
+        },
+        {
+            "key": "session_id",
+            "value": ""
+        },
+        {
+            "key": "setting_key",
+            "value": "hero"
+        },
+        {
+            "key": "upload_context",
+            "value": "gallery"
+        },
+        {
+            "key": "exam_code",
+            "value": ""
+        },
+        {
+            "key": "tanggal",
+            "value": "2026-11-13"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
     },
-    {
-      "name": "Admin",
-      "item": [
-        { "name": "Accounts", "request": { "method": "GET", "url": "{{base_url}}/admin/accounts?per_page=20" } },
-        { "name": "Majors", "request": { "method": "GET", "url": "{{base_url}}/admin/majors?per_page=20" } },
-        { "name": "Classes", "request": { "method": "GET", "url": "{{base_url}}/admin/classes?per_page=20" } },
-        { "name": "Class students", "request": { "method": "GET", "url": "{{base_url}}/admin/classes/{{class_id}}/students" } },
-        { "name": "Subjects", "request": { "method": "GET", "url": "{{base_url}}/admin/subjects?per_page=20" } },
-        { "name": "Schedules", "request": { "method": "GET", "url": "{{base_url}}/admin/schedules?per_page=20" } },
-        { "name": "Analytics", "request": { "method": "GET", "url": "{{base_url}}/admin/analytics?range=7" } },
-        { "name": "Attendance summary", "request": { "method": "GET", "url": "{{base_url}}/admin/attendance/summary?date_from=2026-01-01&date_to=2026-12-31" } },
-        { "name": "PPDB", "request": { "method": "GET", "url": "{{base_url}}/admin/ppdb?per_page=20" } },
-        { "name": "Suggestions", "request": { "method": "GET", "url": "{{base_url}}/admin/suggestions?per_page=20" } },
-        { "name": "Reset attempt", "request": { "method": "POST", "url": "{{base_url}}/admin/attempts/{{attempt_id}}/reset" } },
-        { "name": "Terminate attempt", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"alasan\": \"Pengawasan admin\"\n}" }, "url": "{{base_url}}/admin/attempts/{{attempt_id}}/terminate" } }
-      ]
-    },
-    {
-      "name": "Guru",
-      "item": [
-        { "name": "Dashboard", "request": { "method": "GET", "url": "{{base_url}}/guru/dashboard" } },
-        { "name": "Schedules", "request": { "method": "GET", "url": "{{base_url}}/guru/schedules" } },
-        { "name": "Materials", "request": { "method": "GET", "url": "{{base_url}}/guru/materials?per_page=20" } },
-        { "name": "Assignments", "request": { "method": "GET", "url": "{{base_url}}/guru/assignments?per_page=20" } },
-        { "name": "Assignment submissions", "request": { "method": "GET", "url": "{{base_url}}/guru/assignments/{{assignment_id}}/submissions" } },
-        { "name": "Submission download URL", "request": { "method": "GET", "url": "{{base_url}}/guru/submissions/{{submission_id}}/download" } },
-        { "name": "Attendance", "request": { "method": "GET", "url": "{{base_url}}/guru/attendance?per_page=50" } },
-        { "name": "Exams", "request": { "method": "GET", "url": "{{base_url}}/guru/exams?per_page=20" } },
-        { "name": "Exam attempts", "request": { "method": "GET", "url": "{{base_url}}/guru/exams/{{exam_id}}/attempts" } },
-        { "name": "Exam recap", "request": { "method": "GET", "url": "{{base_url}}/guru/exams/{{exam_id}}/recap" } },
-        { "name": "Exam events", "request": { "method": "GET", "url": "{{base_url}}/guru/exams/events?since=2026-01-01T00:00:00Z" } },
-        { "name": "Reset attempt", "request": { "method": "POST", "url": "{{base_url}}/guru/attempts/{{attempt_id}}/reset" } }
-      ]
-    },
-    {
-      "name": "Siswa",
-      "item": [
-        { "name": "Dashboard", "request": { "method": "GET", "url": "{{base_url}}/siswa/dashboard" } },
-        { "name": "Schedules", "request": { "method": "GET", "url": "{{base_url}}/siswa/schedules" } },
-        { "name": "Materials", "request": { "method": "GET", "url": "{{base_url}}/siswa/materials?per_page=20" } },
-        { "name": "Material detail", "request": { "method": "GET", "url": "{{base_url}}/siswa/materials/{{material_id}}" } },
-        { "name": "Assignments", "request": { "method": "GET", "url": "{{base_url}}/siswa/assignments?per_page=20" } },
-        { "name": "Assignment detail", "request": { "method": "GET", "url": "{{base_url}}/siswa/assignments/{{assignment_id}}" } },
-        { "name": "Submissions", "request": { "method": "GET", "url": "{{base_url}}/siswa/submissions?per_page=20" } },
-        { "name": "Grades", "request": { "method": "GET", "url": "{{base_url}}/siswa/grades" } },
-        { "name": "Attendance", "request": { "method": "GET", "url": "{{base_url}}/siswa/attendance?per_page=50" } },
-        { "name": "Available exams", "request": { "method": "GET", "url": "{{base_url}}/siswa/exams?per_page=20" } },
-        { "name": "Start attempt", "request": { "method": "POST", "url": "{{base_url}}/siswa/exams/{{exam_id}}/attempts" } },
-        { "name": "Safe attempt questions", "request": { "method": "GET", "url": "{{base_url}}/siswa/attempts/{{attempt_id}}" } },
-        { "name": "Save answer", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"jawaban\": \"A\"\n}" }, "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/answers/{{question_id}}" } },
-        { "name": "Warning", "request": { "method": "POST", "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/warnings" } },
-        { "name": "Submit attempt", "request": { "method": "POST", "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/submit" } }
-      ]
-    }
-  ]
+    "item": [
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "Ping",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/ping"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Login admin",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/login",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"{{admin_email}}\",\n    \"password\": \"{{dev_password}}\",\n    \"device_id\": \"{{device_id}}\",\n    \"device_label\": \"Postman Admin\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Token admin disimpan otomatis ke variable admin_token dan token.",
+                        "event": [
+                            {
+                                "listen": "test",
+                                "script": {
+                                    "type": "text/javascript",
+                                    "exec": [
+                                        "const body = pm.response.json();",
+                                        "pm.test('Login berhasil', () => pm.response.to.have.status(200));",
+                                        "if (body.data && body.data.token) {",
+                                        "    pm.collectionVariables.set('admin_token', body.data.token);",
+                                        "    pm.collectionVariables.set('token', body.data.token);",
+                                        "}"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Login guru",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/login",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"{{guru_email}}\",\n    \"password\": \"{{dev_password}}\",\n    \"device_id\": \"{{device_id}}\",\n    \"device_label\": \"Postman Guru\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Token guru disimpan otomatis ke variable guru_token dan token.",
+                        "event": [
+                            {
+                                "listen": "test",
+                                "script": {
+                                    "type": "text/javascript",
+                                    "exec": [
+                                        "const body = pm.response.json();",
+                                        "pm.test('Login berhasil', () => pm.response.to.have.status(200));",
+                                        "if (body.data && body.data.token) {",
+                                        "    pm.collectionVariables.set('guru_token', body.data.token);",
+                                        "    pm.collectionVariables.set('token', body.data.token);",
+                                        "}"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Login siswa",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/login",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"{{student_nisn}}\",\n    \"password\": \"{{dev_password}}\",\n    \"device_id\": \"{{device_id}}\",\n    \"device_label\": \"Postman Siswa\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Siswa login memakai NISN. Token disimpan otomatis ke variable siswa_token dan token.",
+                        "event": [
+                            {
+                                "listen": "test",
+                                "script": {
+                                    "type": "text/javascript",
+                                    "exec": [
+                                        "const body = pm.response.json();",
+                                        "pm.test('Login berhasil', () => pm.response.to.have.status(200));",
+                                        "if (body.data && body.data.token) {",
+                                        "    pm.collectionVariables.set('siswa_token', body.data.token);",
+                                        "    pm.collectionVariables.set('token', body.data.token);",
+                                        "}"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/logout"
+                    }
+                },
+                {
+                    "name": "Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/me"
+                    }
+                },
+                {
+                    "name": "Ubah profil",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/profile",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Administrator SMKM 8 Medan\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Ganti password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/change-password",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"{{dev_password}}\",\n    \"password\": \"password-baru-123\",\n    \"password_confirmation\": \"password-baru-123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "description": "Ganti password akan mencabut token lama. Sesuaikan dev_password setelah berhasil."
+                    }
+                },
+                {
+                    "name": "Status sesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/session/status?device_id={{device_id}}"
+                    }
+                },
+                {
+                    "name": "Klaim sesi",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/session/claim",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"device_id\": \"{{device_id}}\",\n    \"device_label\": \"Postman\",\n    \"grace_minutes\": 5\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Resume sesi",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/session/resume",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"device_id\": \"{{device_id}}\",\n    \"grace_minutes\": 5\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Heartbeat sesi",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/session/heartbeat",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"session_id\": \"{{session_id}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Lepas sesi",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/auth/session/release",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"session_id\": \"{{session_id}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Publik",
+            "item": [
+                {
+                    "name": "Info situs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/site"
+                    }
+                },
+                {
+                    "name": "Daftar jurusan",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/majors?per_page=20"
+                    }
+                },
+                {
+                    "name": "Daftar guru",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/teachers?per_page=20"
+                    }
+                },
+                {
+                    "name": "Daftar fasilitas",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/facilities?per_page=20"
+                    }
+                },
+                {
+                    "name": "Daftar eskul",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/eskul?per_page=20"
+                    }
+                },
+                {
+                    "name": "Galeri",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/gallery?per_page=20"
+                    }
+                },
+                {
+                    "name": "Video",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/videos?category=showreel&per_page=20"
+                    }
+                },
+                {
+                    "name": "Kirim PPDB",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/ppdb",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nama_lengkap\": \"Calon Siswa\",\n    \"nisn\": \"1234567890\",\n    \"asal_sekolah\": \"SMP Negeri 1 Medan\",\n    \"no_hp\": \"081234567890\",\n    \"email\": \"calon@example.test\",\n    \"major_id\": \"{{major_id}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Kirim saran",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/suggestions",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nama\": \"Pengunjung\",\n    \"email\": \"pengunjung@example.test\",\n    \"no_hp\": \"081234567890\",\n    \"kategori\": \"umum\",\n    \"pesan\": \"Saran untuk sekolah\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Catat kunjungan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{base_url}}/public/visits",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"path\": \"/\",\n    \"session_id\": \"postman-session\",\n    \"user_agent\": \"Postman\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin",
+            "item": [
+                {
+                    "name": "Akun",
+                    "item": [
+                        {
+                            "name": "Daftar akun",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/accounts?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat akun",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/accounts",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Akun Baru\",\n    \"username\": \"akunbaru\",\n    \"email\": \"akunbaru@smkm8medan.test\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\",\n    \"role\": \"guru\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.user_id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('user_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah role",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/accounts/{{user_id}}/role",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"role\": \"guru\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Reset password",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/accounts/{{user_id}}/reset-password",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus akun",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/accounts/{{user_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Guru",
+                    "item": [
+                        {
+                            "name": "Daftar guru",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/teachers?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat guru",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/teachers",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Guru Baru\",\n    \"gelar\": \"S.Pd.\",\n    \"jabatan\": \"Guru\",\n    \"department\": \"Umum\",\n    \"email\": \"gurubaru@smkm8medan.test\",\n    \"jam_kerja\": \"07:00-15:00\",\n    \"bio\": \"Guru baru untuk data development.\",\n    \"sertifikasi\": [],\n    \"foto_url\": \"https://example.test/foto.jpg\",\n    \"create_account\": true,\n    \"username\": \"gurubaru\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('teacher_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah guru",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/teachers/{{teacher_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Guru Baru (Updated)\",\n    \"jabatan\": \"Wali Kelas\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus guru",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/teachers/{{teacher_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Siswa",
+                    "item": [
+                        {
+                            "name": "Daftar siswa",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/students?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat siswa",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/students",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Siswa Baru\",\n    \"nisn\": \"2026999999\",\n    \"nis\": \"99999\",\n    \"class_id\": \"{{class_id}}\",\n    \"no_hp\": \"081234567890\",\n    \"alamat\": \"Medan\",\n    \"create_account\": true,\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('student_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah siswa",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/students/{{student_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Siswa Baru (Updated)\",\n    \"no_hp\": \"081234567891\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus siswa",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/students/{{student_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Jurusan",
+                    "item": [
+                        {
+                            "name": "Daftar jurusan",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/majors?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat jurusan",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/majors",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"kode\": \"TKJ2\",\n    \"nama\": \"Teknik Komputer dan Jaringan 2\",\n    \"tagline\": \"Belajar jaringan dan server\",\n    \"deskripsi\": \"Jurusan contoh untuk data development.\",\n    \"biaya_pendaftaran\": 100000,\n    \"spp_bulanan\": 250000,\n    \"warna\": \"#123456\",\n    \"warna_soft\": \"#eef2ff\",\n    \"ikon\": \"chip\",\n    \"foto_url\": \"https://example.test/jurusan.jpg\",\n    \"kurikulum\": [],\n    \"fasilitas\": [],\n    \"karir\": [],\n    \"sertifikasi\": [],\n    \"is_active\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('major_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah jurusan",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/majors/{{major_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Teknik Komputer dan Jaringan 2 (Updated)\",\n    \"is_active\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus jurusan",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/majors/{{major_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Kelas",
+                    "item": [
+                        {
+                            "name": "Daftar kelas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/classes?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat kelas",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/classes",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"X TKJ 3\",\n    \"tingkat\": 10,\n    \"tahun_ajaran\": \"2026/2027\",\n    \"major_id\": \"{{major_id}}\",\n    \"wali_kelas_id\": \"{{teacher_id}}\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('class_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah kelas",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/classes/{{class_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"X TKJ 3 (Updated)\",\n    \"wali_kelas_id\": \"{{teacher_id}}\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus kelas",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/classes/{{class_id}}"
+                            }
+                        },
+                        {
+                            "name": "Siswa di kelas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/classes/{{class_id}}/students?per_page=50"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Mata Pelajaran",
+                    "item": [
+                        {
+                            "name": "Daftar mapel",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/subjects?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat mapel",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/subjects",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"kode\": \"MTK2\",\n    \"nama\": \"Matematika 2\",\n    \"major_id\": \"{{major_id}}\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('subject_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah mapel",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/subjects/{{subject_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Matematika Lanjut\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus mapel",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/subjects/{{subject_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Jadwal",
+                    "item": [
+                        {
+                            "name": "Daftar jadwal",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/schedules?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat jadwal",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/schedules",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"class_id\": \"{{class_id}}\",\n    \"subject_id\": \"{{subject_id}}\",\n    \"teacher_id\": \"{{teacher_id}}\",\n    \"hari\": \"senin\",\n    \"jam_mulai\": \"07:00\",\n    \"jam_selesai\": \"08:30\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('schedule_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah jadwal",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/schedules/{{schedule_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"jam_mulai\": \"08:00\",\n    \"jam_selesai\": \"09:30\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus jadwal",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/schedules/{{schedule_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Presensi",
+                    "item": [
+                        {
+                            "name": "Rekap presensi",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/attendance/summary?date_from=2026-01-01&date_to=2026-12-31&class_id={{class_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Pengaturan",
+                    "item": [
+                        {
+                            "name": "Daftar pengaturan",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/site-settings"
+                            }
+                        },
+                        {
+                            "name": "Ubah pengaturan",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/site-settings/{{setting_key}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"value\": {\n        \"judul\": \"SMKM 8 Medan\",\n        \"subtitle\": \"Unggul dalam teknologi\"\n    }\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Analytics",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/analytics?range=7"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "PPDB & Saran",
+                    "item": [
+                        {
+                            "name": "Daftar PPDB",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/ppdb?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Ubah status PPDB",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/ppdb/{{ppdb_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"status\": \"diterima\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus PPDB",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/ppdb/{{ppdb_id}}"
+                            }
+                        },
+                        {
+                            "name": "Daftar saran",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/suggestions?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Hapus saran",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/suggestions/{{suggestion_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Fasilitas",
+                    "item": [
+                        {
+                            "name": "Daftar fasilitas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/facilities?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat fasilitas",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/facilities",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Laboratorium Baru\",\n    \"kategori\": \"laboratorium\",\n    \"image_url\": \"https://example.test/fasilitas.jpg\",\n    \"specs\": \"24 unit komputer\",\n    \"deskripsi\": \"Laboratorium contoh untuk data development.\",\n    \"tags\": [],\n    \"badge\": \"Baru\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('facility_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah fasilitas",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/facilities/{{facility_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Laboratorium Baru (Updated)\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus fasilitas",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/facilities/{{facility_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Eskul",
+                    "item": [
+                        {
+                            "name": "Daftar eskul",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/eskul?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat eskul",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/eskul",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Eskul Baru\",\n    \"kategori\": \"olahraga\",\n    \"image_url\": \"https://example.test/eskul.jpg\",\n    \"warna\": \"#123456\",\n    \"warna_soft\": \"#eef2ff\",\n    \"deskripsi\": \"Eskul contoh untuk data development.\",\n    \"jadwal\": \"Sabtu\",\n    \"pembina\": \"Guru Pembina\",\n    \"prestasi\": \"Juara kota\",\n    \"jumlah_anggota\": 0,\n    \"max_anggota\": 30,\n    \"is_active\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('eskul_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah eskul",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/eskul/{{eskul_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nama\": \"Eskul Baru (Updated)\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus eskul",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/eskul/{{eskul_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Galeri",
+                    "item": [
+                        {
+                            "name": "Daftar galeri",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/gallery?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat galeri",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/gallery",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Foto Baru\",\n    \"kategori\": \"kegiatan\",\n    \"tanggal\": \"2026-11-13\",\n    \"deskripsi\": \"Foto contoh untuk data development.\",\n    \"image_url\": \"https://example.test/galeri.jpg\",\n    \"rotate\": 0,\n    \"sort_order\": 1,\n    \"is_active\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('gallery_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah galeri",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/gallery/{{gallery_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Foto Baru (Updated)\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus galeri",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/gallery/{{gallery_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Video",
+                    "item": [
+                        {
+                            "name": "Daftar video",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/videos?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat video",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/videos",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Video Baru\",\n    \"kreator\": \"Tim Media\",\n    \"durasi_text\": \"05:00\",\n    \"deskripsi\": \"Video contoh untuk data development.\",\n    \"software\": [],\n    \"thumbnail_url\": \"https://example.test/video.jpg\",\n    \"episode_no\": 1,\n    \"kategori\": \"showreel\",\n    \"is_published\": true,\n    \"sort_order\": 1\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('video_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah video",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/videos/{{video_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Video Baru (Updated)\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus video",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/videos/{{video_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Upload",
+                    "item": [
+                        {
+                            "name": "Upload gambar",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/uploads/{{upload_context}}",
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "file",
+                                            "type": "file",
+                                            "src": []
+                                        }
+                                    ]
+                                },
+                                "description": "Context yang tersedia: major, hero, profile, teacher-photo, eskul, facility, gallery. Ubah variable upload_context."
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Attempt",
+                    "item": [
+                        {
+                            "name": "Reset attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/attempts/{{attempt_id}}/reset"
+                            }
+                        },
+                        {
+                            "name": "Terminate attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/admin/attempts/{{attempt_id}}/terminate",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"alasan\": \"Pengawasan admin\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{admin_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{admin_token}}",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Guru",
+            "item": [
+                {
+                    "name": "Dashboard & Jadwal",
+                    "item": [
+                        {
+                            "name": "Dashboard",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/dashboard"
+                            }
+                        },
+                        {
+                            "name": "Jadwal",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/schedules"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Materi",
+                    "item": [
+                        {
+                            "name": "Daftar materi",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat materi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Materi Baru\",\n    \"deskripsi\": \"Materi contoh untuk data development.\",\n    \"tipe\": \"link\",\n    \"subject_id\": \"{{subject_id}}\",\n    \"class_id\": \"{{class_id}}\",\n    \"is_published\": false,\n    \"file_url\": \"https://example.test/materi.pdf\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('material_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah materi",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials/{{material_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Materi Baru (Updated)\",\n    \"is_published\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Upload file materi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials/{{material_id}}/file",
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "file",
+                                            "type": "file",
+                                            "src": []
+                                        }
+                                    ]
+                                },
+                                "description": "Unggah berkas PDF maksimal 25 MB."
+                            }
+                        },
+                        {
+                            "name": "Publish materi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials/{{material_id}}/publish"
+                            }
+                        },
+                        {
+                            "name": "Hapus materi",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/materials/{{material_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Tugas",
+                    "item": [
+                        {
+                            "name": "Daftar tugas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/assignments?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat tugas",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/assignments",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Tugas Baru\",\n    \"deskripsi\": \"Tugas contoh untuk data development.\",\n    \"deadline\": \"2026-12-01T23:59:00+07:00\",\n    \"subject_id\": \"{{subject_id}}\",\n    \"class_id\": \"{{class_id}}\",\n    \"is_published\": false\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('assignment_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah tugas",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/assignments/{{assignment_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Tugas Baru (Updated)\",\n    \"is_published\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Publish tugas",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/assignments/{{assignment_id}}/publish"
+                            }
+                        },
+                        {
+                            "name": "Hapus tugas",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/assignments/{{assignment_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Submission",
+                    "item": [
+                        {
+                            "name": "Submission tugas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/assignments/{{assignment_id}}/submissions?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Nilai submission",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/submissions/{{submission_id}}/grade",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"nilai\": 85,\n    \"feedback\": \"Bagus, pertahankan.\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Download submission",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/submissions/{{submission_id}}/download",
+                                "description": "Mengembalikan file_url atau URL bertanda tangan yang berlaku satu jam."
+                            }
+                        },
+                        {
+                            "name": "Download file submission",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/submissions/{{submission_id}}/file",
+                                "description": "Route bertanda tangan. Gunakan URL dari response Download submission, bukan dipanggil langsung."
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Presensi",
+                    "item": [
+                        {
+                            "name": "Daftar presensi",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/attendance?per_page=50"
+                            }
+                        },
+                        {
+                            "name": "Isi presensi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/attendance",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"student_id\": \"{{student_id}}\",\n    \"schedule_id\": \"{{schedule_id}}\",\n    \"tanggal\": \"{{tanggal}}\",\n    \"jam_masuk\": \"07:00\",\n    \"status\": \"hadir\",\n    \"catatan\": \"\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('attendance_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah presensi",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/attendance/{{attendance_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"status\": \"terlambat\",\n    \"catatan\": \"Datang terlambat 10 menit.\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Ujian",
+                    "item": [
+                        {
+                            "name": "Daftar ujian",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Buat ujian",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"subject_id\": \"{{subject_id}}\",\n    \"judul\": \"Ujian Baru\",\n    \"deskripsi\": \"Ujian contoh untuk data development.\",\n    \"durasi_menit\": 60,\n    \"waktu_mulai\": null,\n    \"waktu_selesai\": null,\n    \"is_active\": false,\n    \"is_approved\": false,\n    \"butuh_kode\": true,\n    \"admin_override\": false,\n    \"acak_soal\": false\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "description": "Tanpa batas waktu agar mudah diuji. Aktifkan lewat Ubah ujian, lalu tambah soal dan generate kode.",
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('exam_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah ujian",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/{{exam_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"judul\": \"Ujian Baru (Updated)\",\n    \"is_active\": true\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus ujian",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/{{exam_id}}"
+                            }
+                        },
+                        {
+                            "name": "Tambah soal",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/{{exam_id}}/questions",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"tipe\": \"pg\",\n    \"pertanyaan\": \"Pertanyaan contoh?\",\n    \"opsi\": [\n        \"A\",\n        \"B\",\n        \"C\",\n        \"D\"\n    ],\n    \"kunci_jawaban\": \"A\",\n    \"bobot\": 1,\n    \"gambar_url\": null\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('question_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Ubah soal",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/questions/{{question_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"pertanyaan\": \"Pertanyaan contoh yang diperbarui?\",\n    \"bobot\": 2\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Hapus soal",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/questions/{{question_id}}"
+                            }
+                        },
+                        {
+                            "name": "Generate kode ujian",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/{{exam_id}}/code",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"length\": 6\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const data = pm.response.json().data || {};",
+                                                "if (data.code) { pm.collectionVariables.set('exam_code', data.code); }"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Attempt ujian",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/{{exam_id}}/attempts?per_page=50"
+                            }
+                        },
+                        {
+                            "name": "Rekap ujian",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/{{exam_id}}/recap"
+                            }
+                        },
+                        {
+                            "name": "Event ujian",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/exams/events?per_page=50&since=2026-01-01T00:00:00Z"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Attempt",
+                    "item": [
+                        {
+                            "name": "Reset attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/attempts/{{attempt_id}}/reset"
+                            }
+                        },
+                        {
+                            "name": "Terminate attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/attempts/{{attempt_id}}/terminate",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"alasan\": \"Pengawasan guru\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{guru_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{guru_token}}",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Siswa",
+            "item": [
+                {
+                    "name": "Dashboard & Jadwal",
+                    "item": [
+                        {
+                            "name": "Dashboard",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/dashboard"
+                            }
+                        },
+                        {
+                            "name": "Jadwal",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/schedules"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Materi",
+                    "item": [
+                        {
+                            "name": "Daftar materi",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/materials?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Detail materi",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/materials/{{material_id}}"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Tugas",
+                    "item": [
+                        {
+                            "name": "Daftar tugas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/assignments?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Detail tugas",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/assignments/{{assignment_id}}"
+                            }
+                        },
+                        {
+                            "name": "Kumpulkan tugas",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/assignments/{{assignment_id}}/submissions",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"file_url\": \"https://example.test/tugas.pdf\",\n    \"catatan\": \"Tugas saya.\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "description": "Bisa memakai file_url atau mengunggah berkas lewat form-data.",
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('submission_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Submission & Nilai",
+                    "item": [
+                        {
+                            "name": "Submission saya",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/submissions?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Nilai saya",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/grades"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Presensi",
+                    "item": [
+                        {
+                            "name": "Presensi saya",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attendance?per_page=50"
+                            }
+                        },
+                        {
+                            "name": "Isi presensi",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attendance",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"schedule_id\": \"{{schedule_id}}\",\n    \"tanggal\": \"{{tanggal}}\",\n    \"jam_masuk\": \"07:00\",\n    \"status\": \"hadir\",\n    \"catatan\": \"\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "description": "Presensi mandiri hanya untuk tanggal hari ini. Sesuaikan variable tanggal.",
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const body = pm.response.json();",
+                                                "const value = body.data.id;",
+                                                "if (value) {",
+                                                "    pm.collectionVariables.set('attendance_id', value);",
+                                                "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Ujian",
+                    "item": [
+                        {
+                            "name": "Daftar ujian",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/exams?per_page=20"
+                            }
+                        },
+                        {
+                            "name": "Cek unlock",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/exams/{{exam_id}}/unlock"
+                            }
+                        },
+                        {
+                            "name": "Unlock ujian",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/exams/{{exam_id}}/unlock",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"code\": \"{{exam_code}}\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Mulai attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/exams/{{exam_id}}/attempts",
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "const data = pm.response.json().data || {};",
+                                                "if (data.id) { pm.collectionVariables.set('attempt_id', data.id); }",
+                                                "if (data.questions && data.questions[0] && data.questions[0].id) { pm.collectionVariables.set('question_id', data.questions[0].id); }"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Attempt",
+                    "item": [
+                        {
+                            "name": "Detail attempt",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attempts/{{attempt_id}}"
+                            }
+                        },
+                        {
+                            "name": "Simpan jawaban",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/answers/{{question_id}}",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"jawaban\": \"A\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "Warning attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/warnings"
+                            }
+                        },
+                        {
+                            "name": "Submit attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/submit"
+                            }
+                        },
+                        {
+                            "name": "Terminate attempt",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/siswa/attempts/{{attempt_id}}/terminate",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"alasan\": \"Selesai lebih awal\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{siswa_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{siswa_token}}",
+                        "type": "string"
+                    }
+                ]
+            }
+        }
+    ]
 }

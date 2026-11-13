@@ -88,3 +88,6 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 - Koleksi Postman diperluas menjadi 132 route dengan login admin/guru/siswa,
   token otomatis, pengisian ID dari response create, dan guard cakupan route
   di `tests/Feature/ApiContractTest.php`.
+- Tooling AI (Laravel Boost, skill agent, MCP, dan file panduan agent) dihapus
+  dari repo. `symfony/yaml` ditambahkan eksplisit sebagai dev dependency karena
+  dipakai `ApiContractTest`. Test suite tetap 20 lulus, 827 assertions.

@@ -1,0 +1,150 @@
+.ekskul {
+  --ekskul-bg: #f7f3ef;
+  --ekskul-ink: #0a1424;
+  --ekskul-body: rgba(11, 24, 42, 0.62);
+  --ekskul-muted: rgba(11, 24, 42, 0.5);
+  --ekskul-arrow-bg: rgba(255, 255, 255, 0.72);
+  --ekskul-arrow-border: rgba(10, 20, 36, 0.12);
+  --ekskul-arrow-ink: #0a1424;
+  --ekskul-glow-1: rgba(254, 64, 0, 0.1);
+  --ekskul-glow-2: rgba(139, 92, 246, 0.1);
+  --ekskul-grid: rgba(10, 20, 36, 0.05);
+  --ekskul-grid-opacity: 0.55;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--ekskul-bg);
+  color: var(--ekskul-ink);
+  padding: clamp(72px, 8.5vw, 118px) 0 clamp(64px, 8vw, 108px);
+  scroll-margin-top: 0px;
+  transition:
+    background-color 0.45s ease,
+    color 0.45s ease;
+}
+
+.dark .ekskul {
+  --ekskul-bg: #05070e;
+  --ekskul-ink: #f5f7fb;
+  --ekskul-body: rgba(235, 240, 248, 0.62);
+  --ekskul-muted: rgba(235, 240, 248, 0.5);
+  --ekskul-arrow-bg: rgba(255, 255, 255, 0.04);
+  --ekskul-arrow-border: rgba(255, 255, 255, 0.14);
+  --ekskul-arrow-ink: #f5f7fb;
+  --ekskul-glow-1: rgba(254, 64, 0, 0.16);
+  --ekskul-glow-2: rgba(139, 92, 246, 0.12);
+  --ekskul-grid: rgba(255, 255, 255, 0.045);
+  --ekskul-grid-opacity: 0.35;
+}
+
+.ekskul::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 42% at 50% 0%, var(--ekskul-glow-1), transparent 70%),
+    radial-gradient(40% 40% at 8% 70%, var(--ekskul-glow-2), transparent 72%);
+  pointer-events: none;
+}
+
+.ekskul::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ekskul-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ekskul-grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 45%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(70% 60% at 50% 45%, #000 30%, transparent 80%);
+  opacity: var(--ekskul-grid-opacity);
+  pointer-events: none;
+}
+
+.ekskul__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.ekskul__head {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ekskul__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.ekskul__eyebrow::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.ekskul__title {
+  margin: 14px 0 0;
+  font-family: var(--heading);
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--ekskul-ink);
+  text-wrap: balance;
+  transition: color 0.45s ease;
+}
+
+.ekskul__title span {
+  color: var(--color-primary);
+}
+
+.ekskul__lead {
+  margin: 16px auto 0;
+  max-width: 54ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ekskul-body);
+  transition: color 0.45s ease;
+}
+
+.ekskul__accordion {
+  margin-top: 42px;
+}
+
+.ekskul__hint {
+  margin: 18px auto 0;
+  max-width: 52ch;
+  font-size: 12.5px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--ekskul-muted);
+  transition: color 0.45s ease;
+}
+
+@media (max-width: 640px) {
+  .ekskul__accordion {
+    margin-top: 32px;
+  }
+}
+
+@media (max-width: 520px) {
+  .ekskul .ekskul__accordion {
+    height: 540px !important;
+    flex-direction: column;
+  }
+
+  .ekskul .ekskul__accordion .ag-panel {
+    min-height: 0;
+  }
+}

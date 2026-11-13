@@ -1,0 +1,35 @@
+/* App level layout tweaks */
+
+.app-container {
+  padding-top: 76px; /* Offset for Kerental-style fixed glass navbar */
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* On mobile, navbar is compact (~58px) */
+@media (max-width: 768px) {
+  .app-container {
+    padding-top: 60px;
+  }
+}
+
+.site-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,198 @@
+
+.asm-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asm-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.asm-summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.asm-summary > span strong { color: #0f172a; }
+.asm-summary .is-ok { border-color: #a7f3d0; background: #ecfdf5; color: #047857; }
+.asm-summary .is-warn { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+
+.asm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.asm-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.asm-row:hover { border-color: #cbd5e1; background: #fafcff; }
+.asm-row.is-pending { border-left: 3px solid #f59e0b; }
+
+.asm-avatar {
+  flex: 0 0 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+.asm-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.asm-who strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.asm-who span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.asm-badge {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.asm-badge.is-graded { border-color: #a7f3d0; background: #ecfdf5; color: #047857; }
+.asm-badge.is-wait { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+
+.asm-chevron { flex: 0 0 auto; color: #cbd5e1; }
+
+.asm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 38px 20px;
+  border: 1px dashed #e2e8f0;
+  border-radius: 14px;
+  background: #fcfdff;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.asm-empty strong {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.asm-empty span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+/* =====================================================================
+   REV 3 — GLASS + DARK MODE
+   Daftar pengumpulan tugas sebelumnya hanya punya gaya mode terang.
+   ===================================================================== */
+
+html.dark .asm-row {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html.dark .asm-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.dark .asm-summary > span {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
+}
+html.dark .asm-summary > span strong {
+  color: #e2e8f0;
+}
+html.dark .asm-summary .is-ok {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+html.dark .asm-summary .is-warn {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+
+html.dark .asm-avatar {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+html.dark .asm-who strong {
+  color: #f8fafc;
+}
+html.dark .asm-who span {
+  color: #94a3b8;
+}
+
+html.dark .asm-badge.is-graded {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+html.dark .asm-badge.is-wait {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+html.dark .asm-chevron {
+  color: #64748b;
+}
+
+html.dark .asm-empty {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+html.dark .asm-empty strong {
+  color: #cbd5e1;
+}

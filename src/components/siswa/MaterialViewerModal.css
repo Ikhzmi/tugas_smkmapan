@@ -1,0 +1,265 @@
+
+
+.mvm-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mvm-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.mvm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+.mvm-badge.is-video { background: #fef2f2; color: #b91c1c; }
+.mvm-badge.is-link { background: #eff6ff; color: #1d4ed8; }
+.mvm-badge.is-file { background: #fff7ed; color: #c2410c; }
+
+.mvm-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.mvm-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0f172a;
+  border: 1px solid #e5e7eb;
+}
+
+.mvm-player iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.mvm-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 38px 20px;
+  border: 1.5px dashed #d1d5db;
+  border-radius: 14px;
+  background: #fafafa;
+  color: #ea580c;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.mvm-fallback:hover {
+  border-color: #ea580c;
+  background: #fff7ed;
+}
+
+.mvm-fallback strong {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mvm-fallback span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.mvm-desc h4 {
+  margin: 0 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.mvm-desc p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.mvm-empty {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.mvm-link-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.mvm-link-icon {
+  flex: 0 0 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #64748b;
+}
+
+.mvm-link-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mvm-link-body strong {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mvm-link-body span {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mvm-link-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #fff;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.mvm-link-btn:hover {
+  border-color: #ea580c;
+  color: #c2410c;
+  background: #fff7ed;
+}
+
+/* =====================================================================
+   GLASS + DARK MODE — penampil materi siswa
+   ===================================================================== */
+.mvm-meta-item {
+  background: rgba(148, 163, 184, 0.16);
+  color: #475569;
+}
+
+html.dark .mvm-meta-item {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+
+html.dark .mvm-badge.is-video { background: rgba(239, 68, 68, 0.16); color: #fca5a5; }
+html.dark .mvm-badge.is-link { background: rgba(251, 146, 60, 0.16); color: #fdba74; }
+html.dark .mvm-badge.is-file { background: rgba(251, 146, 60, 0.16); color: #fdba74; }
+
+html.dark .mvm-fallback {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fdba74;
+}
+
+html.dark .mvm-fallback:hover {
+  border-color: rgba(251, 146, 60, 0.55);
+  background: rgba(251, 146, 60, 0.12);
+}
+
+html.dark .mvm-fallback strong { color: #f8fafc; }
+html.dark .mvm-fallback span { color: #94a3b8; }
+
+html.dark .mvm-desc h4 { color: #94a3b8; }
+html.dark .mvm-desc p { color: #cbd5e1; }
+
+html.dark .mvm-empty {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: #94a3b8;
+}
+
+.mvm-link-card {
+  background: var(--card-bg-soft, rgba(255, 255, 255, 0.5));
+  border-color: var(--card-border, rgba(148, 163, 184, 0.3));
+}
+
+html.dark .mvm-link-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .mvm-link-body strong { color: #f8fafc; }
+html.dark .mvm-link-body span { color: #94a3b8; }
+
+.mvm-link-icon {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: var(--card-border, rgba(148, 163, 184, 0.3));
+}
+
+html.dark .mvm-link-icon {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #cbd5e1;
+}
+
+.mvm-link-btn {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--card-border, rgba(148, 163, 184, 0.3));
+  color: #334155;
+}
+
+html.dark .mvm-link-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+}
+
+html.dark .mvm-link-btn:hover {
+  border-color: rgba(251, 146, 60, 0.55);
+  background: rgba(251, 146, 60, 0.14);
+  color: #fdba74;
+}
+
+html.dark .mvm-player { border-color: rgba(255, 255, 255, 0.12); }

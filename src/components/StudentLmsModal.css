@@ -1,0 +1,431 @@
+/* Student LMS Portal Modal Styles */
+
+.lms-portal-dialog {
+  max-width: 960px;
+}
+
+.lms-header-bar {
+  background: var(--slate-900);
+  color: #ffffff;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lms-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.student-avatar-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.4);
+}
+
+.student-info-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.student-status-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.student-sub {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+}
+
+.school-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Tabs */
+.lms-nav-tabs {
+  display: flex;
+  background: #ffffff;
+  border-bottom: 1.5px solid var(--border-light);
+  padding: 0 24px;
+  gap: 8px;
+}
+
+.lms-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--slate-600);
+  border-bottom: 3px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.lms-nav-tab:hover {
+  color: var(--primary);
+}
+
+.lms-nav-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.lms-tab-content {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Tab 1: Jadwal */
+.attendance-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--primary-50);
+  border: 1.5px solid var(--primary-200);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+}
+
+.att-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.att-sub {
+  font-size: 0.8125rem;
+  color: var(--slate-600);
+}
+
+.btn-attendance-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--emerald-50);
+  color: var(--emerald-600);
+  border: 1px solid var(--emerald-100);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.detail-list-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--slate-900);
+  margin-bottom: 16px;
+}
+
+.timeline-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timeline-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+  align-items: center;
+}
+
+.timeline-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.timeline-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.sch-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.sch-time {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--slate-500);
+}
+
+.sch-status-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--slate-100);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--slate-700);
+}
+
+.sch-subject {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--slate-900);
+}
+
+.sch-teacher {
+  font-size: 0.78125rem;
+  color: var(--slate-500);
+}
+
+/* Tab 2: Tugas */
+.tasks-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+
+.tasks-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item-card {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+}
+
+.task-item-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.task-subject {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.task-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.badge-done { background: var(--emerald-50); color: var(--emerald-600); }
+.badge-pending { background: var(--amber-50); color: var(--amber-500); }
+
+.task-item-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--slate-900);
+  margin-bottom: 8px;
+}
+
+.task-item-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78125rem;
+  color: var(--slate-600);
+}
+
+.upload-dropzone-box {
+  background: var(--bg-soft);
+  border: 2px dashed var(--slate-300);
+  border-radius: var(--radius-lg);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.dropzone-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.dropzone-sub {
+  font-size: 0.75rem;
+  color: var(--slate-500);
+}
+
+.file-ready-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  background: var(--emerald-50);
+  color: var(--emerald-600);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+}
+
+/* Tab 3: Nilai */
+.grades-summary-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--slate-900) 0%, #1e293b 100%);
+  color: #ffffff;
+  padding: 20px 24px;
+  border-radius: var(--radius-lg);
+}
+
+.summary-score {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  display: block;
+}
+
+.badge-cert {
+  background: rgba(255, 107, 0, 0.2);
+  color: #ffaa55;
+  border: 1px solid var(--primary);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.grades-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.grades-table th, .grades-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.grades-table th {
+  background: var(--bg-soft);
+  color: var(--slate-700);
+  font-weight: 700;
+}
+
+/* Tab 4: Library */
+.library-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.material-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: #ffffff;
+}
+
+.mat-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--primary-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mat-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.mat-cat {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.mat-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--slate-900);
+}
+
+.mat-specs {
+  font-size: 0.75rem;
+  color: var(--slate-500);
+}
+
+.btn-download-mat {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .tasks-grid {
+    grid-template-columns: 1fr;
+  }
+  .lms-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}

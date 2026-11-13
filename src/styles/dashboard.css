@@ -1,0 +1,319 @@
+/* =====================================================================
+   DASHBOARD DESIGN SYSTEM (port dari proyek referensi "frontend")
+   Dipakai oleh panel Admin / Guru / Siswa agar tampilannya sama persis
+   dengan dashboard SuperAdmin/Admin referensi: glassmorphism, header
+   "mac traffic lights", sidebar mengambang, bottom-nav mobile, dll.
+
+   Catatan penting:
+   - preflight Tailwind DIMATIKAN global (lihat tailwind.config.js).
+     Reset border di-scope ke .dashboard-shell via :where() sehingga
+     berspesifisitas NOL dan tidak pernah menimpa CSS komponen lama.
+   - Variabel tema di-scope ke .dashboard-shell agar situs publik
+     (landing page) tidak terpengaruh class .dark/.light di <html>.
+   ===================================================================== */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@config "../../tailwind.config.js";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Scoped preflight: hanya aktifkan border solid default utk utilitas
+   Tailwind di dalam shell. :where() => spesifisitas 0, aman. */
+@layer base {
+.dashboard-shell :where(*, *::before, *::after) {
+  border-width: 0;
+  border-style: solid;
+  border-color: #e2e8f0;
+}
+
+/* Hilangkan ring/outline biru browser di dalam shell */
+.dashboard-shell :where(input:focus, select:focus, textarea:focus, button:focus) {
+  outline: none;
+  box-shadow: none;
+}
+}
+
+/* Variabel tema (scoped) */
+.dashboard-shell {
+  --bg-primary: #f9efe8;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f5ebe0;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-muted: #7a7a7a;
+  --accent: #e8702a;
+  --glass-border: rgba(255, 255, 255, 0.7);
+}
+
+html.dark .dashboard-shell {
+  --bg-primary: #0a0a0a;
+  --bg-surface: #0f0f0f;
+  --bg-elevated: #1a1a1a;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #e8702a;
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Transisi halus saat ganti tema (hanya di dalam shell) */
+.dashboard-shell,
+.dashboard-shell * {
+  transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+/* =====================================================================
+   GLASSMORPHISM COMPONENTS (port persis dari referensi)
+   ===================================================================== */
+
+/* Glass - Dark Mode */
+.sa-glass-dark {
+  background: rgba(255, 255, 255, 0.02) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(255, 255, 255, 0.03),
+    inset 1px 0 0 rgba(255, 255, 255, 0.05), inset -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Glass - Light Mode (liquid glass transparan tinggi) */
+.sa-glass-light {
+  background: rgba(255, 255, 255, 0.25) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Header - flat top, rounded bottom corners */
+.sa-header {
+  position: relative;
+  overflow: visible;
+  border-radius: 0 0 24px 24px !important;
+  border-top: none !important;
+}
+
+.sa-header-dark {
+  background: rgba(255, 255, 255, 0.03) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 1px 0 0 rgba(255, 255, 255, 0.04), inset -1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+.sa-header-light {
+  background: rgba(255, 255, 255, 0.3) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  backdrop-filter: blur(20px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 1px 0 0 rgba(255, 255, 255, 0.5), inset -1px 0 0 rgba(200, 200, 220, 0.06);
+}
+
+/* Sidebar rounded corners */
+.sa-sidebar-rounded {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Glass button - Dark */
+.glass-daftar-btn-dark {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  backdrop-filter: blur(24px) saturate(200%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05), inset 1px 1px 0 rgba(255, 255, 255, 0.35),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.glass-daftar-btn-dark:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.12));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Glass button - Light */
+.glass-daftar-btn-light {
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+  color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.glass-daftar-btn-light:hover {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Shimmer animation (skeleton) */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
+/* =====================================================================
+   LAPISAN OVERRIDE DARK-MODE TERPUSAT
+   Sub-panel Admin (Analytics / Attendance / ExamSettings) & modal memakai
+   warna terang yang di-hardcode. Alih-alih mengedit tiap file CSS, kita
+   timpa di sini saat html.dark aktif. Semua selector di-scope ke
+   .dashboard-shell agar situs publik tidak terpengaruh.
+   ===================================================================== */
+
+html.dark .dashboard-shell { color-scheme: dark; }
+
+/* ----- Modal (index.css) ----- */
+html.dark .dashboard-shell .modal-dialog {
+  background: #12141a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+/* ----- AdminAnalytics ----- */
+html.dark .dashboard-shell .analytics-chart-card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+html.dark .dashboard-shell .analytics-chart-card h4 { color: var(--text-strong); }
+html.dark .dashboard-shell .range-btn {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-soft);
+}
+html.dark .dashboard-shell .range-btn.active {
+  background: #ea580c; border-color: #ea580c; color: #fff;
+}
+html.dark .dashboard-shell .analytics-rank li:nth-child(odd) { background: rgba(255,255,255,0.04); }
+html.dark .dashboard-shell .rank-pos { background: rgba(255,255,255,0.1); color: var(--text-soft); }
+html.dark .dashboard-shell .rank-name { color: var(--text-strong); }
+html.dark .dashboard-shell .analytics-error {
+  background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #fca5a5;
+}
+
+/* ----- AdminAttendance ----- */
+html.dark .dashboard-shell .adm-att-toolbar,
+html.dark .dashboard-shell .adm-att-stat,
+html.dark .dashboard-shell .adm-att-table-wrap {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+html.dark .dashboard-shell .adm-att-field select,
+html.dark .dashboard-shell .adm-att-field input[type="date"],
+html.dark .dashboard-shell .adm-att-search input {
+  background: var(--input-bg); border-color: var(--input-border); color: var(--text-strong);
+}
+html.dark .dashboard-shell .adm-att-export {
+  background: var(--input-bg); border-color: var(--input-border); color: var(--text-soft);
+}
+html.dark .dashboard-shell .adm-att-export:hover:not(:disabled) { background: var(--hover-bg); }
+html.dark .dashboard-shell .adm-att-stat strong { color: var(--text-strong); }
+html.dark .dashboard-shell .adm-att-stat.is-main {
+  border-color: rgba(20,184,166,0.35);
+  background: linear-gradient(135deg, rgba(20,184,166,0.14), rgba(16,185,129,0.08));
+}
+html.dark .dashboard-shell .adm-att-table th {
+  background: var(--card-bg-soft); color: var(--text-faint); border-color: var(--card-border);
+}
+html.dark .dashboard-shell .adm-att-table td {
+  color: var(--text-soft); border-color: rgba(255,255,255,0.06);
+}
+html.dark .dashboard-shell .adm-att-table tbody tr:hover td { background: var(--hover-bg); }
+html.dark .dashboard-shell .adm-att-who strong { color: var(--text-strong); }
+html.dark .dashboard-shell .adm-att-bar { background: rgba(255,255,255,0.1); }
+html.dark .dashboard-shell .adm-att-loading,
+html.dark .dashboard-shell .adm-att-empty {
+  background: var(--card-bg-soft); border-color: var(--card-border); color: var(--text-faint);
+}
+html.dark .dashboard-shell .adm-att-empty strong { color: var(--text-soft); }
+
+/* ----- AdminExamSettings ----- */
+html.dark .dashboard-shell .aes-header,
+html.dark .dashboard-shell .aes-master,
+html.dark .dashboard-shell .aes-stat,
+html.dark .dashboard-shell .aes-row {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+html.dark .dashboard-shell .aes-header-icon { background: rgba(59,130,246,0.16); color: #60a5fa; }
+html.dark .dashboard-shell .aes-header-text h3,
+html.dark .dashboard-shell .aes-master-left strong,
+html.dark .dashboard-shell .aes-stat strong,
+html.dark .dashboard-shell .aes-row-title strong,
+html.dark .dashboard-shell .aes-list-head h4 { color: var(--text-strong); }
+html.dark .dashboard-shell .aes-header-text p,
+html.dark .dashboard-shell .aes-master-left span,
+html.dark .dashboard-shell .aes-row-meta,
+html.dark .dashboard-shell .aes-footnote { color: var(--text-faint); }
+html.dark .dashboard-shell .aes-refresh {
+  background: var(--input-bg); border-color: var(--input-border); color: var(--text-soft);
+}
+html.dark .dashboard-shell .aes-master-icon {
+  background: var(--input-bg); border-color: var(--input-border); color: var(--text-strong);
+}
+html.dark .dashboard-shell .aes-master.is-on {
+  border-color: rgba(16,185,129,0.35);
+  background: linear-gradient(180deg, rgba(16,185,129,0.12), var(--card-bg) 70%);
+}
+html.dark .dashboard-shell .aes-master.is-off {
+  border-color: rgba(239,68,68,0.35);
+  background: linear-gradient(180deg, rgba(239,68,68,0.12), var(--card-bg) 70%);
+}
+html.dark .dashboard-shell .aes-list-head { border-color: var(--card-border); }
+html.dark .dashboard-shell .aes-btn.is-off,
+html.dark .dashboard-shell .aes-btn.is-ghost {
+  background: var(--input-bg); border-color: var(--input-border); color: var(--text-soft);
+}
+html.dark .dashboard-shell .aes-empty {
+  background: var(--card-bg-soft); border-color: var(--card-border); color: var(--text-faint);
+}
+
+/* =====================================================================
+   ANIMATED THEME TOGGLER (MagicUI) — View Transitions API
+   Reveal clip-path (circle/star/dll) yang meluas dari tombol saat ganti
+   tema. Snapshot lama & baru dibekukan (animation:none) lalu lapisan
+   baru dibuka lewat clip-path yang dianimasikan JS.
+   ===================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) {
+  z-index: 9999;
+  /* Pin kondisi awal (collapsed) agar Firefox tidak melukis tema baru
+     tanpa clip di antara snapshot dan animasi JS. */
+  clip-path: var(--magicui-theme-vt-clip-from, circle(0% at 50% 50%));
+}
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration, 500ms);
+}
+
+/* Bekukan transisi warna/background saat VT aktif supaya snapshot tema
+   baru sudah final (tidak setengah transisi) => reveal gambar background
+   terlihat mulus, tanpa kedip. */
+html[data-magicui-theme-vt="active"] .dashboard-shell,
+html[data-magicui-theme-vt="active"] .dashboard-shell *,
+html[data-magicui-theme-vt="active"] .dashboard-shell *::before,
+html[data-magicui-theme-vt="active"] .dashboard-shell *::after {
+  transition: none !important;
+}

@@ -1,0 +1,446 @@
+/* Curriculum & Tuition Styles */
+
+.curriculum-section {
+  padding: 80px 0;
+  background: #ffffff;
+}
+
+/* Major Tabs Selector */
+.major-tabs-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.major-nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-soft);
+  border: 1.5px solid var(--border-light);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  text-align: left;
+}
+
+.major-nav-pill:hover {
+  background: #ffffff;
+  border-color: var(--primary-200);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.major-nav-pill.active {
+  background: #ffffff;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.pill-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pill-text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.pill-code {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--slate-900);
+}
+
+.pill-name {
+  font-size: 0.8125rem;
+  color: var(--slate-600);
+  font-weight: 500;
+}
+
+.pill-highlight-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+/* Detailed Display Card */
+.major-display-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.major-display-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Details */
+.major-left-details {
+  padding: 40px;
+  border-right: none;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.major-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.major-badge-type {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+  letter-spacing: 0.03em;
+}
+
+.major-main-name {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--slate-900);
+}
+
+.major-tagline-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.major-full-desc {
+  font-size: 0.95rem;
+  color: var(--slate-600);
+  line-height: 1.65;
+}
+
+/* Curriculum Block */
+.curriculum-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--slate-900);
+}
+
+.curriculum-list-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.curriculum-item-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-soft);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--slate-800);
+  border: 1px solid var(--border-light);
+}
+
+/* Facilities & Certification */
+.facilities-cert-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.mini-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mini-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--slate-900);
+}
+
+.mini-bullet-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--slate-600);
+}
+
+.mini-bullet-list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.mini-bullet-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.cert-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 0;
+}
+
+.cert-list li::before {
+  display: none;
+}
+
+/* Career Row */
+.career-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.career-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.career-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.career-tag-pill {
+  font-size: 0.78125rem;
+  font-weight: 600;
+  background: var(--slate-100);
+  color: var(--slate-700);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+/* Right Pricing Column */
+.major-right-pricing {
+  padding: 40px;
+  background: #fafcff;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cost-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.pricing-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--slate-900);
+  margin-bottom: 4px;
+}
+
+.pricing-subtitle {
+  font-size: 0.8125rem;
+  color: var(--slate-500);
+}
+
+/* Fee Highlight */
+.fee-highlight-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.fee-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.fee-lbl {
+  font-size: 0.75rem;
+  color: var(--slate-500);
+  font-weight: 600;
+}
+
+.fee-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.fee-note {
+  font-size: 0.72rem;
+  color: var(--slate-400);
+}
+
+.fee-divider {
+  width: 1px;
+  height: 48px;
+  background: var(--border-light);
+}
+
+/* Calculator Box */
+.calculator-box {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.calc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.calc-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--slate-800);
+}
+
+.months-toggle {
+  display: flex;
+  background: var(--slate-100);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  gap: 2px;
+}
+
+.month-btn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--slate-600);
+  transition: all var(--transition-fast);
+}
+
+.month-btn.active {
+  background: #ffffff;
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-xs);
+}
+
+.calc-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  color: var(--slate-600);
+}
+
+.calc-row.total-row {
+  margin-top: 6px;
+  align-items: center;
+}
+
+.total-label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--slate-900);
+}
+
+.total-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--slate-400);
+}
+
+.total-amount {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.calc-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 4px 0;
+}
+
+.btn-daftar-jurusan {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .major-tabs-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .major-display-grid {
+    grid-template-columns: 1fr;
+  }
+  .major-left-details {
+    border-right: none;
+    border-bottom: 1px solid var(--border-light);
+  }
+}
+
+@media (max-width: 640px) {
+  .curriculum-list-grid {
+    grid-template-columns: 1fr;
+  }
+  .facilities-cert-row {
+    grid-template-columns: 1fr;
+  }
+  .major-left-details, .major-right-pricing {
+    padding: 24px;
+  }
+}

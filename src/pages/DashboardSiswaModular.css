@@ -1,0 +1,376 @@
+
+
+
+.siswa-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 22px 0 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.siswa-section-head:first-of-type {
+  margin-top: 4px;
+}
+
+.siswa-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.siswa-section-title svg {
+  color: #ea580c;
+}
+
+.siswa-section-count {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+
+.siswa-task-foot-meta {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.siswa-task-score {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+.siswa-task-score.is-graded {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+
+.siswa-feedback-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid #bfdbfe;
+  border-left: 3px solid #3b82f6;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.siswa-feedback-box > div {
+  min-width: 0;
+}
+
+.siswa-feedback-box strong {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.siswa-feedback-box p {
+  margin: 3px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #1e40af;
+  white-space: pre-wrap;
+}
+
+
+.guru-item-icon.is-purple {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+
+.siswa-day-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.siswa-day-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.siswa-day-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.siswa-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.siswa-day-name {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: capitalize;
+}
+
+.siswa-day-count {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 0.625rem;
+  font-weight: 800;
+}
+
+.siswa-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.siswa-day-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: #f8fafc;
+}
+
+.siswa-day-time {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #334155;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.siswa-day-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.siswa-day-body strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.siswa-day-body span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.siswa-exam-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.siswa-exam-note strong {
+  font-weight: 800;
+}
+
+
+/* ─── Task Item & Widget Responsive (Dashboard Overview & Task List) ────── */
+.dash-task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ps-card-bg, #f8fafc);
+  border: 1px solid var(--ps-border, #e2e8f0);
+  transition: all 0.2s ease;
+}
+
+.dash-task-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.dash-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.dash-task-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  color: var(--ps-strong, #0f172a);
+}
+
+.dash-task-btn {
+  width: auto;
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .siswa-day-grid { grid-template-columns: 1fr; }
+  .siswa-section-head { flex-wrap: wrap; }
+
+  /* Kartu jadwal: badge jam di baris atas, mapel & guru dapat lebar penuh
+     agar nama mapel panjang tidak terpotong ellipsis di layar sempit. */
+  .siswa-day-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 6px;
+  }
+
+  .siswa-day-body {
+    flex: 1 1 100%;
+  }
+
+  .siswa-day-body strong,
+  .siswa-day-body span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* Chevron dekoratif disembunyikan saat baris widget bertumpuk */
+  .dash-widget-box .siswa-day-item > svg { display: none; }
+
+  /* Widget Tugas Perlu Dikerjakan Responsive */
+  .dashboard-shell .dash-widget-box {
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .dashboard-shell .dash-widget-head {
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dashboard-shell .dash-widget-title {
+    font-size: 0.84rem;
+    gap: 6px;
+  }
+
+  .dashboard-shell .dash-widget-cta {
+    font-size: 0.72rem;
+    padding: 4px 8px;
+    white-space: nowrap;
+  }
+
+  /* Card baris tugas & button responsive di mobile */
+  .dash-task-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .dash-task-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.35;
+  }
+
+  .dash-task-btn {
+    width: 100% !important;
+    justify-content: center;
+    padding: 9px 14px !important;
+    font-size: 0.8125rem !important;
+    min-height: 38px;
+  }
+
+  /* Bagian foot kartu tugas (Tugas Saya & Ujian) di mobile */
+  .guru-item-foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .guru-item-foot .guru-primary-btn {
+    width: 100% !important;
+    justify-content: center;
+    padding: 9px 14px !important;
+    min-height: 38px;
+  }
+
+  .guru-item-foot .siswa-task-foot-meta {
+    font-size: 0.7rem;
+  }
+
+  .guru-item-foot .siswa-task-score {
+    text-align: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .dashboard-shell .dash-widget-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .dashboard-shell .dash-widget-cta {
+    align-self: flex-start;
+  }
+}

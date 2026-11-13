@@ -1,0 +1,4 @@
+sep=,
+pertanyaan,opsi_a,opsi_b,opsi_c,opsi_d,kunci,bobot
+Ibu kota Provinsi Sumatera Utara adalah ...,Medan,Palembang,Padang,Banda Aceh,A,1
+Perintah SQL yang digunakan untuk menampilkan seluruh data dari sebuah tabel adalah ...,SELECT * FROM nama_tabel,INSERT INTO nama_tabel,DELETE FROM nama_tabel,UPDATE nama_tabel,A,1

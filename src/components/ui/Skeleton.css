@@ -1,0 +1,235 @@
+/* Skeleton.css - Inspired by Vibe UI Kit & modern glass design */
+.vibe-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--skeleton-bg, rgba(255, 255, 255, 0.08));
+  border-radius: var(--skeleton-radius, 8px);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+[data-theme='light'] .vibe-skeleton,
+:root:not(.dark) .vibe-skeleton {
+  --skeleton-bg: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme='dark'] .vibe-skeleton,
+.dark .vibe-skeleton {
+  --skeleton-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* Variant: Pulse */
+.vibe-skeleton-pulse {
+  animation: vibeSkeletonPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes vibeSkeletonPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Variant: Shimmer */
+.vibe-skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.12) 20%,
+    rgba(255, 255, 255, 0.22) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: vibeSkeletonShimmer 2s infinite;
+}
+
+[data-theme='light'] .vibe-skeleton-shimmer::after,
+:root:not(.dark) .vibe-skeleton-shimmer::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0) 0,
+    rgba(15, 23, 42, 0.04) 20%,
+    rgba(15, 23, 42, 0.09) 60%,
+    rgba(15, 23, 42, 0) 100%
+  );
+}
+
+@keyframes vibeSkeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Variant: Glow (mengikuti aksen oranye, bukan biru) */
+.vibe-skeleton-glow {
+  box-shadow: 0 0 15px rgba(232, 112, 42, 0.15);
+  animation: vibeSkeletonGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes vibeSkeletonGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(232, 112, 42, 0.06);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(232, 112, 42, 0.24);
+  }
+}
+
+/* Variant: Glass */
+.vibe-skeleton-glass {
+  background: var(--card-bg-soft, rgba(255, 255, 255, 0.5));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--card-border, rgba(148, 163, 184, 0.28));
+}
+
+html.dark .vibe-skeleton-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Sub-components */
+.vibe-skeleton-circle {
+  border-radius: 50% !important;
+}
+
+.vibe-skeleton-line {
+  display: block;
+  width: 100%;
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* ===== Layout helpers ===== */
+.skeleton-dashboard-view {
+  width: 100%;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skeleton-dashboard-card,
+.skeleton-hero-panel,
+.skeleton-footer-panel,
+.skeleton-table-panel {
+  border-radius: 16px;
+  background: var(--card-bg, rgba(255, 255, 255, 0.5));
+  border: 1px solid var(--card-border, rgba(148, 163, 184, 0.28));
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+html.dark .skeleton-dashboard-card,
+html.dark .skeleton-hero-panel,
+html.dark .skeleton-footer-panel,
+html.dark .skeleton-table-panel {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.skeleton-hero-panel {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-footer-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-dashboard-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.skeleton-inline-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===== Table skeleton (dipakai tabel admin: Data Guru/Siswa/Akun, dll.) ===== */
+.skeleton-table-panel {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.skeleton-table-row {
+  display: grid;
+  gap: 14px;
+  align-items: center;
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--card-border, rgba(148, 163, 184, 0.2));
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+html.dark .skeleton-table-row {
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.skeleton-table-row.is-head {
+  padding-bottom: 11px;
+  border-bottom-width: 1px;
+}
+
+.skeleton-table-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vibe-skeleton-pulse,
+  .vibe-skeleton-glow {
+    animation: none;
+  }
+
+  .vibe-skeleton-shimmer::after {
+    animation: none;
+    opacity: 0.25;
+  }
+}

@@ -1,0 +1,231 @@
+/* =====================================================================
+   LANDING PAGE STYLES (prototipe-smk8)
+   Diisolasi ke .landing-root agar tidak menimpa dashboard/auth lama.
+   Tailwind utilities tetap digenerate oleh tailwind.config.js (v3).
+   ===================================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Prototype memakai root font-size 18px; aktif hanya saat landing tampil
+   agar skala rem utilitas Tailwind sama tanpa menggeser dashboard. */
+html.landing-mode {
+  font-size: 18px;
+}
+
+/* Legacy global memakai overflow-x: hidden pada html/body. Itu membuat body
+   menjadi scroll container sehingga position: sticky di ScrollStack tidak
+   bekerja (kartu fasilitas tidak menumpuk). Prototipe tidak memakainya. */
+html.landing-mode,
+html.landing-mode body {
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+@media (max-width: 1024px) {
+  html.landing-mode {
+    font-size: 16px;
+  }
+}
+
+.landing-root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  --color-primary: #fe4000;
+  --color-background: #ffffff;
+  --color-foreground: #0c1726;
+  --color-border: #e5e4e7;
+  --color-ring: #fe4000;
+
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  font-family: var(--sans);
+  line-height: 145%;
+  letter-spacing: 0.18px;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.landing-main {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  width: 100%;
+}
+
+.dark .landing-root {
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #0b0f17;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+  --color-background: #0b0f17;
+  --color-foreground: #e8edf5;
+  --color-border: #263143;
+  --color-ring: #ff6a2b;
+
+  color-scheme: dark;
+}
+
+/* Scoped preflight: masuk layer base agar utility Tailwind (border, dll.)
+   tetap menang, sama seperti preflight bawaan prototipe. */
+@layer base {
+:where(
+  .landing-root,
+  .landing-root *,
+  .landing-root *::before,
+  .landing-root *::after
+) {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: currentColor;
+}
+}
+
+:where(.landing-root) h1,
+:where(.landing-root) h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+:where(.landing-root) h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+}
+
+:where(.landing-root) h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+}
+
+:where(.landing-root) p {
+  margin: 0;
+}
+
+.landing-root :where(ul, ol) {
+  list-style: none;
+}
+
+:where(.landing-root) code {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+@media (max-width: 1024px) {
+  :where(.landing-root) h1 {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+
+  :where(.landing-root) h2 {
+    font-size: 20px;
+  }
+}
+
+/* ---------- theme transition (view transitions API) ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-magicui-theme-vt='active']::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from);
+}
+
+html[data-magicui-theme-vt='active']::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
+
+/* =====================================================================
+   LANDING NAVBAR GLASSMORPHISM (Mengikuti gaya card dashboard)
+   ===================================================================== */
+.landing-navbar-glass {
+  background: rgba(255, 255, 255, 0.84) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  box-shadow:
+    0 16px 45px -12px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+.dark .landing-navbar-glass {
+  background: rgba(17, 24, 39, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  backdrop-filter: blur(32px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(190%) !important;
+  box-shadow:
+    0 24px 60px -15px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.landing-dropdown-glass {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(30px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(190%) !important;
+  box-shadow:
+    0 24px 60px -15px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset !important;
+}
+
+.dark .landing-dropdown-glass {
+  background: rgba(17, 24, 39, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(36px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(36px) saturate(200%) !important;
+  box-shadow:
+    0 30px 70px -15px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+}
+

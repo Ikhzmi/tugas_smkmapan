@@ -1,0 +1,104 @@
+/* Pagination.css — glass + theme aware (light & dark) */
+.pgn-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-border, rgba(148, 163, 184, 0.28));
+}
+
+.pgn-info {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-faint, #94a3b8);
+}
+
+.pgn-info strong {
+  font-weight: 800;
+  color: var(--text-soft, #475569);
+}
+
+.pgn-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.pgn-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--card-border, rgba(148, 163, 184, 0.35));
+  border-radius: 9px;
+  background: var(--card-bg-soft, rgba(255, 255, 255, 0.5));
+  color: var(--text-soft, #475569);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.pgn-btn:hover:not(:disabled):not(.is-active) {
+  border-color: var(--text-faint, #94a3b8);
+  background: var(--hover-bg, rgba(255, 255, 255, 0.75));
+  color: var(--text-strong, #1f2937);
+}
+
+.pgn-btn.is-active {
+  border-color: var(--accent, #e8702a);
+  background: var(--accent, #e8702a);
+  color: #ffffff;
+  cursor: default;
+  box-shadow: 0 4px 12px rgba(232, 112, 42, 0.32);
+}
+
+.pgn-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pgn-gap {
+  padding: 0 3px;
+  color: var(--text-faint, #94a3b8);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Pagination bisa dirender di dalam modal (portal ke <body>) — sediakan
+   fallback warna eksplisit agar tetap terbaca di kedua tema. */
+html:not(.dark) .pgn-btn { background: rgba(255, 255, 255, 0.62); }
+html.dark .pgn-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #cbd5e1;
+}
+html.dark .pgn-btn:hover:not(:disabled):not(.is-active) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+html.dark .pgn-btn.is-active {
+  border-color: #fb923c;
+  background: #fb923c;
+  color: #1f1300;
+}
+html.dark .pgn-info { color: #94a3b8; }
+html.dark .pgn-info strong { color: #e2e8f0; }
+html.dark .pgn-root { border-top-color: rgba(255, 255, 255, 0.12); }
+
+@media (max-width: 560px) {
+  .pgn-root {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

@@ -1,0 +1,30 @@
+.footer-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.13) 1px, transparent 1px);
+  background-size: 88px 88px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%);
+  mask-image: linear-gradient(to bottom, transparent, #000 45%);
+}
+
+.dark .footer-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+}
+
+.footer-wordmark {
+  font-size: clamp(2.5rem, 15vw, 10.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+  text-align: center;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 85%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 85%);
+}
+
+.dark .footer-wordmark {
+  color: rgba(255, 255, 255, 0.06);
+}

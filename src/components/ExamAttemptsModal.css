@@ -1,0 +1,289 @@
+
+
+.eam-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eam-note,
+.eam-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.eam-note {
+  border: 1px solid rgba(232, 112, 42, 0.3);
+  background: rgba(232, 112, 42, 0.1);
+  color: #c2410c;
+}
+
+.eam-alert {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.eam-note svg,
+.eam-alert svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.eam-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 32px 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+.eam-empty strong {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.eam-empty span {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.eam-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.eam-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
+}
+
+.eam-row.is-danger {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+
+.eam-icon {
+  flex: 0 0 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.eam-icon.is-danger { background: #fef2f2; color: #b91c1c; }
+.eam-icon.is-live { background: #fffbeb; color: #b45309; }
+.eam-icon.is-done { background: #ecfdf5; color: #047857; }
+
+.eam-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.eam-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eam-student {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.eam-student strong {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.eam-student span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.eam-badge {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.eam-badge.is-danger { background: #fee2e2; color: #b91c1c; }
+.eam-badge.is-live { background: #fef3c7; color: #b45309; }
+.eam-badge.is-done { background: #d1fae5; color: #047857; }
+
+.eam-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.eam-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.eam-reason {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.eam-reset {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 7px 11px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff;
+  color: #b91c1c;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.eam-reset:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.eam-reset:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 640px) {
+  .eam-row {
+    flex-wrap: wrap;
+  }
+
+  .eam-reset {
+    width: 100%;
+    justify-content: center;
+    margin-left: 45px;
+  }
+}
+
+/* =====================================================================
+   REV 3 — GLASS + DARK MODE
+   Modal daftar attempt sebelumnya tanpa aturan dark sama sekali.
+   ===================================================================== */
+
+html.dark .eam-row {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html.dark .eam-row.is-danger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+html.dark .eam-note {
+  background: rgba(251, 146, 60, 0.14);
+  border-color: rgba(251, 146, 60, 0.4);
+  color: #fdba74;
+}
+html.dark .eam-alert {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+html.dark .eam-icon.is-danger {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+html.dark .eam-icon.is-live {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+}
+html.dark .eam-icon.is-done {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+}
+
+html.dark .eam-student strong {
+  color: #f8fafc;
+}
+html.dark .eam-student span,
+html.dark .eam-meta {
+  color: #94a3b8;
+}
+
+html.dark .eam-badge.is-danger {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}
+html.dark .eam-badge.is-live {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+html.dark .eam-badge.is-done {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+}
+
+html.dark .eam-reason {
+  color: #fca5a5;
+}
+html.dark .eam-reset {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+html.dark .eam-reset:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(252, 165, 165, 0.6);
+}
+
+html.dark .eam-empty {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
+}
+html.dark .eam-empty strong {
+  color: #cbd5e1;
+}

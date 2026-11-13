@@ -1,0 +1,434 @@
+/* =====================================================================
+   GLASS CONFIRMATION MODAL
+   Ultra-modern Glassmorphism styling with frosted glass, responsive layout,
+   ambient glow, and rich micro-interactions (light & dark mode).
+   ===================================================================== */
+
+.glass-confirm-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+/* Backdrop blur */
+.glass-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgba(11, 18, 30, 0.65);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+
+.glass-confirm-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin: auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* Glass Card */
+.glass-confirm-card {
+  position: relative;
+  width: 100%;
+  border-radius: 26px;
+  padding: 30px 26px 26px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+
+  /* Glassmorphism Surface (Light Mode) */
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(30px) saturate(190%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  box-shadow:
+    0 24px 60px -15px rgba(15, 23, 42, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset,
+    0 8px 20px -6px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+/* Glassmorphism Surface (Dark Mode) */
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-card {
+  background: rgba(18, 26, 43, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(36px) saturate(200%);
+  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  box-shadow:
+    0 32px 75px -16px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 12px 30px -8px rgba(0, 0, 0, 0.5);
+  color: #f8fafc;
+}
+
+/* Tombol Close */
+.glass-confirm-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.glass-confirm-close:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-close {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Ambient Glow di Latar Belakang Modal */
+.glass-confirm-glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(50px);
+  pointer-events: none;
+  opacity: 0.65;
+  z-index: 0;
+}
+
+.glass-confirm-card.tone-danger .glass-confirm-glow {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.55) 0%, rgba(239, 68, 68, 0) 70%);
+}
+
+.glass-confirm-card.tone-logout .glass-confirm-glow {
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.5) 0%, rgba(239, 68, 68, 0) 70%);
+}
+
+.glass-confirm-card.tone-warning .glass-confirm-glow {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.55) 0%, rgba(245, 158, 11, 0) 70%);
+}
+
+.glass-confirm-card.tone-primary .glass-confirm-glow {
+  background: radial-gradient(circle, rgba(232, 112, 42, 0.55) 0%, rgba(232, 112, 42, 0) 70%);
+}
+
+.glass-confirm-card.tone-info .glass-confirm-glow {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.55) 0%, rgba(59, 130, 246, 0) 70%);
+}
+
+/* Ikon Utama */
+.glass-confirm-icon-wrap {
+  position: relative;
+  z-index: 1;
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 14px 28px -8px rgba(0, 0, 0, 0.15);
+}
+
+.glass-confirm-icon-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 22px;
+  transition: transform 0.25s ease;
+}
+
+.glass-confirm-card:hover .glass-confirm-icon-inner {
+  transform: scale(1.06);
+}
+
+/* Tone Ikon Colors */
+.glass-confirm-card.tone-danger .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #dc2626;
+  box-shadow: 0 12px 30px -8px rgba(220, 38, 38, 0.35);
+}
+
+.glass-confirm-card.tone-logout .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  color: #ea580c;
+  box-shadow: 0 12px 30px -8px rgba(234, 88, 12, 0.35);
+}
+
+.glass-confirm-card.tone-warning .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #d97706;
+  box-shadow: 0 12px 30px -8px rgba(217, 119, 6, 0.35);
+}
+
+.glass-confirm-card.tone-primary .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, #ffedd5, #fed7aa);
+  border: 1px solid rgba(232, 112, 42, 0.35);
+  color: #c2410c;
+  box-shadow: 0 12px 30px -8px rgba(232, 112, 42, 0.35);
+}
+
+.glass-confirm-card.tone-info .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #0284c7;
+  box-shadow: 0 12px 30px -8px rgba(2, 132, 199, 0.35);
+}
+
+/* Dark mode icon backgrounds */
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-card.tone-danger .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(239, 68, 68, 0.08));
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #f87171;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-card.tone-logout .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.22), rgba(249, 115, 22, 0.08));
+  border-color: rgba(249, 115, 22, 0.45);
+  color: #fb923c;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-card.tone-warning .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(245, 158, 11, 0.08));
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-card.tone-primary .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, rgba(232, 112, 42, 0.22), rgba(232, 112, 42, 0.08));
+  border-color: rgba(232, 112, 42, 0.45);
+  color: #fb923c;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-card.tone-info .glass-confirm-icon-wrap {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(59, 130, 246, 0.08));
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #60a5fa;
+}
+
+/* Content */
+.glass-confirm-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.glass-confirm-title {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  color: #0f172a;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-title {
+  color: #f8fafc;
+}
+
+.glass-confirm-message {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-message {
+  color: #cbd5e1;
+}
+
+/* Extra Details Card (jika ada catatan khusus) */
+.glass-confirm-extra {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  font-size: 0.8125rem;
+  color: #64748b;
+  text-align: left;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-extra {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+}
+
+/* Buttons */
+.glass-confirm-actions {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.glass-confirm-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  outline: none;
+}
+
+.glass-confirm-btn:active {
+  transform: scale(0.97);
+}
+
+.glass-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Tombol Batal */
+.glass-confirm-btn-cancel {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #475569;
+}
+
+.glass-confirm-btn-cancel:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #0f172a;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-btn-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .glass-confirm-btn-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Tombol Konfirmasi Per Tone */
+.glass-confirm-btn-confirm {
+  border: none;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.glass-confirm-btn-confirm.tone-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 10px 24px -6px rgba(220, 38, 38, 0.45);
+}
+.glass-confirm-btn-confirm.tone-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 14px 28px -6px rgba(220, 38, 38, 0.6);
+  transform: translateY(-2px);
+}
+
+.glass-confirm-btn-confirm.tone-logout {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 10px 24px -6px rgba(234, 88, 12, 0.45);
+}
+.glass-confirm-btn-confirm.tone-logout:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  box-shadow: 0 14px 28px -6px rgba(234, 88, 12, 0.6);
+  transform: translateY(-2px);
+}
+
+.glass-confirm-btn-confirm.tone-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 10px 24px -6px rgba(217, 119, 6, 0.45);
+}
+.glass-confirm-btn-confirm.tone-warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  box-shadow: 0 14px 28px -6px rgba(217, 119, 6, 0.6);
+  transform: translateY(-2px);
+}
+
+.glass-confirm-btn-confirm.tone-primary {
+  background: linear-gradient(135deg, #ff6b00, #e8702a);
+  box-shadow: 0 10px 24px -6px rgba(232, 112, 42, 0.45);
+}
+.glass-confirm-btn-confirm.tone-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e8702a, #c2410c);
+  box-shadow: 0 14px 28px -6px rgba(232, 112, 42, 0.6);
+  transform: translateY(-2px);
+}
+
+.glass-confirm-btn-confirm.tone-info {
+  background: linear-gradient(135deg, #3b82f6, #0284c7);
+  box-shadow: 0 10px 24px -6px rgba(2, 132, 199, 0.45);
+}
+.glass-confirm-btn-confirm.tone-info:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  box-shadow: 0 14px 28px -6px rgba(2, 132, 199, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Spinner Animasi */
+.glass-confirm-spinner {
+  animation: glass-confirm-spin 0.85s linear infinite;
+}
+
+@keyframes glass-confirm-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsif Mobile */
+@media (max-width: 480px) {
+  .glass-confirm-card {
+    padding: 24px 20px 20px;
+    border-radius: 22px;
+  }
+  .glass-confirm-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  .glass-confirm-btn {
+    width: 100%;
+    padding: 13px;
+  }
+}

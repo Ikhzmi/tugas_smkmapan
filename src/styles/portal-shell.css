@@ -1,0 +1,2825 @@
+/* =====================================================================
+   PORTAL SHELL RESKIN (Guru & Siswa)
+   Menyeragamkan panel Guru/Siswa dengan design system glassmorphic
+   referensi (dashboard SuperAdmin/Admin): background oranye fixed,
+   navbar glass + "mac traffic lights", hero/KPI/kartu glass, tab pill,
+   bottom-nav mobile, dan dukungan dark mode.
+
+   Semua selector di-scope ke .dashboard-shell agar:
+   - spesifisitas (0,2,0) mengalahkan CSS lama (0,1,0) tanpa !important
+   - situs publik (landing page) tidak ikut terpengaruh
+   File ini di-impor SETELAH DashboardSiswa.css di kedua page.
+   ===================================================================== */
+
+/* ----- Variabel tema (portal) — resep persis KerenTal (frontend) ----- */
+.dashboard-shell {
+  /* Kartu glass = sa-glass-light persis SuperAdmin Kerental */
+  --ps-card-bg: rgba(255, 255, 255, 0.35);
+  --ps-card-soft: rgba(255, 255, 255, 0.22);
+  --ps-border: rgba(255, 255, 255, 0.75);
+  --ps-glass-blur: blur(28px) saturate(180%);
+  --ps-glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.4);
+  /* Header glass = sa-header-light (tertutup frosted, tidak tembus clash) */
+  --ps-header-bg: rgba(255, 255, 255, 0.72);
+  --ps-header-border: rgba(255, 255, 255, 0.75);
+  --ps-header-blur: blur(28px) saturate(180%);
+  --ps-header-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  /* Tombol ikon header = glass-daftar-btn-light */
+  --ps-btn-bg: rgba(255, 255, 255, 0.5);
+  --ps-btn-bg-hover: rgba(255, 255, 255, 0.6);
+  --ps-btn-border: rgba(255, 255, 255, 0.7);
+  --ps-btn-blur: blur(20px) saturate(150%);
+  --ps-btn-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+  /* Sidebar = sa-sidebar-rounded */
+  --ps-sidebar-border: rgba(255, 255, 255, 0.12);
+  --ps-sidebar-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  /* Item nav sidebar (light) — netral, bukan oranye */
+  --ps-nav-muted: #64748b;
+  --ps-nav-hover: #0f172a;
+  --ps-nav-hover-bg: rgba(241, 245, 249, 0.3);
+  --ps-nav-active-bg: rgba(241, 245, 249, 0.5);
+  --ps-nav-active-text: #1f2937;
+  --ps-nav-indicator: #1f2937;
+  --ps-strong: #1f2937;
+  --ps-soft: #475569;
+  --ps-faint: #64748b;
+  --ps-input-bg: rgba(255, 255, 255, 0.75);
+  --ps-input-border: rgba(148, 163, 184, 0.4);
+  --ps-hover: rgba(255, 255, 255, 0.5);
+  --ps-accent: #e8702a;
+  --ps-nav-text: #1f2937;
+}
+
+html.dark .dashboard-shell {
+  /* Kartu glass murni: putih transparan, tanpa tint warna apa pun. */
+  --ps-card-bg: rgba(255, 255, 255, 0.06);
+  --ps-card-soft: rgba(255, 255, 255, 0.04);
+  --ps-border: rgba(255, 255, 255, 0.14);
+  --ps-glass-blur: blur(28px) saturate(180%);
+  --ps-glass-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  /* Header glass = sa-header-dark (tertutup frosted gelap, konten di bawahnya tidak tembus bocor) */
+  --ps-header-bg: rgba(255, 255, 255, 0.07);
+  --ps-header-border: rgba(255, 255, 255, 0.12);
+  --ps-header-blur: blur(28px) saturate(180%);
+  --ps-header-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Tombol ikon header = glass-daftar-btn-dark (flat, bukan gradient) */
+  --ps-btn-bg: rgba(255, 255, 255, 0.10);
+  --ps-btn-bg-hover: rgba(255, 255, 255, 0.16);
+  --ps-btn-border: rgba(255, 255, 255, 0.25);
+  --ps-btn-blur: blur(24px) saturate(200%);
+  --ps-btn-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.35), inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+  /* Sidebar = sa-sidebar-rounded (border/shadow sama kedua tema) */
+  --ps-sidebar-border: rgba(255, 255, 255, 0.12);
+  --ps-sidebar-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  /* Item nav sidebar (dark) */
+  --ps-nav-muted: rgba(255, 255, 255, 0.5);
+  --ps-nav-hover: #ffffff;
+  --ps-nav-hover-bg: rgba(255, 255, 255, 0.05);
+  --ps-nav-active-bg: rgba(255, 255, 255, 0.10);
+  --ps-nav-active-text: #ffffff;
+  --ps-nav-indicator: #ffffff;
+  --ps-strong: #f8fafc;
+  --ps-soft: #cbd5e1;
+  --ps-faint: #94a3b8;
+  --ps-input-bg: rgba(255, 255, 255, 0.06);
+  --ps-input-border: rgba(255, 255, 255, 0.15);
+  --ps-hover: rgba(255, 255, 255, 0.08);
+  --ps-accent: #fb923c;
+  --ps-nav-text: #f8fafc;
+}
+
+/* ----- Root + background gambar fixed ----- */
+.dashboard-shell,
+.dashboard-shell.dashboard-siswa-root {
+  background: transparent !important;
+  color: var(--ps-strong);
+  position: relative;
+  isolation: isolate;
+}
+
+/* Dua lapisan background (light + dark) ditumpuk & cross-fade agar
+   perpindahan tema mulus dan kedua gambar selalu ter-preload. */
+.dashboard-shell::before,
+.dashboard-shell::after,
+.dashboard-shell.dashboard-siswa-root::before,
+.dashboard-shell.dashboard-siswa-root::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 0.5s ease;
+}
+
+.dashboard-shell::before,
+.dashboard-shell.dashboard-siswa-root::before {
+  background-image: url('../assets/bg-dashboard-light.png');
+  opacity: 1;
+}
+
+.dashboard-shell::after,
+.dashboard-shell.dashboard-siswa-root::after {
+  background-image: url('../assets/bg-dashboard-dark.png');
+  background-color: #0a0a0b;
+  opacity: 0;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .dashboard-shell::before,
+:is(html.dark, .dark, [data-theme='dark']) .dashboard-shell.dashboard-siswa-root::before {
+  opacity: 0;
+}
+
+:is(html.dark, .dark, [data-theme='dark']) .dashboard-shell::after,
+:is(html.dark, .dark, [data-theme='dark']) .dashboard-shell.dashboard-siswa-root::after {
+  background-image: url('../assets/bg-dashboard-dark.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1;
+}
+
+/* ----- Konten portal full-width (shell dipakai siswa & guru) ----- */
+.dashboard-shell .siswa-main-container,
+.dashboard-shell .siswa-navbar-container {
+  max-width: 100%;
+}
+
+/* ----- Header glass (sa-header) + traffic lights (Floating Overlay / Bertumpang Tindih) ----- */
+.dashboard-shell .siswa-top-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--ps-header-bg);
+  -webkit-backdrop-filter: var(--ps-header-blur);
+  backdrop-filter: var(--ps-header-blur);
+  /* sa-header: sudut bawah membulat, tanpa border atas */
+  border: 1px solid var(--ps-header-border);
+  border-top: none;
+  border-radius: 0 0 24px 24px;
+  color: var(--ps-nav-text);
+  box-shadow: var(--ps-header-shadow);
+  overflow: visible;
+  /* Reveal cepat (0.28s), hide lebih lambat (0.35s) — feel premium bertumpang tindih */
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.25s ease,
+              box-shadow 0.25s ease;
+  will-change: transform, opacity;
+}
+
+/* Dekorasi garis bawah halus ala sa-header referensi */
+.dashboard-shell .siswa-top-navbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  pointer-events: none;
+}
+
+html.dark .dashboard-shell .siswa-top-navbar::after {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Auto-hide saat scroll ke bawah */
+.dashboard-shell.ps-header-hidden .siswa-top-navbar {
+  transform: translateY(-115%);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.6, 1), 
+              opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.dashboard-shell .siswa-back-link {
+  color: var(--ps-soft);
+  background: var(--ps-hover);
+  border: 1px solid var(--ps-border);
+}
+.dashboard-shell .siswa-back-link:hover {
+  color: var(--ps-strong);
+  background: var(--ps-card-bg);
+}
+
+.dashboard-shell .siswa-brand-divider { background: var(--ps-border); }
+.dashboard-shell .siswa-system-name { color: var(--ps-strong); }
+.dashboard-shell .siswa-school-name { color: var(--ps-accent); }
+
+.dashboard-shell .siswa-user-pill {
+  background: var(--ps-hover);
+  border: 1px solid var(--ps-border);
+}
+.dashboard-shell .siswa-avatar {
+  background: linear-gradient(135deg, var(--ps-accent) 0%, #ff8533 100%);
+  color: #fff;
+}
+.dashboard-shell .siswa-meta-name { color: var(--ps-strong); }
+.dashboard-shell .siswa-meta-class { color: var(--ps-faint); }
+
+.dashboard-shell .btn-siswa-logout {
+  height: 38px;
+  padding: 0 14px;
+  background: var(--ps-btn-bg);
+  -webkit-backdrop-filter: var(--ps-btn-blur);
+  backdrop-filter: var(--ps-btn-blur);
+  border: 1px solid var(--ps-btn-border);
+  box-shadow: var(--ps-btn-shadow);
+  color: var(--ps-faint);
+  border-radius: 12px;
+}
+.dashboard-shell .btn-siswa-logout:hover {
+  background: var(--ps-btn-bg-hover);
+  color: #ef4444;
+  border-color: var(--ps-btn-border);
+}
+
+/* Traffic lights + theme toggle (chrome tambahan) */
+.ps-traffic-lights {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  flex-shrink: 0;
+}
+.ps-tl { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.ps-tl-red { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+.ps-tl-yellow { background: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+.ps-tl-green { background: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+
+.ps-theme-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ps-faint);
+  background: var(--ps-btn-bg);
+  -webkit-backdrop-filter: var(--ps-btn-blur);
+  backdrop-filter: var(--ps-btn-blur);
+  border: 1px solid var(--ps-btn-border);
+  box-shadow: var(--ps-btn-shadow);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.ps-theme-toggle:hover { color: var(--ps-strong); background: var(--ps-btn-bg-hover); }
+/* Ikon tema: ukuran kunci + warna kontras per tema agar selalu terender */
+.ps-theme-toggle svg { flex-shrink: 0; color: #475569; }
+html.dark .ps-theme-toggle svg { color: #facc15; }
+
+/* ----- Hero banner glass ----- */
+.dashboard-shell .siswa-hero-banner {
+  background: var(--ps-card-bg);
+  -webkit-backdrop-filter: var(--ps-glass-blur);
+  backdrop-filter: var(--ps-glass-blur);
+  border: 1px solid var(--ps-border);
+  color: var(--ps-strong);
+  box-shadow: var(--ps-glass-shadow);
+}
+.dashboard-shell .siswa-hero-title { color: var(--ps-strong); }
+.dashboard-shell .siswa-hero-title .text-orange { color: var(--ps-accent); }
+.dashboard-shell .siswa-hero-desc { color: var(--ps-soft); }
+.dashboard-shell .siswa-live-tag {
+  background: rgba(232, 112, 42, 0.16);
+  border-color: rgba(232, 112, 42, 0.35);
+  color: var(--ps-accent);
+}
+.dashboard-shell .siswa-hero-badge {
+  background: var(--ps-card-soft);
+  border: 1px solid var(--ps-border);
+}
+.dashboard-shell .siswa-hero-badge .badge-title {
+  color: var(--ps-strong);
+}
+.dashboard-shell .siswa-hero-badge .badge-nisn {
+  color: var(--ps-faint);
+}
+
+/* ----- KPI cards glass ----- */
+.dashboard-shell .kpi-card {
+  background: var(--ps-card-bg);
+  -webkit-backdrop-filter: var(--ps-glass-blur);
+  backdrop-filter: var(--ps-glass-blur);
+  border: 1px solid var(--ps-border);
+  box-shadow: var(--ps-glass-shadow);
+}
+.dashboard-shell .kpi-lbl { color: var(--ps-faint); }
+.dashboard-shell .kpi-val { color: var(--ps-strong); }
+.dashboard-shell .kpi-sub { color: var(--ps-soft); }
+
+/* ----- Content card + tabs pill ----- */
+.dashboard-shell .siswa-content-card {
+  background: var(--ps-card-bg);
+  -webkit-backdrop-filter: var(--ps-glass-blur);
+  backdrop-filter: var(--ps-glass-blur);
+  border: 1px solid var(--ps-border);
+  box-shadow: var(--ps-glass-shadow);
+}
+
+.dashboard-shell .siswa-nav-tabs {
+  gap: 6px;
+  background: transparent;
+}
+.dashboard-shell .siswa-tab-btn {
+  background: transparent;
+  color: var(--ps-nav-muted);
+  border: 1px solid transparent;
+}
+.dashboard-shell .siswa-tab-btn:hover {
+  background: var(--ps-nav-hover-bg);
+  color: var(--ps-nav-hover);
+}
+.dashboard-shell .siswa-tab-btn.active {
+  background: var(--ps-nav-active-bg);
+  color: var(--ps-nav-active-text);
+  border-color: transparent;
+}
+
+/* ----- Toast notice ----- */
+.dashboard-shell .siswa-toast-notice {
+  background: var(--ps-card-bg);
+  -webkit-backdrop-filter: var(--ps-glass-blur);
+  backdrop-filter: var(--ps-glass-blur);
+  color: var(--ps-strong);
+  border: 1px solid var(--ps-border);
+}
+
+/* =====================================================================
+   DESKTOP (≥1024px): sidebar glass mengambang ala KerenTal.
+   Collapsed (ikon saja, 78px) dan melebar ke 244px saat hover;
+   konten tetap di kanan (padding-left), sidebar meng-overlay saat lebar.
+   ===================================================================== */
+@media (min-width: 1024px) {
+  .dashboard-shell .ps-sidebar {
+    position: fixed;
+    left: 12px;
+    top: 80px;
+    bottom: 16px;
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px 12px;
+    border-radius: 20px;
+    background: var(--ps-card-bg);
+    -webkit-backdrop-filter: var(--ps-glass-blur);
+    backdrop-filter: var(--ps-glass-blur);
+    border: 1px solid var(--ps-sidebar-border);
+    box-shadow: var(--ps-sidebar-shadow);
+    overflow: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .dashboard-shell.ps-header-hidden .ps-sidebar {
+    top: 16px !important;
+  }
+  .dashboard-shell .ps-sidebar:hover { width: 280px; }
+
+  .dashboard-shell .ps-sidebar .siswa-tab-btn {
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ps-nav-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, color 0.2s ease;
+  }
+  .dashboard-shell .ps-sidebar:hover .siswa-tab-btn { padding: 0 14px 0 10px; }
+  .dashboard-shell .ps-sidebar .siswa-tab-btn svg {
+    flex-shrink: 0; width: 20px; height: 20px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Label hanya muncul saat sidebar melebar */
+  .dashboard-shell .ps-sidebar .siswa-tab-btn span { display: none; }
+  .dashboard-shell .ps-sidebar:hover .siswa-tab-btn span { display: inline; }
+
+  .dashboard-shell .ps-sidebar .siswa-tab-btn:hover {
+    background: var(--ps-nav-hover-bg);
+    color: var(--ps-nav-hover);
+  }
+  .dashboard-shell .ps-sidebar .siswa-tab-btn:hover svg,
+  .dashboard-shell .ps-sidebar .siswa-tab-btn.active svg { transform: scale(1.1); }
+  .dashboard-shell .ps-sidebar .siswa-tab-btn.active {
+    background: var(--ps-nav-active-bg);
+    color: var(--ps-nav-active-text);
+    border-color: transparent;
+  }
+  /* Indikator bar aktif di tepi kiri (meniru referensi) */
+  .dashboard-shell .ps-sidebar .siswa-tab-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 28px;
+    border-radius: 0 9999px 9999px 0;
+    background: var(--ps-nav-indicator);
+  }
+
+  /* Footer sidebar: tombol Keluar ala KerenTal */
+  .dashboard-shell .ps-sidebar-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--ps-sidebar-border);
+  }
+  .dashboard-shell .ps-sidebar-logout {
+    position: relative;
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: var(--ps-nav-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, color 0.2s ease;
+  }
+  .dashboard-shell .ps-sidebar:hover .ps-sidebar-logout { padding: 0 14px 0 10px; }
+  .dashboard-shell .ps-sidebar-logout svg {
+    flex-shrink: 0; width: 20px; height: 20px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .dashboard-shell .ps-sidebar-logout span { display: none; }
+  .dashboard-shell .ps-sidebar:hover .ps-sidebar-logout span { display: inline; }
+  .dashboard-shell .ps-sidebar-logout:hover {
+    background: rgba(239, 68, 68, 0.10);
+    color: #ef4444;
+  }
+  .dashboard-shell .ps-sidebar-logout:hover svg { transform: scale(1.1); }
+
+  /* Konten bergeser ke kanan memberi ruang sidebar; padding-top memberi ruang header floating fixed */
+  .dashboard-shell .siswa-main-container {
+    padding: 92px 32px 60px 104px;
+    transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .dashboard-shell .ps-sidebar:hover ~ .siswa-main-container { padding-left: 304px; }
+
+  /* Sembunyikan tombol keluar di header (sudah pindah ke footer sidebar) */
+  .dashboard-shell .btn-siswa-logout { display: none; }
+}
+
+/* =====================================================================
+   MOBILE (<1024px): sidebar diganti bottom-nav glass ala SuperAdmin Kerental
+   (komponen MobileBottomNav — pill melayang, 2 slide, animasi spring).
+   ===================================================================== */
+@media (max-width: 1023px) {
+  .dashboard-shell .siswa-nav-tabs { display: none; }
+
+  /* Ruang agar konten tidak tertutup bottom-nav dan header floating fixed */
+  .dashboard-shell .siswa-main-container { padding: 80px 16px 96px 16px; }
+
+  /* Navbar dirapatkan di mobile ala Kerental SuperAdmin */
+  .dashboard-shell .siswa-top-navbar {
+    padding: 12px 0;
+    border-radius: 0 0 18px 18px;
+  }
+  .dashboard-shell .siswa-navbar-container { 
+    padding: 0 12px; 
+    gap: 8px; 
+    justify-content: space-between;
+  }
+  .dashboard-shell .siswa-brand-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  /* Mac-style traffic lights compact di mobile */
+  .dashboard-shell .ps-traffic-lights {
+    display: flex !important;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.22);
+  }
+  .dashboard-shell .ps-tl {
+    width: 7.5px;
+    height: 7.5px;
+  }
+  .dashboard-shell .siswa-brand-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+  .dashboard-shell .siswa-logo-img {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  .dashboard-shell .siswa-system-name {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+  .dashboard-shell .siswa-nav-user-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .dashboard-shell .siswa-user-pill {
+    padding: 2px 4px 2px 2px;
+    gap: 4px;
+    border-radius: 9999px;
+  }
+  .dashboard-shell .siswa-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+  .dashboard-shell .ps-theme-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+  .dashboard-shell .btn-siswa-logout {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+  }
+
+  .dashboard-shell .siswa-brand-divider,
+  .dashboard-shell .siswa-school-name,
+  .dashboard-shell .siswa-meta-texts,
+  .dashboard-shell .btn-siswa-logout span,
+  .dashboard-shell .siswa-back-link span { display: none; }
+  /* Footer sidebar (Keluar) tidak dipakai di bottom-nav mobile */
+  .dashboard-shell .ps-sidebar-footer { display: none; }
+}
+
+@media (max-width: 560px) {
+  .dashboard-shell .siswa-hero-banner { flex-direction: column; align-items: flex-start; padding: 24px; }
+  .dashboard-shell .siswa-kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* =====================================================================
+   DARK MODE — keterbacaan konten dalam
+   Panel lama (Guru/Siswa) meng-hardcode warna terang. Kartu-kartu isi
+   tetap menjadi "kertas" terang agar teks gelapnya terbaca; kita hanya
+/* =====================================================================
+   HEADER BANNER UNTUK TAB SPESIFIK & WIDGET DASHBOARD
+   ===================================================================== */
+.dashboard-shell .siswa-tab-header-banner {
+  background: var(--ps-card-bg);
+  -webkit-backdrop-filter: var(--ps-glass-blur);
+  backdrop-filter: var(--ps-glass-blur);
+  border: 1px solid var(--ps-border);
+  box-shadow: var(--ps-glass-shadow);
+  border-radius: 20px;
+  padding: 22px 28px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-shell .siswa-tab-header-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--ps-strong);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-shell .siswa-tab-header-desc {
+  font-size: 0.8125rem;
+  color: var(--ps-soft);
+  margin: 0;
+}
+
+/* Dashboard Overview Widgets */
+.dashboard-shell .dash-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .dashboard-shell .dash-widget-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dashboard-shell .dash-widget-box {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--ps-border);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.dashboard-shell .dash-widget-box:hover {
+  border-color: rgba(232, 112, 42, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-shell .dash-widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-shell .dash-widget-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--ps-strong);
+}
+
+.dashboard-shell .dash-widget-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ps-accent);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.dashboard-shell .dash-widget-cta:hover {
+  background: rgba(232, 112, 42, 0.12);
+}
+
+/* Baris tugas di widget "Tugas Perlu Dikerjakan" */
+.dashboard-shell .dash-task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.dashboard-shell .dash-task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-shell .dash-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-bottom: 2px;
+}
+
+.dashboard-shell .dash-task-meta .task-subject-tag {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-shell .dash-task-deadline {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  color: var(--ps-faint);
+}
+
+.dashboard-shell .dash-task-title {
+  display: block;
+  margin: 0;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-shell .dash-task-btn {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 6px 12px;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 640px) {
+  /* Ruang konten dashboard siswa di ponsel */
+  .dashboard-shell .siswa-tab-pane {
+    padding: 18px 14px;
+  }
+
+  .dashboard-shell .dash-widget-box {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  /* Judul widget & CTA tidak lagi berdesakan dalam satu baris */
+  .dashboard-shell .dash-widget-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 6px;
+  }
+
+  .dashboard-shell .dash-widget-title {
+    min-width: 0;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .dashboard-shell .dash-widget-title span {
+    min-width: 0;
+  }
+
+  .dashboard-shell .dash-widget-cta {
+    margin-left: auto;
+    padding: 4px 6px;
+  }
+
+  /* Baris tugas bertumpuk vertikal: judul tidak lagi terhimpit tombol */
+  .dashboard-shell .dash-task-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .dashboard-shell .dash-task-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+  }
+
+  /* Jadwal hari ini: jam & nama mapel boleh turun baris */
+  .dashboard-shell .siswa-day-item {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}
+
+.dashboard-shell .dash-exam-alert-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(232, 112, 42, 0.15));
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  margin-bottom: 24px;
+}
+
+/* =====================================================================
+   DARK MODE — KETERBACAAN & PENGHAPUSAN BLOK PUTIH SECARA TOTAL
+   ===================================================================== */
+html.dark .dashboard-shell .siswa-content-card {
+  background: var(--ps-card-bg);
+  border-color: var(--ps-border);
+  color: var(--ps-soft);
+}
+html.dark .dashboard-shell .siswa-tab-pane { color: var(--ps-soft); }
+
+/* Toolbar & Pencarian */
+html.dark .dashboard-shell .guru-toolbar,
+html.dark .dashboard-shell .guru-search,
+html.dark .dashboard-shell .guru-count,
+html.dark .dashboard-shell .guru-empty { color: var(--ps-soft); }
+html.dark .dashboard-shell .guru-search {
+  background: var(--ps-input-bg) !important;
+  border-color: var(--ps-input-border) !important;
+}
+html.dark .dashboard-shell .guru-search input {
+  color: var(--ps-strong) !important;
+}
+html.dark .dashboard-shell .guru-chip {
+  background: var(--ps-hover);
+  color: var(--ps-soft);
+}
+
+/* Semua Kartu Konten (Siswa & Guru) di Dark Mode */
+html.dark .dashboard-shell .siswa-mapel-card,
+html.dark .dashboard-shell .siswa-day-card,
+html.dark .dashboard-shell .guru-item-card,
+html.dark .dashboard-shell .guru-task-card,
+html.dark .dashboard-shell .guru-wide-card,
+html.dark .dashboard-shell .guru-sub-card,
+html.dark .dashboard-shell .guru-materi-row,
+html.dark .dashboard-shell .timeline-item-card,
+html.dark .dashboard-shell .task-row-card,
+html.dark .dashboard-shell .lib-material-card,
+html.dark .dashboard-shell .dropzone-styled-box,
+html.dark .dashboard-shell .attendance-action-banner,
+html.dark .dashboard-shell .pgr-toolbar,
+html.dark .dashboard-shell .pgr-sum-item,
+html.dark .dashboard-shell .pgr-row,
+html.dark .dashboard-shell .pgr-savebar,
+html.dark .dashboard-shell .pgr-rekap-row,
+html.dark .dashboard-shell .psr-stat,
+html.dark .dashboard-shell .psr-card,
+html.dark .dashboard-shell .psr-row,
+html.dark .dashboard-shell .dash-widget-box {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
+}
+
+html.dark .dashboard-shell .siswa-mapel-card:hover,
+html.dark .dashboard-shell .siswa-day-card:hover,
+html.dark .dashboard-shell .guru-item-card:hover,
+html.dark .dashboard-shell .guru-task-card:hover,
+html.dark .dashboard-shell .guru-wide-card:hover,
+html.dark .dashboard-shell .guru-sub-card:hover,
+html.dark .dashboard-shell .timeline-item-card:hover,
+html.dark .dashboard-shell .lib-material-card:hover,
+html.dark .dashboard-shell .dash-widget-box:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Item dalam kartu (sub-row, pill waktu, badge) */
+html.dark .dashboard-shell .siswa-day-item,
+html.dark .dashboard-shell .guru-progress-row,
+html.dark .dashboard-shell .pgr-sum-item.is-head,
+html.dark .dashboard-shell .status-pill-badge,
+html.dark .dashboard-shell .guru-sub-card.is-pending {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+}
+
+html.dark .dashboard-shell .siswa-day-time,
+html.dark .dashboard-shell .pgr-num,
+html.dark .dashboard-shell .guru-sub-score,
+html.dark .dashboard-shell .siswa-task-score,
+html.dark .dashboard-shell .pgr-rekap-bar,
+html.dark .dashboard-shell .timeline-time-col {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-strong) !important;
+}
+
+/* Teks gelap dibuat terang agar kontras sempurna */
+html.dark .dashboard-shell .siswa-mapel-name,
+html.dark .dashboard-shell .siswa-day-name,
+html.dark .dashboard-shell .siswa-day-body strong,
+html.dark .dashboard-shell .guru-item-heading strong,
+html.dark .dashboard-shell .guru-task-heading strong,
+html.dark .dashboard-shell .guru-wide-title strong,
+html.dark .dashboard-shell .guru-sub-name strong,
+html.dark .dashboard-shell .guru-materi-head strong,
+html.dark .dashboard-shell .time-badge,
+html.dark .dashboard-shell .item-subject,
+html.dark .dashboard-shell .task-title-text,
+html.dark .dashboard-shell .dropzone-title,
+html.dark .dashboard-shell .att-banner-title,
+html.dark .dashboard-shell .mat-title-heading,
+html.dark .dashboard-shell .siswa-detail-title,
+html.dark .dashboard-shell .siswa-section-title,
+html.dark .dashboard-shell .strip-title,
+html.dark .dashboard-shell .pgr-who strong,
+html.dark .dashboard-shell .pgr-sum-item strong,
+html.dark .dashboard-shell .pgr-rekap-who strong,
+html.dark .dashboard-shell .pgr-rekap-head h3,
+html.dark .dashboard-shell .psr-section-head h3,
+html.dark .dashboard-shell .psr-card-title strong,
+html.dark .dashboard-shell .psr-row-main strong,
+html.dark .dashboard-shell .psr-stat strong,
+html.dark .dashboard-shell .dash-widget-title {
+  color: #f8fafc !important;
+}
+
+/* Teks keterangan & muted */
+html.dark .dashboard-shell .siswa-mapel-teacher,
+html.dark .dashboard-shell .siswa-mapel-stats,
+html.dark .dashboard-shell .guru-item-sub,
+html.dark .dashboard-shell .guru-item-desc,
+html.dark .dashboard-shell .guru-task-heading span,
+html.dark .dashboard-shell .guru-sub-name span,
+html.dark .dashboard-shell .guru-materi-meta,
+html.dark .dashboard-shell .guru-materi-desc,
+html.dark .dashboard-shell .item-meta-row,
+html.dark .dashboard-shell .dropzone-desc,
+html.dark .dashboard-shell .att-banner-sub,
+html.dark .dashboard-shell .mat-meta-specs,
+html.dark .dashboard-shell .siswa-detail-sub,
+html.dark .dashboard-shell .siswa-section-count,
+html.dark .dashboard-shell .strip-date,
+html.dark .dashboard-shell .pgr-who span,
+html.dark .dashboard-shell .pgr-sum-label,
+html.dark .dashboard-shell .pgr-rekap-who span,
+html.dark .dashboard-shell .pgr-field label,
+html.dark .dashboard-shell .task-row-bottom,
+html.dark .dashboard-shell .siswa-task-foot-meta,
+html.dark .dashboard-shell .psr-stat-label,
+html.dark .dashboard-shell .psr-stat-sub,
+html.dark .dashboard-shell .psr-section-head p,
+html.dark .dashboard-shell .psr-card-title span,
+html.dark .dashboard-shell .psr-row-main span,
+html.dark .dashboard-shell .psr-card-time small,
+html.dark .dashboard-shell .psr-method,
+html.dark .dashboard-shell .guru-empty-box span {
+  color: #94a3b8 !important;
+}
+
+/* Divider & garis putus-putus */
+html.dark .dashboard-shell .siswa-mapel-stats,
+html.dark .dashboard-shell .siswa-day-head,
+html.dark .dashboard-shell .guru-task-foot,
+html.dark .dashboard-shell .guru-item-foot,
+html.dark .dashboard-shell .task-row-bottom,
+html.dark .dashboard-shell .section-title-strip,
+html.dark .dashboard-shell .siswa-section-head,
+html.dark .dashboard-shell .siswa-detail-head,
+html.dark .dashboard-shell .guru-toolbar,
+html.dark .dashboard-shell .timeline-time-col,
+html.dark .dashboard-shell .dash-widget-head,
+html.dark .dashboard-shell .psr-card-foot {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Select, Chip, dan Button di Dark Mode */
+html.dark .dashboard-shell .guru-empty-box,
+html.dark .dashboard-shell .guru-select,
+html.dark .dashboard-shell .guru-chip-btn {
+  background: var(--ps-card-soft) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+}
+
+html.dark .dashboard-shell .guru-chip-btn.is-active {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+html.dark .dashboard-shell .guru-select { color: var(--ps-strong) !important; }
+
+html.dark .dashboard-shell .guru-icon-btn,
+html.dark .dashboard-shell .btn-browse-file,
+html.dark .dashboard-shell .btn-download-modul,
+html.dark .dashboard-shell .pgr-ghost,
+html.dark .dashboard-shell .pgr-opt,
+html.dark .dashboard-shell .siswa-back-mapel {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f1f5f9 !important;
+}
+
+html.dark .dashboard-shell .guru-icon-btn:hover,
+html.dark .dashboard-shell .btn-browse-file:hover,
+html.dark .dashboard-shell .btn-download-modul:hover,
+html.dark .dashboard-shell .pgr-ghost:hover,
+html.dark .dashboard-shell .pgr-opt:hover,
+html.dark .dashboard-shell .siswa-back-mapel:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+html.dark .dashboard-shell .psr-counter,
+html.dark .dashboard-shell .psr-card-time {
+  background: var(--ps-hover) !important;
+  color: var(--ps-strong) !important;
+}
+
+html.dark .dashboard-shell .psr-badge {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--ps-border) !important;
+}
+
+/* Pagination Dark Mode */
+html.dark .pgn-root { border-top-color: rgba(255, 255, 255, 0.1) !important; }
+html.dark .pgn-info { color: #94a3b8 !important; }
+html.dark .pgn-info strong { color: #f8fafc !important; }
+html.dark .pgn-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .pgn-btn:hover:not(:disabled):not(.is-active) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+html.dark .pgn-btn.is-active {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+/* Tabel Nilai Siswa */
+html.dark .dashboard-shell .siswa-grades-table th {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .siswa-grades-table td {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  color: #f1f5f9 !important;
+}
+
+/* Feedback & Exam Notes */
+html.dark .dashboard-shell .siswa-feedback-box {
+  background: rgba(251, 146, 60, 0.1) !important;
+  border-color: rgba(251, 146, 60, 0.28) !important;
+  color: #fdba74 !important;
+}
+html.dark .dashboard-shell .siswa-feedback-box p { color: #fed7aa !important; }
+html.dark .dashboard-shell .siswa-exam-note {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #fde68a !important;
+}
+
+/* Modal Dialogs (AppModal, GuruModal, Submission, Grade, dsb) */
+html.dark .gm-dialog {
+  background: #141619 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7) !important;
+  color: #f8fafc !important;
+}
+html.dark .gm-head,
+html.dark .gm-foot {
+  background: rgba(255, 255, 255, 0.045) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .gm-head h3 { color: #f8fafc !important; }
+html.dark .gm-head p { color: #94a3b8 !important; }
+html.dark .gm-close,
+html.dark .gm-btn-ghost {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .gm-close:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+html.dark .gm-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* Modal Content & Sub-elements */
+html.dark .gm-dialog input,
+html.dark .gm-dialog select,
+html.dark .gm-dialog textarea {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .asm-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .asm-row:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+html.dark .asm-who strong { color: #f8fafc !important; }
+html.dark .asm-who span { color: #94a3b8 !important; }
+html.dark .asm-avatar {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .asm-summary > span {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .asm-summary > span strong { color: #f8fafc !important; }
+html.dark .asm-empty {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .grm-pane {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .grm-pane.is-form {
+  background: rgba(234, 88, 12, 0.06) !important;
+  border-color: rgba(234, 88, 12, 0.25) !important;
+}
+html.dark .grm-pane-title {
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .grm-student strong { color: #f8fafc !important; }
+html.dark .sbm-info {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .sbm-info-row strong { color: #f8fafc !important; }
+html.dark .sbm-drop {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+html.dark .sbm-drop:hover {
+  background: rgba(234, 88, 12, 0.08) !important;
+  border-color: #ea580c !important;
+}
+html.dark .sbm-drop-icon {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark .sbm-drop-body strong { color: #f8fafc !important; }
+html.dark .sbm-drop-clear {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+}
+html.dark .sbm-label { color: #f1f5f9 !important; }
+html.dark .sbm-desc p { color: #cbd5e1 !important; }
+html.dark .mvm-fallback {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark .mvm-fallback strong { color: #f8fafc !important; }
+html.dark .mvm-meta-item {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .ecm-code-box {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-pane {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-pane.is-form {
+  background: rgba(234, 88, 12, 0.06) !important;
+  border-color: rgba(234, 88, 12, 0.25) !important;
+}
+html.dark .eqm-pane-head h4 { color: #f8fafc !important; }
+html.dark .eqm-empty {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .exr-root { background: #0b1120 !important; }
+html.dark .exr-intro {
+  background: radial-gradient(900px 400px at 15% 0%, rgba(234, 88, 12, 0.15), transparent 60%), radial-gradient(700px 400px at 90% 100%, rgba(37, 99, 235, 0.15), transparent 60%), #0f172a !important;
+}
+html.dark .exr-intro-card {
+  background: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .exr-intro-card h2 { color: #f8fafc !important; }
+html.dark .exr-intro-sub { color: #cbd5e1 !important; }
+html.dark .exr-intro-stats > div {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .exr-intro-stats strong { color: #f8fafc !important; }
+
+/* =====================================================================
+   DARK MODE — SISA ELEMEN PUTIH YANG BELUM TER-OVERRIDE
+   Mencakup: input/form, segment control, class card, badge/tag/pill,
+   status indicator, submit form, notes, dan sub-elemen lainnya.
+   ===================================================================== */
+
+/* --- Form Inputs (guru-input, siswa-submit-input, guru-select) --- */
+html.dark .dashboard-shell .guru-input,
+html.dark .dashboard-shell .siswa-submit-input {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .guru-input:focus,
+html.dark .dashboard-shell .siswa-submit-input:focus {
+  border-color: #ea580c !important;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2) !important;
+}
+html.dark .dashboard-shell .guru-field label {
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .guru-hint,
+html.dark .dashboard-shell .guru-field-hint {
+  color: #94a3b8 !important;
+}
+
+/* --- File drop zone (guru-file-drop, siswa-file-drop) --- */
+html.dark .dashboard-shell .guru-file-drop,
+html.dark .dashboard-shell .siswa-file-drop {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .guru-file-drop:hover,
+html.dark .dashboard-shell .siswa-file-drop:hover {
+  border-color: #ea580c !important;
+  color: #fb923c !important;
+}
+
+/* --- Segment control (guru-segment, guru-segment-btn) --- */
+html.dark .dashboard-shell .guru-segment {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+html.dark .dashboard-shell .guru-segment-btn {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-segment-btn:hover {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .guru-segment-btn.is-active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fb923c !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* --- Class cards & list items --- */
+html.dark .dashboard-shell .guru-class-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
+}
+html.dark .dashboard-shell .guru-class-head {
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .guru-class-list li {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .guru-class-stats span {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-class-subject {
+  color: #f1f5f9 !important;
+}
+html.dark .dashboard-shell .guru-class-time {
+  color: #94a3b8 !important;
+}
+
+/* --- Sub-empty (guru-sub-empty, guru-empty) --- */
+html.dark .dashboard-shell .guru-sub-empty,
+html.dark .dashboard-shell .guru-empty {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+/* --- Tags, Chips, Badges & Pills di Dark Mode --- */
+html.dark .dashboard-shell .guru-tag {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .guru-tag.is-soft {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-chip {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .guru-status.is-live {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .guru-status.is-draft {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-status.is-warn {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fde68a !important;
+}
+html.dark .dashboard-shell .guru-status.is-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+html.dark .dashboard-shell .guru-pill.is-live {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .guru-pill.is-draft {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+
+/* --- Task status pills --- */
+html.dark .dashboard-shell .task-status-pill.pill-done {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .task-status-pill.pill-active {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .task-subject-tag {
+  color: #fb923c !important;
+}
+
+/* --- Siswa score & sub-score badges --- */
+html.dark .dashboard-shell .siswa-task-score {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .siswa-task-score.is-graded {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .guru-sub-score {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-sub-score.is-done {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .grade-badge-pass {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+
+/* --- Mapel code badge --- */
+html.dark .dashboard-shell .siswa-mapel-code {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+
+/* --- Mapel stats pill --- */
+html.dark .dashboard-shell .siswa-mapel-stats span {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+
+/* --- Day count badge --- */
+html.dark .dashboard-shell .siswa-day-count {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+
+/* --- Icon boxes in dark mode --- */
+html.dark .dashboard-shell .guru-item-icon {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .guru-item-icon.is-purple {
+  background: rgba(124, 58, 237, 0.15) !important;
+  color: #a78bfa !important;
+}
+html.dark .dashboard-shell .mat-icon-wrapper {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .guru-materi-icon {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+
+/* --- Sub-avatar (guru-sub-avatar) --- */
+html.dark .dashboard-shell .guru-sub-avatar {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #93c5fd !important;
+}
+
+/* --- Progress bar track --- */
+html.dark .dashboard-shell .guru-progress-bar {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .dashboard-shell .guru-progress-meta strong {
+  color: #f8fafc !important;
+}
+
+/* --- Submit form (siswa-submit-form) & related --- */
+html.dark .dashboard-shell .siswa-submit-form {
+  background: rgba(234, 88, 12, 0.06) !important;
+  border-color: rgba(234, 88, 12, 0.25) !important;
+}
+html.dark .dashboard-shell .siswa-collect-btn {
+  background: rgba(234, 88, 12, 0.15) !important;
+  border-color: rgba(234, 88, 12, 0.35) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .siswa-collect-btn:hover {
+  background: rgba(234, 88, 12, 0.25) !important;
+}
+
+/* --- Cancel button & ghost buttons --- */
+html.dark .dashboard-shell .siswa-cancel-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .siswa-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* --- Error messages --- */
+html.dark .dashboard-shell .siswa-submit-error,
+html.dark .dashboard-shell .guru-form-error {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+
+/* --- Exam session notes --- */
+html.dark .dashboard-shell .siswa-exam-terminated-note,
+html.dark .dashboard-shell .guru-terminated-note {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+html.dark .dashboard-shell .siswa-exam-session-note {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .siswa-exam-session-note.is-upcoming {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #fde68a !important;
+}
+html.dark .dashboard-shell .siswa-exam-session-note.is-ended {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+html.dark .dashboard-shell .siswa-exam-session-note.is-unscheduled {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .siswa-exam-session-note.is-override {
+  background: rgba(251, 146, 60, 0.1) !important;
+  border-color: rgba(251, 146, 60, 0.3) !important;
+  color: #fdba74 !important;
+}
+
+/* --- Approval note --- */
+html.dark .dashboard-shell .guru-approval-note {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #fde68a !important;
+}
+
+/* --- Guru check label --- */
+html.dark .dashboard-shell .guru-check {
+  color: #cbd5e1 !important;
+}
+
+/* --- Status pill generic --- */
+html.dark .dashboard-shell .status-pill-badge {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+
+/* --- Siswa detail & section borders --- */
+html.dark .dashboard-shell .siswa-detail-head {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .siswa-mapel-card {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark .dashboard-shell .siswa-mapel-card:hover {
+  border-color: #ea580c !important;
+  box-shadow: 0 10px 24px rgba(234, 88, 12, 0.2) !important;
+}
+html.dark .dashboard-shell .siswa-mapel-head {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .siswa-mapel-stats {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- Table grades --- */
+html.dark .dashboard-shell .siswa-grades-table {
+  color: #f1f5f9 !important;
+}
+
+/* --- Transcript header banner --- */
+html.dark .dashboard-shell .transcript-header-banner {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+}
+
+/* --- Guru class head border --- */
+html.dark .dashboard-shell .guru-class-head {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- KPI icon box colors maintained in dark mode --- */
+html.dark .dashboard-shell .kpi-icon-box.bg-orange {
+  background: rgba(249, 115, 22, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .kpi-icon-box.bg-emerald {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .kpi-icon-box.bg-blue {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #93c5fd !important;
+}
+html.dark .dashboard-shell .kpi-icon-box.bg-purple {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c4b5fd !important;
+}
+
+/* --- Guru empty box strong text --- */
+html.dark .dashboard-shell .guru-empty-box strong {
+  color: #f8fafc !important;
+}
+
+/* --- Guru sub card pending state --- */
+html.dark .dashboard-shell .guru-sub-card.is-pending {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+/* --- Guru sub-bottom text --- */
+html.dark .dashboard-shell .guru-sub-bottom {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-sub-cta {
+  color: #fb923c !important;
+}
+
+/* --- Link colors in dark mode --- */
+html.dark .dashboard-shell .guru-link {
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .guru-materi-link {
+  color: #fb923c !important;
+}
+
+/* --- Siswa back button hover in dark mode --- */
+html.dark .dashboard-shell .siswa-back-mapel:hover {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+  border-color: rgba(234, 88, 12, 0.35) !important;
+}
+
+/* --- Guru toolbar borders + text colors in dark mode --- */
+html.dark .dashboard-shell .guru-toolbar-left,
+html.dark .dashboard-shell .guru-chips {
+  color: var(--ps-soft) !important;
+}
+
+/* --- Guru kpi-btn borders --- */
+html.dark .dashboard-shell .guru-kpi-btn {
+  border-color: var(--ps-border) !important;
+}
+html.dark .dashboard-shell .guru-kpi-btn:hover {
+  border-color: rgba(192, 132, 252, 0.35) !important;
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.2) !important;
+}
+
+/* --- Siswa section head border --- */
+html.dark .dashboard-shell .siswa-section-head {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- Day head border --- */
+html.dark .dashboard-shell .siswa-day-head {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- Guru task/item foot border --- */
+html.dark .dashboard-shell .guru-task-foot {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .guru-item-foot {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- Guru card borders --- */
+html.dark .dashboard-shell .guru-sub-card {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark .dashboard-shell .guru-sub-card:hover {
+  border-color: rgba(251, 146, 60, 0.4) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* --- Guru empty-box svg icon color --- */
+html.dark .dashboard-shell .guru-empty-box svg {
+  color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   PRESENSI SISWA (PSR) DARK MODE
+   ========================================================================== */
+html.dark .dashboard-shell .psr-stat {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .psr-stat strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .psr-stat-label {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .psr-stat-sub {
+  color: #64748b !important;
+}
+html.dark .dashboard-shell .psr-stat.is-main {
+  background: rgba(15, 118, 110, 0.18) !important;
+  border-color: rgba(45, 212, 191, 0.35) !important;
+}
+html.dark .dashboard-shell .psr-stat.is-main strong {
+  color: #2dd4bf !important;
+}
+html.dark .dashboard-shell .psr-counter {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .psr-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .psr-card:hover {
+  border-color: rgba(251, 146, 60, 0.4) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+html.dark .dashboard-shell .psr-card.is-done {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.dark .dashboard-shell .psr-card-time {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .psr-card-time small {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .psr-card-title strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .psr-card-title span {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .psr-card-foot {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .psr-section-head h3 {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .psr-section-head p {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .psr-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .psr-row-main strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .psr-row-main span {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .psr-badge.is-hadir {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.dark .dashboard-shell .psr-badge.is-terlambat {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fde68a !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+html.dark .dashboard-shell .psr-badge.is-izin {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+html.dark .dashboard-shell .psr-badge.is-sakit {
+  background: rgba(139, 92, 246, 0.15) !important;
+  color: #c4b5fd !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+html.dark .dashboard-shell .psr-badge.is-alpa {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+html.dark .dashboard-shell .psr-badge.is-open {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ==========================================================================
+   PRESENSI GURU (PGR) DARK MODE
+   ========================================================================== */
+html.dark .dashboard-shell .pgr-toolbar {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .pgr-field label {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .pgr-field select {
+  background: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-ghost {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .pgr-ghost:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-sum-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .pgr-sum-item.is-head {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .dashboard-shell .pgr-sum-item strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-sum-label {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .pgr-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .pgr-num {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .pgr-who strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-who span {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .pgr-opt {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .pgr-opt:hover {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-opt.is-active.is-hadir {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+  color: #6ee7b7 !important;
+}
+html.dark .dashboard-shell .pgr-opt.is-active.is-terlambat {
+  background: rgba(245, 158, 11, 0.25) !important;
+  border-color: #f59e0b !important;
+  color: #fde68a !important;
+}
+html.dark .dashboard-shell .pgr-opt.is-active.is-izin {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border-color: #3b82f6 !important;
+  color: #93c5fd !important;
+}
+html.dark .dashboard-shell .pgr-opt.is-active.is-sakit {
+  background: rgba(139, 92, 246, 0.25) !important;
+  border-color: #8b5cf6 !important;
+  color: #c4b5fd !important;
+}
+html.dark .dashboard-shell .pgr-opt.is-active.is-alpa {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+html.dark .dashboard-shell .pgr-savebar {
+  background: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+}
+html.dark .dashboard-shell .pgr-savebar > span {
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .pgr-rekap-head h3 {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-rekap-head span {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .pgr-rekap-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .pgr-rekap-who strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .pgr-rekap-who span {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .pgr-rekap-bar {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .dashboard-shell .pgr-rekap-pct {
+  color: #2dd4bf !important;
+}
+
+/* ==========================================================================
+   JADWAL SISWA (SISWA-DAY) DARK MODE
+   ========================================================================== */
+html.dark .dashboard-shell .siswa-day-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .siswa-day-card:hover {
+  border-color: rgba(251, 146, 60, 0.35) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3) !important;
+}
+html.dark .dashboard-shell .siswa-day-name {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .siswa-day-count {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .siswa-day-item {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+html.dark .dashboard-shell .siswa-day-time {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .siswa-day-body strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .siswa-day-body span {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .siswa-section-title {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .siswa-section-count {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .siswa-task-score {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .siswa-task-score.is-graded {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+
+/* ==========================================================================
+   EXAM RECAP CARD (ERC) DARK MODE
+   ========================================================================== */
+html.dark .erc-card,
+html.dark .dashboard-shell .erc-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.5) !important;
+}
+html.dark .erc-head-icon,
+html.dark .dashboard-shell .erc-head-icon {
+  background: rgba(234, 88, 12, 0.15) !important;
+  border-color: rgba(234, 88, 12, 0.3) !important;
+  color: #fb923c !important;
+}
+html.dark .erc-head-title h3,
+html.dark .dashboard-shell .erc-head-title h3 {
+  color: #f8fafc !important;
+}
+html.dark .erc-head-title p,
+html.dark .dashboard-shell .erc-head-title p {
+  color: #94a3b8 !important;
+}
+html.dark .erc-filters,
+html.dark .dashboard-shell .erc-filters {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .erc-search,
+html.dark .dashboard-shell .erc-search {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+html.dark .erc-search input,
+html.dark .dashboard-shell .erc-search input {
+  color: #f8fafc !important;
+}
+html.dark .erc-filters select,
+html.dark .dashboard-shell .erc-filters select {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .erc-filters select option,
+html.dark .dashboard-shell .erc-filters select option {
+  background: #141619;
+  color: #f8fafc;
+}
+html.dark .erc-reset-filter,
+html.dark .dashboard-shell .erc-reset-filter {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .erc-reset-filter:hover,
+html.dark .dashboard-shell .erc-reset-filter:hover {
+  border-color: #ea580c !important;
+  color: #fb923c !important;
+}
+html.dark .erc-chip,
+html.dark .dashboard-shell .erc-chip {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .erc-chip.is-total,
+html.dark .dashboard-shell .erc-chip.is-total {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .erc-chip.is-ok,
+html.dark .dashboard-shell .erc-chip.is-ok {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .erc-chip.is-live,
+html.dark .dashboard-shell .erc-chip.is-live {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #fcd34d !important;
+}
+html.dark .erc-chip.is-danger,
+html.dark .dashboard-shell .erc-chip.is-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+html.dark .erc-chip.is-avg,
+html.dark .dashboard-shell .erc-chip.is-avg {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .erc-table-wrap,
+html.dark .dashboard-shell .erc-table-wrap {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .erc-table thead th,
+html.dark .dashboard-shell .erc-table thead th {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .erc-table tbody td,
+html.dark .dashboard-shell .erc-table tbody td {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .erc-table tbody tr:hover td,
+html.dark .dashboard-shell .erc-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+html.dark .erc-table tbody tr.is-danger td,
+html.dark .dashboard-shell .erc-table tbody tr.is-danger td {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+html.dark .erc-table tbody tr.is-danger:hover td,
+html.dark .dashboard-shell .erc-table tbody tr.is-danger:hover td {
+  background: rgba(239, 68, 68, 0.14) !important;
+}
+html.dark .erc-table td.is-score,
+html.dark .erc-table td.is-name,
+html.dark .dashboard-shell .erc-table td.is-score,
+html.dark .dashboard-shell .erc-table td.is-name {
+  color: #f8fafc !important;
+}
+html.dark .erc-table td.is-mono,
+html.dark .dashboard-shell .erc-table td.is-mono {
+  color: #cbd5e1 !important;
+}
+html.dark .erc-empty strong,
+html.dark .dashboard-shell .erc-empty strong {
+  color: #f8fafc !important;
+}
+html.dark .erc-btn.is-csv,
+html.dark .dashboard-shell .erc-btn.is-csv {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+html.dark .erc-btn.is-xlsx,
+html.dark .dashboard-shell .erc-btn.is-xlsx {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.dark .erc-btn.is-pdf,
+html.dark .dashboard-shell .erc-btn.is-pdf {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* ==========================================================================
+   EXAM ATTEMPTS MODAL (EAM) DARK MODE
+   ========================================================================== */
+html.dark .eam-empty {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+html.dark .eam-empty strong {
+  color: #f8fafc !important;
+}
+html.dark .eam-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eam-row.is-danger {
+  background: rgba(239, 68, 68, 0.08) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+html.dark .eam-head-title strong {
+  color: #f8fafc !important;
+}
+html.dark .eam-head-title span {
+  color: #94a3b8 !important;
+}
+html.dark .eam-score strong {
+  color: #f8fafc !important;
+}
+html.dark .eam-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eam-btn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+html.dark .eam-note {
+  background: rgba(251, 146, 60, 0.14) !important;
+  border-color: rgba(251, 146, 60, 0.4) !important;
+  color: #fdba74 !important;
+}
+html.dark .eam-alert {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+
+/* ==========================================================================
+   MATERIAL VIEWER MODAL (MVM) DARK MODE
+   ========================================================================== */
+html.dark .mvm-link-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .mvm-link-icon {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .mvm-link-body strong {
+  color: #f8fafc !important;
+}
+html.dark .mvm-link-body span {
+  color: #94a3b8 !important;
+}
+html.dark .mvm-link-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .mvm-link-btn:hover {
+  background: rgba(234, 88, 12, 0.2) !important;
+  border-color: #ea580c !important;
+  color: #fb923c !important;
+}
+html.dark .mvm-desc p {
+  color: #cbd5e1 !important;
+}
+html.dark .mvm-desc h4 {
+  color: #94a3b8 !important;
+}
+html.dark .mvm-empty {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+/* ==========================================================================
+   EXAM QUESTIONS MODAL (EQM) DARK MODE
+   ========================================================================== */
+html.dark .eqm-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-num {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .eqm-question {
+  color: #f8fafc !important;
+}
+html.dark .eqm-option {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-option.is-key {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .eqm-option.is-key b {
+  color: #34d399 !important;
+}
+html.dark .eqm-item-foot {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+}
+html.dark .eqm-item-foot b {
+  color: #f8fafc !important;
+}
+html.dark .eqm-type {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-input {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .eqm-option-letter {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+
+/* Tab input manual / import */
+html.dark .eqm-tabs {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-tab { color: #94a3b8 !important; }
+html.dark .eqm-tab:hover { color: #f8fafc !important; }
+html.dark .eqm-tab.is-active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fb923c !important;
+  box-shadow: none !important;
+}
+
+/* Tombol edit pada daftar soal */
+html.dark .eqm-edit {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-edit:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+html.dark .eqm-item.is-editing {
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2) !important;
+}
+
+/* Thumbnail gambar soal */
+html.dark .eqm-thumb {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-thumb img { background: #0f172a !important; }
+html.dark .eqm-thumb span {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+}
+
+/* Input gambar pada form */
+html.dark .eqm-image-drop {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #94a3b8 !important;
+}
+html.dark .eqm-image-drop:hover {
+  background: rgba(234, 88, 12, 0.1) !important;
+  border-color: rgba(234, 88, 12, 0.4) !important;
+  color: #fb923c !important;
+}
+html.dark .eqm-image-preview {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-image-del { color: #f87171 !important; }
+html.dark .eqm-image-replace { color: #fb923c !important; }
+
+/* Tombol batal */
+html.dark .eqm-cancel {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-cancel:hover { background: rgba(255, 255, 255, 0.12) !important; }
+
+/* Panel import */
+html.dark .eqm-pane.is-import {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-step { border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark .eqm-step-no {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+html.dark .eqm-step-title { color: #f8fafc !important; }
+html.dark .eqm-step-desc { color: #94a3b8 !important; }
+
+html.dark .eqm-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+html.dark .eqm-btn.is-excel {
+  background: rgba(16, 185, 129, 0.14) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .eqm-btn.is-csv {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: #93c5fd !important;
+}
+
+html.dark .eqm-file-drop {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-file-drop:hover {
+  background: rgba(234, 88, 12, 0.1) !important;
+  border-color: rgba(234, 88, 12, 0.4) !important;
+  color: #fb923c !important;
+}
+
+html.dark .eqm-note {
+  background: rgba(251, 191, 36, 0.1) !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+  color: #fcd34d !important;
+}
+html.dark .eqm-note b { color: #fde68a !important; }
+
+html.dark .eqm-ok {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #6ee7b7 !important;
+}
+
+html.dark .eqm-error {
+  background: rgba(248, 113, 113, 0.1) !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+  color: #fca5a5 !important;
+}
+
+html.dark .eqm-import-summary .is-ok {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .eqm-import-summary .is-bad {
+  background: rgba(248, 113, 113, 0.1) !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+  color: #fca5a5 !important;
+}
+html.dark .eqm-import-hint { color: #fcd34d !important; }
+
+html.dark .eqm-import-preview {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .eqm-import-preview th {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+html.dark .eqm-import-preview td {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .eqm-import-preview td.is-key { color: #6ee7b7 !important; }
+html.dark .eqm-import-more {
+  border-top-color: rgba(255, 255, 255, 0.06) !important;
+  color: #64748b !important;
+}
+html.dark .eqm-import-errors {
+  background: rgba(248, 113, 113, 0.08) !important;
+  border-color: rgba(248, 113, 113, 0.25) !important;
+  color: #fca5a5 !important;
+}
+
+/* ==========================================================================
+   EXAM CODE MODAL (ECM) DARK MODE
+   ========================================================================== */
+html.dark .ecm-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .ecm-row-text strong {
+  color: #f8fafc !important;
+}
+html.dark .ecm-row-text span {
+  color: #94a3b8 !important;
+}
+html.dark .ecm-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+html.dark .ecm-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+html.dark .ecm-code {
+  background: rgba(15, 118, 110, 0.2) !important;
+  border-color: rgba(45, 212, 191, 0.4) !important;
+  color: #2dd4bf !important;
+}
+html.dark .ecm-code.is-empty {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+html.dark .ecm-note {
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: #93c5fd !important;
+}
+html.dark .ecm-switch {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ==========================================================================
+   EXAM RUNNER CBT (EXR) DARK MODE
+   ========================================================================== */
+html.dark .exr-bar {
+  background: #0f172a !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .exr-bar-icon {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .exr-bar-left strong {
+  color: #f8fafc !important;
+}
+html.dark .exr-bar-left span {
+  color: #94a3b8 !important;
+}
+html.dark .exr-timer {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+html.dark .exr-nav {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark .exr-nav-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .exr-nav-btn:hover {
+  border-color: #ea580c !important;
+  color: #fb923c !important;
+}
+html.dark .exr-nav-btn.is-answered {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .exr-nav-btn.is-current {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+}
+html.dark .exr-nav-legend {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+html.dark .exr-nav-legend i {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+html.dark .exr-nav-legend i.is-answered {
+  background: rgba(16, 185, 129, 0.3) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+html.dark .exr-nav-legend i.is-current {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+}
+html.dark .exr-card {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .exr-qnum {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .exr-qtext {
+  color: #f8fafc !important;
+}
+html.dark .exr-qimage {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html.dark .exr-qimage img { background: #0b1120 !important; }
+html.dark .exr-option {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .exr-option:hover {
+  background: rgba(234, 88, 12, 0.08) !important;
+  border-color: rgba(234, 88, 12, 0.35) !important;
+}
+html.dark .exr-option.is-active {
+  background: rgba(234, 88, 12, 0.15) !important;
+  border-color: #ea580c !important;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2) !important;
+  color: #fb923c !important;
+}
+html.dark .exr-option-letter {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .exr-option.is-active .exr-option-letter {
+  background: #ea580c !important;
+  color: #ffffff !important;
+}
+html.dark .exr-option-text {
+  color: #f1f5f9 !important;
+}
+html.dark .exr-card-foot {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+@media (max-width: 560px) {
+  /* footer soal menempel di bawah -> ikut warna kartu, bukan putih */
+  html.dark .exr-card-foot {
+    background: #0f172a !important;
+    border-top-color: rgba(255, 255, 255, 0.12) !important;
+  }
+}
+html.dark .exr-confirm {
+  background: #1e293b !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
+}
+html.dark .exr-confirm h3 {
+  color: #f8fafc !important;
+}
+html.dark .exr-confirm p {
+  color: #cbd5e1 !important;
+}
+html.dark .exr-result {
+  background: radial-gradient(800px 380px at 50% 0%, rgba(16, 185, 129, 0.1), transparent 65%), #0b1120 !important;
+}
+html.dark .exr-result-card {
+  background: #0f172a !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5) !important;
+}
+html.dark .exr-result-card h2 {
+  color: #f8fafc !important;
+}
+html.dark .exr-result-sub {
+  color: #94a3b8 !important;
+}
+html.dark .exr-result-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .exr-result-row.is-right {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .exr-result-row.is-wrong {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5 !important;
+}
+html.dark .exr-result-row strong {
+  color: #f8fafc !important;
+}
+html.dark .exr-result-num {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   PAGINATION (PGN) DARK MODE
+   ========================================================================== */
+html.dark .pgn-root {
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .pgn-info {
+  color: #94a3b8 !important;
+}
+html.dark .pgn-info strong {
+  color: #f8fafc !important;
+}
+html.dark .pgn-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+html.dark .pgn-btn:hover:not(:disabled):not(.is-active) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   LIBRARY MATERIAL CARDS & GURU ROWS IN SISWA
+   ========================================================================== */
+html.dark .dashboard-shell .lib-material-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .mat-icon-wrapper {
+  background: rgba(234, 88, 12, 0.15) !important;
+  color: #fb923c !important;
+}
+html.dark .dashboard-shell .mat-category-tag {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .mat-title-heading {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .mat-meta-specs {
+  color: #64748b !important;
+}
+html.dark .dashboard-shell .btn-download-modul {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .btn-download-modul:hover {
+  background: #ea580c !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+}
+html.dark .dashboard-shell .guru-materi-row {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .guru-materi-head strong {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .guru-materi-meta {
+  color: #94a3b8 !important;
+}
+html.dark .dashboard-shell .guru-materi-desc {
+  color: #cbd5e1 !important;
+}
+html.dark .dashboard-shell .siswa-detail-head {
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .dashboard-shell .siswa-detail-title {
+  color: #f8fafc !important;
+}
+html.dark .dashboard-shell .siswa-detail-sub {
+  color: #94a3b8 !important;
+}
+
+
+/* ---------- Rekap Nilai CBT per Kelas (guru) ---------- */
+html.dark .ecr-card,
+html.dark .dashboard-shell .ecr-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+}
+html.dark .ecr-card:hover,
+html.dark .dashboard-shell .ecr-card:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+html.dark .ecr-head-icon {
+  background: rgba(234, 88, 12, 0.14) !important;
+  border-color: rgba(234, 88, 12, 0.35) !important;
+  color: #fb923c !important;
+}
+html.dark .ecr-head-title h3,
+html.dark .ecr-head-title strong { color: #f8fafc !important; }
+html.dark .ecr-head-title p { color: #94a3b8 !important; }
+html.dark .ecr-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e2e8f0 !important;
+}
+html.dark .ecr-btn:hover:not(:disabled) {
+  background: rgba(234, 88, 12, 0.18) !important;
+  border-color: rgba(234, 88, 12, 0.5) !important;
+  color: #fdba74 !important;
+}
+html.dark .ecr-class-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .ecr-class-chip:hover {
+  background: rgba(234, 88, 12, 0.14) !important;
+  border-color: rgba(234, 88, 12, 0.45) !important;
+}
+html.dark .ecr-class-chip.is-active {
+  background: rgba(234, 88, 12, 0.2) !important;
+  border-color: #ea580c !important;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.22) !important;
+}
+html.dark .ecr-chip-top strong { color: #f1f5f9 !important; }
+html.dark .ecr-class-chip.is-active .ecr-chip-top strong { color: #fdba74 !important; }
+html.dark .ecr-chip-tingkat {
+  background: rgba(234, 88, 12, 0.22) !important;
+  color: #fdba74 !important;
+}
+html.dark .ecr-chip-meta,
+html.dark .ecr-chip-avg { color: #94a3b8 !important; }
+html.dark .ecr-chip-avg strong { color: #f8fafc !important; }
+html.dark .ecr-search,
+html.dark .ecr-toolbar select,
+html.dark .ecr-kkm input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e2e8f0 !important;
+}
+html.dark .ecr-search input { color: #f8fafc !important; }
+html.dark .ecr-kkm { color: #94a3b8 !important; }
+html.dark .ecr-toggle { color: #cbd5e1 !important; }
+html.dark .ecr-reset {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #94a3b8 !important;
+}
+html.dark .ecr-stats .is-total {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e2e8f0 !important;
+}
+html.dark .ecr-stats .is-ok {
+  background: rgba(16, 185, 129, 0.14) !important;
+  border-color: rgba(16, 185, 129, 0.32) !important;
+  color: #6ee7b7 !important;
+}
+html.dark .ecr-stats .is-warn {
+  background: rgba(245, 158, 11, 0.14) !important;
+  border-color: rgba(245, 158, 11, 0.32) !important;
+  color: #fcd34d !important;
+}
+html.dark .ecr-stats .is-danger {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-color: rgba(239, 68, 68, 0.32) !important;
+  color: #fca5a5 !important;
+}
+html.dark .ecr-stats .is-avg {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(59, 130, 246, 0.32) !important;
+  color: #93c5fd !important;
+}
+html.dark .ecr-table-wrap {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.dark .ecr-table thead th {
+  background: rgba(255, 255, 255, 0.05) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom-color: var(--ps-border) !important;
+  color: var(--ps-faint) !important;
+}
+html.dark .ecr-th-exam { color: var(--ps-strong) !important; }
+html.dark .ecr-th-mapel { color: var(--ps-faint) !important; }
+html.dark .ecr-table tbody td {
+  border-bottom-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+}
+html.dark .ecr-table tbody tr:hover td { background: var(--ps-hover) !important; }
+html.dark .ecr-table tbody td.is-name-col {
+  background: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2) !important;
+  color: var(--ps-strong) !important;
+}
+html.dark .ecr-table tbody tr:hover td.is-name-col { background: rgba(255, 255, 255, 0.08) !important; }
+html.dark .ecr-table .is-mono { color: var(--ps-faint) !important; }
+html.dark .ecr-table .is-avg-col {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-left-color: var(--ps-border) !important;
+  color: var(--ps-accent) !important;
+}
+html.dark .ecr-table td.is-pass { background: rgba(16, 185, 129, 0.14) !important; color: #6ee7b7 !important; }
+html.dark .ecr-table td.is-fail { background: rgba(239, 68, 68, 0.14) !important; color: #fca5a5 !important; }
+html.dark .ecr-table td.is-running { background: rgba(59, 130, 246, 0.14) !important; color: #93c5fd !important; }
+html.dark .ecr-table td.is-stopped { background: rgba(239, 68, 68, 0.1) !important; color: #fca5a5 !important; }
+html.dark .ecr-table td.is-empty { color: #475569 !important; }
+html.dark .ecr-table tfoot td {
+  background: rgba(255, 255, 255, 0.05) !important;
+  -webkit-backdrop-filter: var(--ps-glass-blur) !important;
+  backdrop-filter: var(--ps-glass-blur) !important;
+  border-top-color: var(--ps-border) !important;
+  color: var(--ps-soft) !important;
+}
+html.dark .ecr-table tfoot td.is-foot-label { color: var(--ps-faint) !important; }
+html.dark .ecr-table tfoot td.is-foot-val { color: var(--ps-accent) !important; }
+html.dark .ecr-pill.is-ok { background: rgba(16, 185, 129, 0.16) !important; border-color: rgba(16, 185, 129, 0.3) !important; color: #6ee7b7 !important; }
+html.dark .ecr-pill.is-warn { background: rgba(245, 158, 11, 0.16) !important; border-color: rgba(245, 158, 11, 0.3) !important; color: #fcd34d !important; }
+html.dark .ecr-pill.is-empty { background: rgba(255, 255, 255, 0.07) !important; border-color: rgba(255, 255, 255, 0.12) !important; color: #94a3b8 !important; }
+html.dark .ecr-no-match { color: #94a3b8 !important; border-top-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark .ecr-foot { color: #94a3b8 !important; }
+html.dark .ecr-foot strong { color: #f8fafc !important; }
+html.dark .ecr-note { color: #64748b !important; }
+html.dark .ecr-empty { color: #94a3b8 !important; }
+html.dark .ecr-empty-box {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #64748b !important;
+}
+html.dark .ecr-empty-box strong { color: #cbd5e1 !important; }
+html.dark .ecr-mcard {
+  background: #0b1120 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .ecr-mcard-head {
+  background: #111c33 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+html.dark .ecr-mcard-head strong { color: #f8fafc !important; }
+html.dark .ecr-mcard-nisn,
+html.dark .ecr-mcard-avg span { color: #64748b !important; }
+html.dark .ecr-mcard-avg em { color: #fdba74 !important; }
+html.dark .ecr-mcard-list li { border-bottom-color: rgba(255, 255, 255, 0.05) !important; }
+html.dark .ecr-m-exam { color: #cbd5e1 !important; }
+html.dark .ecr-m-exam em { color: #64748b !important; }
+html.dark .ecr-m-val { color: #475569 !important; }
+html.dark .ecr-mcard-list li.is-pass .ecr-m-val { color: #6ee7b7 !important; }
+html.dark .ecr-mcard-list li.is-fail .ecr-m-val { color: #fca5a5 !important; }
+html.dark .ecr-mcard-list li.is-running .ecr-m-val { color: #93c5fd !important; }
+html.dark .ecr-mcard-list li.is-stopped .ecr-m-val { color: #fca5a5 !important; }

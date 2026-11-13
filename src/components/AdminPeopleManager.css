@@ -1,0 +1,1083 @@
+/* ============================================================
+   Gaya bersama untuk manajer Data Guru / Data Siswa / Kelola Akun
+   Tema disesuaikan dengan AdminCMSDashboard (konten terang,
+   aksen oranye var(--primary)); header/sidebar gelap tetap milik CMS.
+   ============================================================ */
+
+.apm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.apm-error-box {
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  font-size: 13px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.apm-muted {
+  color: #64748b;
+  font-size: 12px;
+}
+
+/* Foto guru di tabel Data Guru; inisial dipakai bila foto tidak tersedia. */
+.apm-avatar {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.apm-avatar-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffedd5;
+  color: #c2410c;
+  font-weight: 700;
+  box-shadow: none;
+  border-color: #fed7aa;
+}
+
+.apm-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Badge status akun & role ---------- */
+
+.apm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.apm-badge-ok {
+  background: #d1fae5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+.apm-badge-none {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.apm-badge-role-admin {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+}
+
+.apm-badge-role-guru {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+}
+
+.apm-badge-role-siswa {
+  background: #d1fae5;
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+/* ---------- Tombol aksi kecil ---------- */
+
+.apm-btn-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apm-btn-small:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(255, 107, 0, 0.06);
+}
+
+.apm-btn-accept {
+  border-color: #6ee7b7;
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.apm-btn-accept:hover {
+  border-color: #10b981;
+  color: #047857;
+  background: #d1fae5;
+}
+
+.apm-btn-reject {
+  border-color: #fcd34d;
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.apm-btn-reject:hover {
+  border-color: #f59e0b;
+  color: #92400e;
+  background: #fef3c7;
+}
+
+/* ---------- Unggah foto guru ---------- */
+
+.apm-photo-field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.apm-photo-preview {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid #fed7aa;
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.apm-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.apm-photo-initial {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.apm-photo-actions {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.apm-photo-actions .apm-hint {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 11.5px;
+}
+
+.apm-file-input {
+  display: none;
+}
+
+.apm-btn-small:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.apm-btn-danger-soft {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.apm-btn-danger-soft:hover {
+  border-color: #f87171;
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.apm-spin {
+  animation: apm-spin 0.9s linear infinite;
+}
+
+@keyframes apm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Modal form ---------- */
+
+.apm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.apm-modal {
+  width: min(560px, 100%);
+  max-height: min(92vh, 680px);
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px -12px rgba(15, 23, 42, 0.35);
+  color: #0f172a;
+  overflow: hidden;
+  margin: auto;
+  position: relative;
+}
+
+.apm-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.apm-modal-head h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apm-modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.apm-modal-close:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.apm-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.apm-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.apm-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.apm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apm-field-full {
+  grid-column: 1 / -1;
+}
+
+.apm-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.apm-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.apm-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.apm-inline-link:hover {
+  text-decoration: underline;
+}
+
+.apm-input,
+.apm-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.apm-input:focus,
+.apm-select:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+}
+
+.apm-input::placeholder {
+  color: #94a3b8;
+}
+
+.apm-select {
+  cursor: pointer;
+}
+
+/* ---------- Opsi "buatkan akun" ---------- */
+
+.apm-checkbox {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  user-select: none;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.apm-checkbox input {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+}
+
+.apm-account-box {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #fff7ed;
+}
+
+.apm-hint {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.apm-hint code {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ---------- Aksi modal ---------- */
+
+.apm-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  margin-top: 0;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  flex-shrink: 0;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+}
+
+.apm-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apm-btn-ghost:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.apm-btn-solid {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apm-btn-solid:hover {
+  filter: brightness(1.08);
+}
+
+.apm-btn-solid:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.apm-loading-row {
+  text-align: center;
+  padding: 28px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* ---------- Kelola kelas ---------- */
+
+.apm-modal-wide {
+  width: min(880px, 100%);
+  max-height: min(92vh, 780px);
+}
+
+.apm-class-list {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.apm-class-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.apm-class-list-head h5 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.apm-class-list-head span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.apm-class-table-wrap {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.apm-class-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.apm-class-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.apm-class-table td {
+  padding: 9px 12px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.apm-class-table tr:last-child td {
+  border-bottom: none;
+}
+
+.apm-class-table td strong {
+  color: #0f172a;
+}
+
+/* ---------- Kolom pencarian ---------- */
+
+.apm-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 340px;
+}
+
+.apm-search-wrap > svg {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.apm-search-wrap .apm-input {
+  padding-left: 34px;
+  border-radius: var(--radius-full, 999px);
+}
+
+@media (max-width: 640px) {
+  .apm-form-grid,
+  .apm-account-box {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================================
+   GLASS RESKIN — Data Guru / Data Siswa / Kelola Akun
+   Panel, modal tambah-edit, dropdown, badge, dan tombol diselaraskan
+   dengan design token glass portal (.ps-*) + mode gelap html.dark.
+   Modal dirender lewat portal ke <body>, jadi nilai warna ditulis
+   eksplisit (tidak mewarisi token .dashboard-shell).
+   ===================================================================== */
+
+/* ---------- Teks dasar ---------- */
+.apm-muted { color: var(--ps-faint, #64748b); }
+.apm-loading-row { color: var(--ps-soft, #475569); }
+html.dark .apm-loading-row { color: #cbd5e1; }
+
+/* ---------- Kotak pesan error ---------- */
+.apm-error-box {
+  background: rgba(254, 226, 226, 0.78);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #b91c1c;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+html.dark .apm-error-box {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.38);
+  color: #fca5a5;
+}
+
+/* ---------- Avatar ---------- */
+.apm-avatar {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+html.dark .apm-avatar { border-color: rgba(255, 255, 255, 0.22); }
+
+.apm-avatar-empty {
+  background: rgba(232, 112, 42, 0.16);
+  color: #c2410c;
+  border-color: rgba(232, 112, 42, 0.32);
+}
+
+html.dark .apm-avatar-empty {
+  background: rgba(251, 146, 60, 0.18);
+  color: #fdba74;
+  border-color: rgba(251, 146, 60, 0.34);
+}
+
+/* ---------- Badge ---------- */
+.apm-badge { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+
+.apm-badge-ok {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+html.dark .apm-badge-ok {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.34);
+}
+
+.apm-badge-none {
+  background: rgba(148, 163, 184, 0.14);
+  color: #64748b;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+}
+
+html.dark .apm-badge-none {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.apm-badge-role-admin {
+  background: rgba(139, 92, 246, 0.14);
+  color: #6d28d9;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+}
+
+html.dark .apm-badge-role-admin {
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.36);
+}
+
+.apm-badge-role-guru {
+  background: rgba(56, 189, 248, 0.16);
+  color: #0369a1;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+html.dark .apm-badge-role-guru {
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.34);
+}
+
+.apm-badge-role-siswa {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+html.dark .apm-badge-role-siswa {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.34);
+}
+
+/* ---------- Tombol kecil (aksi baris) ---------- */
+.apm-btn-small, .apm-btn-ghost {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(148, 163, 184, 0.38);
+  color: #334155;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.apm-btn-small:hover, .apm-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(148, 163, 184, 0.55);
+  color: #0f172a;
+}
+
+html.dark .apm-btn-small,
+html.dark .apm-btn-ghost {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+}
+
+html.dark .apm-btn-small:hover,
+html.dark .apm-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+.apm-btn-accept {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.32);
+  color: #047857;
+}
+
+html.dark .apm-btn-accept {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.36);
+  color: #6ee7b7;
+}
+
+.apm-btn-reject {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.32);
+  color: #b45309;
+}
+
+html.dark .apm-btn-reject {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.36);
+  color: #fcd34d;
+}
+
+.apm-btn-danger-soft {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #b91c1c;
+}
+
+html.dark .apm-btn-danger-soft {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.34);
+  color: #fca5a5;
+}
+
+/* ---------- Modal (portal ke body) ---------- */
+.apm-modal-overlay {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+.apm-modal {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #1f2937;
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+}
+
+html.dark .apm-modal {
+  background: rgba(24, 26, 32, 0.82);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.apm-modal-head {
+  background: transparent;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+html.dark .apm-modal-head { border-bottom-color: rgba(255, 255, 255, 0.1); }
+
+.apm-modal-head h4 { color: #0f172a; }
+html.dark .apm-modal-head h4 { color: #f8fafc; }
+
+.apm-modal-close {
+  background: rgba(148, 163, 184, 0.12);
+  color: #475569;
+}
+
+.apm-modal-close:hover { background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
+
+html.dark .apm-modal-close {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+
+html.dark .apm-modal-close:hover { background: rgba(239, 68, 68, 0.22); color: #fca5a5; }
+
+/* ---------- Field & dropdown ---------- */
+.apm-field label { color: #475569; }
+html.dark .apm-field label { color: #cbd5e1; }
+
+.apm-input, .apm-select {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #1f2937;
+}
+
+.apm-input::placeholder { color: rgba(100, 116, 139, 0.75); }
+
+html.dark .apm-input,
+html.dark .apm-select {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+}
+
+html.dark .apm-input::placeholder { color: rgba(148, 163, 184, 0.8); }
+
+.apm-input:focus, .apm-select:focus {
+  background: #ffffff;
+  border-color: var(--ps-accent, #e8702a);
+  box-shadow: 0 0 0 3px rgba(232, 112, 42, 0.16);
+}
+
+html.dark .apm-input:focus,
+html.dark .apm-select:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fb923c;
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2);
+}
+
+/* Daftar opsi dropdown: paksa ikut tema agar teks tidak hilang */
+.apm-select option, .apm-select optgroup { background: #ffffff; color: #1f2937; }
+
+html.dark .apm-select option,
+html.dark .apm-select optgroup {
+  background: #1b202b;
+  color: #e2e8f0;
+}
+
+.apm-checkbox { background: rgba(255, 255, 255, 0.62); border-color: rgba(148, 163, 184, 0.35); color: #334155; }
+html.dark .apm-checkbox { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.16); color: #cbd5e1; }
+
+/* ---------- Foto & kotak bantuan ---------- */
+.apm-photo-field {
+  background: rgba(255, 255, 255, 0.46);
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+html.dark .apm-photo-field {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.apm-photo-preview {
+  background: rgba(232, 112, 42, 0.12);
+  color: #c2410c;
+  border-color: rgba(232, 112, 42, 0.28);
+}
+
+html.dark .apm-photo-preview {
+  background: rgba(251, 146, 60, 0.16);
+  color: #fdba74;
+  border-color: rgba(251, 146, 60, 0.32);
+}
+
+.apm-account-box {
+  background: rgba(232, 112, 42, 0.08);
+  border-color: rgba(232, 112, 42, 0.3);
+}
+
+html.dark .apm-account-box {
+  background: rgba(251, 146, 60, 0.09);
+  border-color: rgba(251, 146, 60, 0.28);
+}
+
+.apm-hint {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(148, 163, 184, 0.32);
+  color: var(--ps-faint, #64748b);
+}
+
+html.dark .apm-hint {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+
+.apm-hint code {
+  background: rgba(148, 163, 184, 0.16);
+  color: #0f172a;
+}
+
+html.dark .apm-hint code { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; }
+
+.apm-inline-link { color: var(--ps-accent, #e8702a); }
+html.dark .apm-inline-link { color: #fb923c; }
+
+/* ---------- Footer modal ---------- */
+.apm-modal-actions {
+  background: rgba(248, 250, 252, 0.65);
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+html.dark .apm-modal-actions {
+  background: rgba(255, 255, 255, 0.03);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Tabel kelas (modal Kelola Kelas) ---------- */
+.apm-class-table th {
+  background: rgba(255, 255, 255, 0.55);
+  border-bottom-color: rgba(148, 163, 184, 0.3);
+  color: #64748b;
+}
+
+.apm-class-table td {
+  color: #334155;
+  border-bottom-color: rgba(148, 163, 184, 0.18);
+}
+
+.apm-class-table td strong { color: #0f172a; }
+
+html.dark .apm-class-table th {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+
+html.dark .apm-class-table td {
+  color: #cbd5e1;
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+html.dark .apm-class-table td strong { color: #f8fafc; }
+
+/* ---------- Ikon pencarian ---------- */
+.apm-search-wrap > svg { color: #94a3b8; }
+html.dark .apm-search-wrap > svg { color: rgba(203, 213, 225, 0.8); }
+
+/* ---------- REV 3: judul daftar kelas di modal (sebelumnya gelap di dark mode) ---------- */
+html.dark .apm-class-list-head h5 {
+  color: #f8fafc;
+}
+
+html.dark .apm-class-list-head span {
+  color: #94a3b8;
+}
+
+html.dark .apm-class-table-wrap {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* =====================================================================
+   Akordion per kelas (menu Data Kelas — dari origin/main)
+   Diselaraskan dengan glass token + mode gelap, bukan putih solid.
+   ===================================================================== */
+
+.apm-acc-item {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 12px;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+  overflow: hidden;
+}
+
+.apm-acc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  flex-wrap: wrap;
+}
+
+.apm-acc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 230px;
+  flex-wrap: wrap;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 4px 2px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.apm-acc-toggle:hover .apm-acc-title {
+  color: var(--primary, #c2410c);
+}
+
+.apm-acc-chevron {
+  color: #94a3b8;
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.apm-acc-item.is-open .apm-acc-chevron {
+  transform: rotate(90deg);
+}
+
+.apm-acc-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.apm-acc-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.apm-acc-body {
+  padding: 12px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.32);
+  background: rgba(248, 250, 252, 0.6);
+}
+
+html.dark .apm-acc-item {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .apm-acc-toggle:hover .apm-acc-title {
+  color: #fdba74;
+}
+
+html.dark .apm-acc-title {
+  color: #f8fafc;
+}
+
+html.dark .apm-acc-chevron {
+  color: #94a3b8;
+}
+
+html.dark .apm-acc-body {
+  background: rgba(255, 255, 255, 0.03);
+  border-top-color: rgba(255, 255, 255, 0.12);
+}

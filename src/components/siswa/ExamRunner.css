@@ -1,0 +1,1388 @@
+
+
+.exr-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+  background: #f1f5f9;
+  animation: exr-fade 0.18s ease-out;
+}
+
+@keyframes exr-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
+.exr-intro {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background:
+    radial-gradient(900px 400px at 15% 0%, rgba(234, 88, 12, 0.1), transparent 60%),
+    radial-gradient(700px 400px at 90% 100%, rgba(37, 99, 235, 0.09), transparent 60%),
+    #f8fafc;
+}
+
+.exr-intro-card {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 34px 30px 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.1);
+  text-align: center;
+}
+
+.exr-intro-icon {
+  width: 62px;
+  height: 62px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(234, 88, 12, 0.3);
+}
+
+.exr-intro-card h2 {
+  margin: 4px 0 0;
+  font-size: 1.3125rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.exr-intro-sub {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #64748b;
+  max-width: 480px;
+}
+
+.exr-intro-stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.exr-intro-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 14px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #ea580c;
+}
+
+.exr-intro-stats strong {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.exr-intro-stats span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.exr-rules {
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 14px 18px 14px 32px;
+  border-radius: 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  text-align: left;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  color: #92400e;
+}
+
+.exr-rules li { margin: 2px 0; }
+
+.exr-intro-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+
+.exr-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 22px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.exr-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.exr-bar-icon {
+  flex: 0 0 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.exr-bar-left strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.exr-bar-left span {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.exr-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exr-saved {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.exr-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.exr-timer.is-urgent {
+  background: #fef2f2;
+  color: #b91c1c;
+  animation: exr-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes exr-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(185, 28, 28, 0); }
+}
+
+.exr-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #ea580c;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.exr-submit-btn:hover { background: #c2410c; }
+.exr-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.exr-progress {
+  flex: 0 0 auto;
+  height: 4px;
+  background: #e2e8f0;
+}
+
+.exr-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.3s ease;
+}
+
+
+.exr-body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 18px;
+  padding: 18px 22px 24px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.exr-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #fff;
+  overflow-y: auto;
+  align-self: start;
+  max-height: 100%;
+}
+
+.exr-nav h4 {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.exr-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 7px;
+}
+
+.exr-nav-btn {
+  aspect-ratio: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.exr-nav-btn:hover { border-color: #fdba74; color: #c2410c; }
+
+.exr-nav-btn.is-answered {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+.exr-nav-btn.is-current {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.exr-nav-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed #e5e7eb;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.exr-nav-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exr-nav-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.exr-nav-legend i.is-answered { background: #ecfdf5; border-color: #a7f3d0; }
+.exr-nav-legend i.is-current { background: #0f172a; border-color: #0f172a; }
+
+.exr-main {
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.exr-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.exr-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.exr-qnum {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.exr-qweight {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.exr-qtext {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: pre-wrap;
+}
+
+.exr-qimage {
+  margin: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.exr-qimage img {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.exr-options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.exr-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 13px;
+  background: #fff;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  color: #cbd5e1;
+}
+
+.exr-option:hover {
+  border-color: #fdba74;
+  background: #fffbf5;
+}
+
+.exr-option.is-active {
+  border-color: #ea580c;
+  background: #fff7ed;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+  color: #ea580c;
+}
+
+.exr-option-letter {
+  flex: 0 0 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.exr-option.is-active .exr-option-letter {
+  background: #ea580c;
+  color: #fff;
+}
+
+.exr-option-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+.exr-empty-opt {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.exr-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.exr-card-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.exr-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+
+.exr-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.exr-confirm {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 24px 22px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.3);
+  text-align: center;
+}
+
+.exr-confirm-icon {
+  width: 54px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.exr-confirm h3 {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.exr-confirm p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.exr-confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+
+.exr-result {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 28px 20px 40px;
+  overflow-y: auto;
+  background:
+    radial-gradient(800px 380px at 50% 0%, rgba(16, 185, 129, 0.1), transparent 65%),
+    #f8fafc;
+}
+
+.exr-result-card {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px 28px 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.1);
+}
+
+.exr-score {
+  width: 118px;
+  height: 118px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border-radius: 50%;
+  color: #fff;
+}
+
+.exr-score.is-pass { background: linear-gradient(135deg, #34d399, #059669); }
+.exr-score.is-fail { background: linear-gradient(135deg, #fbbf24, #d97706); }
+
+.exr-score strong {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.exr-score span {
+  font-size: 0.625rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.exr-result-card h2 {
+  margin: 4px 0 0;
+  font-size: 1.1875rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.exr-result-sub {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.exr-result-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.exr-result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 11px 13px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  color: #94a3b8;
+}
+
+.exr-result-row.is-right { border-color: #a7f3d0; background: #f0fdf4; color: #047857; }
+.exr-result-row.is-wrong { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+
+.exr-result-num {
+  flex: 0 0 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid currentColor;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+
+.exr-result-row > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exr-result-row strong {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.45;
+}
+
+.exr-result-row span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.exr-result-actions {
+  margin-top: 14px;
+}
+
+
+@media (max-width: 900px) {
+  .exr-body { grid-template-columns: 1fr; overflow-y: auto; }
+  /* Soal tampil lebih dulu; navigasi nomor soal pindah ke bawah. */
+  .exr-main { order: 1; overflow: visible; }
+  .exr-nav { order: 2; max-height: none; }
+  .exr-nav-grid { grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .exr-intro-stats { grid-template-columns: 1fr; }
+  .exr-bar { padding: 10px 14px; }
+  .exr-body { padding: 14px; }
+  .exr-card { padding: 18px; }
+  /* Tombol Sebelumnya/Selanjutnya selalu terlihat di bawah layar. */
+  .exr-card-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0 -18px -18px;
+    padding: 10px 18px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+  }
+  .exr-card-foot .gm-btn-ghost,
+  .exr-card-foot .gm-btn-primary {
+    flex: 1 1 0;
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .exr-card-foot .exr-card-count { flex: 0 0 auto; }
+}
+
+
+.exr-resume-note {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.exr-resume-note svg { flex: 0 0 auto; margin-top: 2px; }
+
+
+.exr-result-meta {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.exr-result-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.exr-lock-pill {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.exr-result-note {
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.exr-result-loading {
+  max-width: 380px;
+  gap: 12px;
+  padding: 46px 28px;
+}
+
+.exr-loading-icon {
+  display: inline-flex;
+  color: #0f766e;
+}
+
+
+.exr-done-card {
+  max-width: 520px;
+  gap: 12px;
+  padding: 38px 28px 26px;
+}
+
+.exr-done-icon {
+  width: 84px;
+  height: 84px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #34d399, #059669);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.28);
+}
+
+.exr-done-card h2 {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+}
+
+.exr-done-card .exr-result-sub {
+  max-width: 400px;
+  text-align: center;
+  line-height: 1.65;
+}
+
+
+.exr-code {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.exr-code-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.exr-code-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #0f766e;
+}
+
+.exr-code-head strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.exr-code-head span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.exr-code-row {
+  display: flex;
+  gap: 8px;
+}
+
+.exr-code-row input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  border: 1.5px dashed #99f6e4;
+  border-radius: 11px;
+  background: #fff;
+  color: #0f766e;
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.exr-code-row input::placeholder {
+  letter-spacing: 0.14em;
+  color: #cbd5e1;
+}
+
+.exr-code-row input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.exr-code-row .gm-btn-primary {
+  flex: 0 0 auto;
+  height: 46px;
+}
+
+
+.exr-code {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: left;
+}
+
+.exr-code-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.exr-code-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #0f766e;
+}
+
+.exr-code-head strong {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.exr-code-head span {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.exr-code-row {
+  display: flex;
+  gap: 8px;
+}
+
+.exr-code-row input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 14px;
+  border: 1.5px dashed #99f6e4;
+  border-radius: 11px;
+  background: #fff;
+  color: #0f766e;
+  font-family: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.exr-code-row input::placeholder {
+  letter-spacing: 0.14em;
+  color: #cbd5e1;
+}
+
+.exr-code-row input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.exr-code-row .gm-btn-primary {
+  flex: 0 0 auto;
+  height: 46px;
+}
+
+
+.exr-session-note {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.exr-session-note svg { flex: 0 0 auto; margin-top: 2px; }
+
+.exr-session-note strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.exr-session-note.is-open { border-color: #a7f3d0; background: #f0fdf4; color: #047857; }
+.exr-session-note.is-upcoming { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+.exr-session-note.is-ended { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+.exr-session-note.is-override { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+
+.exr-random-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.exr-focus-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
+.exr-terminated-card {
+  max-width: 560px;
+  gap: 12px;
+  padding: 38px 28px 26px;
+  border-color: #fecaca;
+}
+
+.exr-terminated-icon {
+  width: 84px;
+  height: 84px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(220, 38, 38, 0.3);
+}
+
+.exr-terminated-card h2 {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #991b1b;
+  text-align: center;
+}
+
+.exr-terminated-card .exr-result-sub {
+  max-width: 430px;
+  text-align: center;
+  line-height: 1.65;
+}
+
+.exr-terminated-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px 15px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.exr-terminated-box strong { font-weight: 800; }
+
+
+/* ============================================================
+   PERINGATAN KECURANGAN (kuning) — siswa masih boleh lanjut
+   ============================================================ */
+.exr-focus-warning.is-warned {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.exr-warn-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  animation: exr-fade 0.16s ease-out;
+}
+
+.exr-warn {
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 24px 22px;
+  border: 2px solid #fbbf24;
+  border-radius: 20px;
+  background: #fffbeb;
+  box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
+  text-align: center;
+  animation: exr-warn-pop 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes exr-warn-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.exr-warn-icon {
+  width: 54px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #fde68a;
+  color: #b45309;
+}
+
+.exr-warn h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #92400e;
+  letter-spacing: -0.01em;
+}
+
+.exr-warn p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: #78350f;
+}
+
+.exr-warn p strong { font-weight: 800; }
+
+.exr-warn-meter {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.exr-warn-meter span {
+  width: 34px;
+  height: 7px;
+  border-radius: 999px;
+  background: #fde68a;
+  transition: background 0.2s ease;
+}
+
+.exr-warn-meter span.is-on {
+  background: #f59e0b;
+}
+
+.exr-warn-count {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #b45309;
+}
+
+.exr-warn-danger {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c !important;
+  font-weight: 700;
+  font-size: 0.75rem !important;
+}
+
+.exr-warn .gm-btn-primary {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* =====================================================================
+   REV 3 — GLASS + DARK MODE
+   Sebelum ini ExamRunner 100% light-only: 15 permukaan #fff solid dan
+   teks #0f172a, jadi mode gelap menampilkan blok putih menyilaukan.
+   ===================================================================== */
+
+/* Mode terang: putih transparan + blur, bukan solid */
+.exr-intro-card,
+.exr-bar,
+.exr-nav,
+.exr-card,
+.exr-nav-btn,
+.exr-confirm,
+.exr-result-card,
+.exr-result-row,
+.exr-result-num,
+.exr-card-foot,
+.exr-option,
+.exr-code-row input {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* Latar layar ujian */
+html.dark .exr-root {
+  background: #0b0e14;
+}
+html.dark .exr-intro {
+  background:
+    radial-gradient(900px 400px at 15% 0%, rgba(234, 88, 12, 0.18), transparent 60%),
+    radial-gradient(700px 400px at 90% 100%, rgba(37, 99, 235, 0.14), transparent 60%),
+    #0b0e14;
+}
+
+/* Permukaan utama */
+html.dark .exr-intro-card,
+html.dark .exr-bar,
+html.dark .exr-nav,
+html.dark .exr-card,
+html.dark .exr-nav-btn,
+html.dark .exr-confirm,
+html.dark .exr-result-card,
+html.dark .exr-result-row,
+html.dark .exr-result-num,
+html.dark .exr-card-foot,
+html.dark .exr-option,
+html.dark .exr-code-row input {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+html.dark .exr-nav-btn:hover,
+html.dark .exr-option:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+/* Status pilihan & navigator soal */
+html.dark .exr-nav-btn.is-answered {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+}
+html.dark .exr-nav-btn.is-current {
+  background: #fb923c;
+  border-color: #fb923c;
+  color: #1f1300;
+}
+html.dark .exr-option.is-active {
+  background: rgba(234, 88, 12, 0.16);
+  border-color: rgba(251, 146, 60, 0.65);
+  color: #fdba74;
+}
+
+/* Panel sekunder */
+html.dark .exr-intro-stats > div,
+html.dark .exr-rules,
+html.dark .exr-qnum,
+html.dark .exr-option-letter,
+html.dark .exr-empty-opt,
+html.dark .exr-lock-pill,
+html.dark .exr-result-meta > span,
+html.dark .exr-code,
+html.dark .exr-session-note {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
+}
+html.dark .exr-qimage {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+/* Kanvas gambar tetap terang supaya diagram/soal bergambar tetap terbaca */
+html.dark .exr-qimage img {
+  background: #fff;
+}
+
+/* Peringatan & error */
+html.dark .exr-error,
+html.dark .exr-warn-danger,
+html.dark .exr-terminated-box {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5 !important;
+}
+html.dark .exr-warn,
+html.dark .exr-focus-warning,
+html.dark .exr-confirm-icon,
+html.dark .exr-timer {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+html.dark .exr-timer.is-urgent {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+html.dark .exr-warn-count {
+  color: #fcd34d;
+}
+
+/* Teks */
+html.dark .exr-intro-card h2,
+html.dark .exr-bar-left strong,
+html.dark .exr-confirm h3,
+html.dark .exr-result-card h2,
+html.dark .exr-done-card h2,
+html.dark .exr-result-row strong,
+html.dark .exr-code-head strong,
+html.dark .exr-nav h4,
+html.dark .exr-intro-stats strong {
+  color: #f8fafc;
+}
+html.dark .exr-qtext,
+html.dark .exr-option-text,
+html.dark .exr-result-row {
+  color: #dbe4f0;
+}
+html.dark .exr-intro-sub,
+html.dark .exr-bar-left span,
+html.dark .exr-intro-stats span,
+html.dark .exr-confirm p,
+html.dark .exr-result-sub,
+html.dark .exr-result-row span,
+html.dark .exr-result-meta > span,
+html.dark .exr-result-note,
+html.dark .exr-code-head span,
+html.dark .exr-session-note,
+html.dark .exr-random-note,
+html.dark .exr-qweight,
+html.dark .exr-card-count,
+html.dark .exr-nav-legend,
+html.dark .exr-nav-btn,
+html.dark .exr-empty-opt {
+  color: #94a3b8;
+}
+
+/* Catatan biru (resume & jadwal override) dijadikan glass aksen oranye */
+html.dark .exr-resume-note,
+html.dark .exr-session-note.is-override {
+  border-color: rgba(251, 146, 60, 0.35);
+  background: rgba(251, 146, 60, 0.1);
+  color: #fdba74;
+}
+
+
+/* Konten ujian tidak bisa diseleksi/disalin; blokir copy & klik kanan
+   ditangani listener di ExamRunner.jsx. */
+.exr-root {
+  user-select: none;
+  -webkit-user-select: none;
+}

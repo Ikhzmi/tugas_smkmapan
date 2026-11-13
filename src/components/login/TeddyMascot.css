@@ -1,0 +1,23 @@
+.teddy-stage {
+  position: absolute;
+  bottom: calc(100% - var(--mascot-pad, 0px) - var(--mascot-tuck, 12px));
+  left: 50%;
+  z-index: 2;
+  width: var(--mascot-w, 215px);
+  aspect-ratio: 4 / 3;
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: drop-shadow(0 14px 22px rgba(2, 6, 23, 0.28));
+}
+
+.teddy-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teddy-stage {
+    filter: none;
+  }
+}

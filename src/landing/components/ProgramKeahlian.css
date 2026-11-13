@@ -1,0 +1,509 @@
+.program {
+  --program-bg: #f1f4f9;
+  --program-ink: #0a1424;
+  --program-body: rgba(11, 24, 42, 0.62);
+  --program-card-bg: linear-gradient(
+    158deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(255, 255, 255, 0.78) 46%,
+    rgba(222, 230, 241, 0.86)
+  );
+  --program-card-border: rgba(10, 20, 36, 0.1);
+  --program-card-shadow: 0 34px 70px -46px rgba(15, 28, 48, 0.5);
+  --program-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --program-card-ink: #0a1424;
+  --program-card-body: rgba(11, 24, 42, 0.64);
+  --program-card-strong: rgba(11, 24, 42, 0.74);
+  --program-chip-bg: rgba(10, 20, 36, 0.045);
+  --program-chip-border: rgba(10, 20, 36, 0.1);
+  --program-chip-ink: rgba(10, 20, 36, 0.55);
+  --program-grid: rgba(10, 20, 36, 0.055);
+  --program-grid-opacity: 0.6;
+  --program-glow-1: rgba(254, 64, 0, 0.11);
+  --program-glow-2: rgba(56, 189, 248, 0.1);
+  --program-glow-3: rgba(192, 132, 252, 0.1);
+  --program-aura: 0.12;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--program-bg);
+  color: var(--program-ink);
+  padding: clamp(72px, 8.5vw, 120px) 0 clamp(64px, 8vw, 110px);
+  scroll-margin-top: 0px;
+  transition:
+    background-color 0.45s ease,
+    color 0.45s ease;
+}
+
+.dark .program {
+  --program-bg: #05070e;
+  --program-ink: #f5f7fb;
+  --program-body: rgba(235, 240, 248, 0.62);
+  --program-card-bg: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.11),
+    rgba(255, 255, 255, 0.04) 42%,
+    rgba(7, 10, 18, 0.55)
+  );
+  --program-card-border: rgba(255, 255, 255, 0.14);
+  --program-card-shadow: 0 40px 80px -44px rgba(0, 0, 0, 0.9);
+  --program-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --program-card-ink: #fff;
+  --program-card-body: rgba(235, 240, 248, 0.6);
+  --program-card-strong: rgba(235, 240, 248, 0.78);
+  --program-chip-bg: rgba(255, 255, 255, 0.04);
+  --program-chip-border: rgba(255, 255, 255, 0.14);
+  --program-chip-ink: rgba(255, 255, 255, 0.6);
+  --program-grid: rgba(255, 255, 255, 0.04);
+  --program-grid-opacity: 0.35;
+  --program-glow-1: rgba(254, 64, 0, 0.18);
+  --program-glow-2: rgba(56, 189, 248, 0.1);
+  --program-glow-3: rgba(192, 132, 252, 0.1);
+  --program-aura: 0.16;
+}
+
+.program::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(55% 45% at 50% 0%, var(--program-glow-1), transparent 70%),
+    radial-gradient(40% 40% at 12% 62%, var(--program-glow-2), transparent 70%),
+    radial-gradient(40% 40% at 88% 62%, var(--program-glow-3), transparent 70%);
+  pointer-events: none;
+}
+
+.program::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--program-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--program-grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 45%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(70% 60% at 50% 45%, #000 30%, transparent 80%);
+  opacity: var(--program-grid-opacity);
+  pointer-events: none;
+}
+
+.program__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.program__head {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.program__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.program__eyebrow::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: var(--color-primary);
+}
+
+.program__title {
+  margin: 14px 0 0;
+  font-family: var(--heading);
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--program-ink);
+  text-wrap: balance;
+  transition: color 0.45s ease;
+}
+
+.program__title span {
+  color: var(--color-primary);
+}
+
+.program__lead {
+  margin: 16px auto 0;
+  max-width: 56ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--program-body);
+  transition: color 0.45s ease;
+}
+
+/* ---------- stage ---------- */
+
+.program-stage {
+  --gap: 18px;
+  --count: 4;
+  --stage-w: min(1160px, 100vw - 40px);
+  --card-w: min(
+    276px,
+    calc((var(--stage-w) - (var(--count) - 1) * var(--gap)) / var(--count))
+  );
+  --card-h: 560px;
+  position: relative;
+  height: var(--card-h);
+  margin-top: 38px;
+}
+
+.program-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin: calc(var(--card-h) / -2) 0 0 calc(var(--card-w) / -2);
+  padding: 22px;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--program-card-border);
+  background: var(--program-card-bg);
+  box-shadow: var(--program-card-shadow), var(--program-card-inset);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  transform: none;
+  transition:
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+
+.program-card__aura {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    120% 80% at 50% 0%,
+    var(--program-accent),
+    transparent 62%
+  );
+  opacity: var(--program-aura);
+  pointer-events: none;
+}
+
+.program-card__top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.program-card__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--program-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--program-accent) 16%, transparent);
+  color: var(--program-accent);
+}
+
+.program-card__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Saat teks dari CMS terlalu panjang, hanya blok gambar yang menyusut. */
+.program-card__top,
+.program-card__name,
+.program-card__desc,
+.program-card__features,
+.program-card__cta {
+  flex: 0 0 auto;
+}
+
+.program-card__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 1 auto;
+  min-height: 150px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--program-accent) 30%, transparent);
+  background:
+    radial-gradient(
+      100% 130% at 50% 0%,
+      color-mix(in srgb, var(--program-accent) 24%, transparent),
+      transparent 68%
+    ),
+    linear-gradient(160deg, #16283f 0%, #0b1524 58%, #070c14 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 30px -24px rgba(6, 12, 22, 0.7);
+}
+
+.program-card__media img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.4));
+}
+
+.program-card__media img.is-inverted {
+  filter: invert(1) drop-shadow(0 10px 16px rgba(0, 0, 0, 0.4));
+}
+
+.program-card__badge {
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--program-chip-border);
+  background: var(--program-chip-bg);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--program-chip-ink);
+  transition:
+    background-color 0.45s ease,
+    border-color 0.45s ease,
+    color 0.45s ease;
+}
+
+.program-card__spacer {
+  display: none;
+}
+
+.program-card__name {
+  position: relative;
+  display: -webkit-box;
+  margin: 18px 0 0;
+  overflow: hidden;
+  font-family: var(--heading);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--program-card-ink);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  transition: color 0.45s ease;
+}
+
+.program-card__desc {
+  position: relative;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--program-card-body);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  transition: color 0.45s ease;
+}
+
+.program-card__features {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+}
+
+.program-card__features li {
+  position: relative;
+  overflow: hidden;
+  padding-left: 14px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--program-card-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.45s ease;
+}
+
+.program-card__features li::before {
+  content: '';
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--program-accent);
+}
+
+.program-card__cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--program-card-ink);
+  text-decoration: none;
+  transition: color 0.45s ease;
+}
+
+.program-card__cta svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.program-card__cta:hover svg {
+  transform: translate(2px, -2px);
+}
+
+@media (min-width: 1024px) {
+  .program-stage {
+    margin-top: 112px;
+  }
+
+  .program-card:nth-child(2) {
+    transform: translate3d(-140px, 30px, 0) rotate(-8deg) scale(0.95);
+  }
+
+  .program-card:nth-child(3) {
+    transform: translate3d(140px, 30px, 0) rotate(8deg) scale(0.95);
+  }
+
+  .program-card:nth-child(4) {
+    transform: translate3d(0, -120px, 0) rotate(0deg) scale(0.93);
+  }
+
+  .program-stage.is-open .program-card {
+    transform: translate3d(
+        calc((var(--i) - (var(--count) - 1) / 2) * (var(--card-w) + var(--gap))),
+        0,
+        0
+      )
+      rotate(0deg) scale(1);
+  }
+
+  .program-stage:not(.is-open) .program-card:nth-child(n + 2)
+    .program-card__name,
+  .program-stage:not(.is-open) .program-card:nth-child(n + 2)
+    .program-card__desc,
+  .program-stage:not(.is-open) .program-card:nth-child(n + 2)
+    .program-card__features,
+  .program-stage:not(.is-open) .program-card:nth-child(n + 2)
+    .program-card__cta {
+    opacity: 0;
+  }
+
+  /* Lebih dari 4 jurusan: grid yang wrap supaya tetap sejajar & tidak keluar layar. */
+  .program-stage.program-stage--grid {
+    position: static;
+    height: auto;
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: var(--gap);
+  }
+
+  .program-stage.program-stage--grid .program-card {
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+    height: auto;
+    min-height: 520px;
+    margin: 0;
+    transform: none;
+    opacity: 0;
+    translate: 0 26px;
+    transition:
+      opacity 0.6s ease calc(var(--i) * 80ms),
+      translate 0.6s ease calc(var(--i) * 80ms),
+      background-color 0.45s ease,
+      border-color 0.45s ease,
+      box-shadow 0.45s ease;
+  }
+
+  .program-stage.program-stage--grid.is-open .program-card {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* ---------- stacked list ---------- */
+
+@media (max-width: 1023px) {
+  .program-stage {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    height: auto;
+    margin-top: 30px;
+  }
+
+  .program-card {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 22px;
+    border-radius: 22px;
+    transform: none;
+    transition:
+      background-color 0.45s ease,
+      border-color 0.45s ease,
+      box-shadow 0.45s ease;
+  }
+
+  .program-card__spacer {
+    display: none;
+  }
+
+  .program-card__name {
+    margin-top: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .program-stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .program-card {
+    transition: none;
+  }
+
+  .program-card__cta svg {
+    transition: none;
+  }
+}

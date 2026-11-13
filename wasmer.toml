@@ -1,8 +1,9 @@
 [package]
-name = "sky-last/smkm8medan-api"
-version = "0.1.0"
+name = "ikhzmi/smkm8medan-api"
+version = "0.1.5"
 description = "SMKM 8 Medan REST API on Wasmer Edge"
 license = "MIT"
+private = false
 
 [dependencies]
 "phpix/phpix-84-64bit" = "*"
@@ -19,6 +20,5 @@ runner = "wasi"
 main-args = [
     "-d", "variables_order=EGPCS",
     "-t", "/app/public",
-    "-S", "0.0.0.0:8080",
-    "/app/public/index.php"
+    "-S", "0.0.0.0:8080"
 ]

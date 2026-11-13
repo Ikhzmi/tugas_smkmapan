@@ -6,6 +6,8 @@
 tests/
 database/database.sqlite
 docs/
+composer.lock
 node_modules/
+public/storage
 storage/logs/*.log
 

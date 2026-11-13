@@ -1,5 +1,6 @@
 kind: wasmer.io/App.v0
 name: smkm8medan-api
+owner: ikhzmi
 package: .
 env:
   APP_NAME: "SMKM 8 Medan API"
@@ -35,3 +36,4 @@ env:
   SUPABASE_S3_PUBLIC_BUCKET: smkm8-public
   SUPABASE_S3_PUBLIC_URL: "https://kwxfkacounktglsrtnap.supabase.co/storage/v1/object/public/smkm8-public"
 
+app_id: da_RrWI0t5Uja7O

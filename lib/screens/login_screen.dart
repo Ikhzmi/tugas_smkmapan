@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:rive/rive.dart' as rive;
 import '../app_state.dart';
 import '../data.dart';
-import '../shells.dart';
 import '../theme.dart';
 import '../widgets.dart';
 class LoginScreen extends StatefulWidget {
@@ -43,9 +42,12 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final state = AppScope.of(context);
+    if (state.sessionExpired && _error == null) {
+      _error = 'Sesi Anda telah berakhir. Silakan masuk kembali.';
+    }
     if (_prefilled) return;
     _prefilled = true;
-    final state = AppScope.of(context);
     if (state.rememberedId != null) {
       _idCtrl.text = state.rememberedId!;
       _remember = true;
@@ -88,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
     // Validasi kosong
     if (id.isEmpty) {
-      _fail('NISN / Username wajib diisi.');
+      _fail('NISN / Username / NIP wajib diisi.');
       return;
     }
     if (_passCtrl.text.isEmpty) {
@@ -96,10 +98,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       return;
     }
 
-    // Validasi format: jika semua angka harus 10 digit (NISN)
-    final isAllDigits = RegExp(r'^\d+$').hasMatch(id);
-    if (isAllDigits && id.length != 10) {
-      _fail('NISN harus 10 digit angka. Periksa kembali.');
+    // Validasi minimal panjang ID (NIP guru 4 digit, NIS 8 digit, NISN 10 digit)
+    if (id.length < 4) {
+      _fail('ID akun minimal 4 digit atau karakter.');
       return;
     }
 
@@ -118,22 +119,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       _fail(err);
       return;
     }
-    final shell = state.isGuru ? const TeacherShell() : const StudentShell();
-    Navigator.of(context).pushAndRemoveUntil(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 480),
-        pageBuilder: (_, _, _) => shell,
-        transitionsBuilder: (_, anim, _, child) => FadeTransition(
-          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-          child: SlideTransition(
-            position: Tween(begin: const Offset(0, 0.035), end: Offset.zero)
-                .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-            child: child,
-          ),
-        ),
-      ),
-      (route) => false,
-    );
+    // Berhasil: root aplikasi otomatis berpindah ke shell sesuai peran.
+    setState(() => _loading = false);
   }
 
   void _fillDemo(String id, String pass) {
@@ -358,16 +345,16 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           const SizedBox(height: 3),
           Text('Masuk ke akun portal Anda', style: TextStyle(fontSize: 12.5, color: lp.muted)),
           const SizedBox(height: 18),
-          _label(lp, 'NISN / Username'),
+          _label(lp, 'NISN / NIP / Username'),
           const SizedBox(height: 7),
           _input(
             lp,
             controller: _idCtrl,
             focusNode: _idFocus,
-            hint: 'Masukkan NISN atau username',
+            hint: 'Masukkan NISN, NIP, atau username',
             icon: Icons.person_outline_rounded,
             action: TextInputAction.next,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
             suffix: _idCtrl.text.trim().isNotEmpty
                 ? GestureDetector(
                     onTap: () => setState(() {
@@ -600,11 +587,11 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
             ],
           ),
           const SizedBox(height: 11),
-          _demoRow(lp, Icons.backpack_outlined, 'Murid • Rafi Pratama', 'NISN 20241001 · murid123',
-              () => _fillDemo('20241001', 'murid123')),
+          _demoRow(lp, Icons.backpack_outlined, 'Murid • Akun Demo', 'NISN 2026000001 · password',
+              () => _fillDemo('2026000001', 'password')),
           const SizedBox(height: 8),
-          _demoRow(lp, Icons.co_present_outlined, 'Guru • Dwi Hartono, S.Kom.', 'NIP 1001 · guru123',
-              () => _fillDemo('1001', 'guru123')),
+          _demoRow(lp, Icons.co_present_outlined, 'Guru • Akun Demo', 'Username guru1 · password',
+              () => _fillDemo('guru1', 'password')),
         ],
       ),
     );

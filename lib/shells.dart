@@ -11,6 +11,8 @@ import 'screens/teacher_attendance.dart';
 import 'screens/teacher_classes.dart';
 import 'screens/teacher_home.dart';
 import 'screens/teacher_tasks.dart';
+import 'theme.dart';
+import 'widgets.dart';
 
 class StudentShell extends StatefulWidget {
   const StudentShell({super.key});
@@ -30,7 +32,7 @@ class _StudentShellState extends State<StudentShell> {
     final acc = state.current;
     if (acc == null) return const SizedBox.shrink();
     final openTasks = state
-        .assignmentsForClass(acc.className!)
+        .assignmentsForClass(acc.className ?? '')
         .where((a) => !a.submissions.containsKey(acc.id))
         .length;
     return PortalShell(
@@ -183,6 +185,15 @@ class _PortalShellState extends State<PortalShell> {
               ),
             ],
           ),
+          if (state.loadError != null ||
+              (state.loading && state.schedules.isEmpty && state.assignments.isEmpty))
+            Positioned.fill(
+              child: _DataOverlay(
+                loading: state.loading,
+                error: state.loadError,
+                onRetry: () => state.refresh(),
+              ),
+            ),
           Positioned(
             left: 14,
             right: 14,
@@ -209,3 +220,59 @@ class _PortalShellState extends State<PortalShell> {
 
 /// Bottom padding that keeps scroll content clear of the floating nav.
 const kPagePadding = EdgeInsets.fromLTRB(16, 14, 16, 132);
+
+/// Overlay load awal / gagal muat data API, dengan tombol coba lagi.
+class _DataOverlay extends StatelessWidget {
+  final bool loading;
+  final String? error;
+  final VoidCallback onRetry;
+  const _DataOverlay({required this.loading, required this.error, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.pal;
+    return Container(
+      color: (p.isDark ? const Color(0xFF050505) : const Color(0xFFF3E7DD)).withValues(alpha: 0.72),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: error != null
+          ? Glass(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconWell(Icons.cloud_off_rounded, color: kDanger, size: 46, iconSize: 22),
+                  const SizedBox(height: 13),
+                  Text(
+                    'Gagal memuat data',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: p.text),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: p.muted, height: 1.5),
+                  ),
+                  const SizedBox(height: 16),
+                  PrimaryButton(label: 'Coba Lagi', icon: Icons.refresh_rounded, onPressed: onRetry),
+                ],
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: CircularProgressIndicator(strokeWidth: 2.6),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Memuat data dari server…',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: p.textSoft),
+                ),
+              ],
+            ),
+    );
+  }
+}

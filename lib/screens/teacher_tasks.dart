@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
-import '../data.dart';
 import '../models.dart';
 import '../shells.dart';
 import '../theme.dart';
@@ -149,15 +148,41 @@ class _TeacherTasksScreenState extends State<TeacherTasksScreen> {
   }
 }
 
-class _TeacherTaskCard extends StatelessWidget {
+class _TeacherTaskCard extends StatefulWidget {
   final Assignment assignment;
   const _TeacherTaskCard({required this.assignment});
 
   @override
+  State<_TeacherTaskCard> createState() => _TeacherTaskCardState();
+}
+
+class _TeacherTaskCardState extends State<_TeacherTaskCard> {
+  int? _rosterCount;
+  bool _requested = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_requested) return;
+    _requested = true;
+    final classId = widget.assignment.classId;
+    if (classId.isEmpty) {
+      _rosterCount = 0;
+      return;
+    }
+    final state = AppScope.of(context);
+    state.rosterForClass(classId).then((r) {
+      if (mounted) setState(() => _rosterCount = r.length);
+    }).catchError((_) {
+      if (mounted) setState(() => _rosterCount = 0);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final p = context.pal;
-    final a = assignment;
-    final roster = kRosters[a.className]?.length ?? 0;
+    final a = widget.assignment;
+    final roster = _rosterCount ?? 0;
     final submitted = a.submissions.length;
     final progress = roster == 0 ? 0.0 : submitted / roster;
     return Glass(
@@ -217,7 +242,9 @@ class _TeacherTaskCard extends StatelessWidget {
           ),
           const SizedBox(height: 7),
           Text(
-            '$submitted/$roster dikumpulkan • ${a.gradedCount} dinilai',
+            roster == 0
+                ? '$submitted dikumpulkan • ${a.gradedCount} dinilai'
+                : '$submitted/$roster dikumpulkan • ${a.gradedCount} dinilai',
             style: TextStyle(fontSize: 11, color: p.muted, fontWeight: FontWeight.w600),
           ),
         ],
@@ -234,19 +261,41 @@ Future<void> showTeacherTaskDetail(BuildContext context, Assignment assignment) 
   );
 }
 
-class _TeacherDetailBody extends StatelessWidget {
+class _TeacherDetailBody extends StatefulWidget {
   final String assignmentId;
   const _TeacherDetailBody({required this.assignmentId});
+
+  @override
+  State<_TeacherDetailBody> createState() => _TeacherDetailBodyState();
+}
+
+class _TeacherDetailBodyState extends State<_TeacherDetailBody> {
+  List<RosterStudent> _roster = const [];
+  bool _requested = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_requested) return;
+    _requested = true;
+    final state = AppScope.of(context);
+    final a = state.assignmentById(widget.assignmentId);
+    final classId = a?.classId ?? '';
+    if (classId.isEmpty) return;
+    state.rosterForClass(classId).then((r) {
+      if (mounted) setState(() => _roster = r);
+    }).catchError((_) {});
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final p = context.pal;
-    final a = state.assignmentById(assignmentId)!;
-    final roster = kRosters[a.className] ?? const <RosterStudent>[];
+    final a = state.assignmentById(widget.assignmentId)!;
     final subs = a.submissions.entries.toList()
       ..sort((x, y) => y.value.submittedAt.compareTo(x.value.submittedAt));
-    final notSubmitted = roster.where((r) => !a.submissions.containsKey(r.id)).toList();
+    final notSubmitted = _roster.where((r) => !a.submissions.containsKey(r.id)).toList();
+    final due = a.due;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
@@ -275,7 +324,7 @@ class _TeacherDetailBody extends StatelessWidget {
               Icon(Icons.schedule_rounded, size: 14, color: p.muted),
               const SizedBox(width: 5),
               Text(
-                'Batas ${fmtFull(a.due)} ${fmtTime(a.due)}',
+                due == null ? 'Tanpa batas waktu' : 'Batas ${fmtFull(due)} ${fmtTime(due)}',
                 style: TextStyle(fontSize: 12, color: p.muted, fontWeight: FontWeight.w600),
               ),
             ],
@@ -296,7 +345,9 @@ class _TeacherDetailBody extends StatelessWidget {
               const SizedBox(width: 7),
               Expanded(
                 child: Text(
-                  'Hasil Pengumpulan (${subs.length}/${roster.length})',
+                  _roster.isEmpty
+                      ? 'Hasil Pengumpulan (${subs.length})'
+                      : 'Hasil Pengumpulan (${subs.length}/${_roster.length})',
                   style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: p.text),
                 ),
               ),
@@ -359,10 +410,7 @@ class _SubmissionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.pal;
-    final student = (kRosters[assignment.className] ?? const <RosterStudent>[])
-        .where((r) => r.id == studentId)
-        .firstOrNull;
-    final name = student?.name ?? studentId;
+    final name = submission.studentName.isEmpty ? studentId : submission.studentName;
     final graded = submission.score != null;
     return Panel(
       padding: const EdgeInsets.all(13),
@@ -371,7 +419,7 @@ class _SubmissionRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Avatar(student?.initials ?? '?', size: 30),
+              Avatar(initialsOf(name), size: 30),
               const SizedBox(width: 9),
               Expanded(
                 child: Column(
@@ -409,6 +457,23 @@ class _SubmissionRow extends StatelessWidget {
                 ),
             ],
           ),
+          if (submission.fileUrl.isNotEmpty) ...[
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                Icon(Icons.link_rounded, size: 13, color: p.accent),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    submission.fileUrl,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, color: p.accent, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (submission.note.isNotEmpty) ...[
             const SizedBox(height: 9),
             Container(
@@ -483,6 +548,8 @@ class _GradeBodyState extends State<_GradeBody> {
   final _feedbackCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _initialized = false;
+  bool _busy = false;
+  String? _error;
 
   @override
   void didChangeDependencies() {
@@ -490,7 +557,7 @@ class _GradeBodyState extends State<_GradeBody> {
     if (_initialized) return;
     _initialized = true;
     final state = AppScope.of(context);
-    final sub = state.assignmentById(widget.assignmentId)!.submissions[widget.studentId];
+    final sub = state.assignmentById(widget.assignmentId)?.submissions[widget.studentId];
     if (sub?.score != null) _scoreCtrl.text = '${sub!.score}';
     _feedbackCtrl.text = sub?.feedback ?? '';
   }
@@ -502,17 +569,30 @@ class _GradeBodyState extends State<_GradeBody> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     final state = AppScope.of(context);
-    final a = state.assignmentById(widget.assignmentId)!;
     final score = int.parse(_scoreCtrl.text.trim());
-    final name = (kRosters[a.className] ?? const <RosterStudent>[])
-            .where((r) => r.id == widget.studentId)
-            .firstOrNull
-            ?.name ??
-        widget.studentId;
-    state.gradeSubmission(widget.assignmentId, widget.studentId, score, feedback: _feedbackCtrl.text);
+    final sub = state.assignmentById(widget.assignmentId)?.submissions[widget.studentId];
+    final name = (sub != null && sub.studentName.isNotEmpty) ? sub.studentName : widget.studentId;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final err = await state.gradeSubmission(
+      widget.assignmentId,
+      widget.studentId,
+      score,
+      feedback: _feedbackCtrl.text,
+    );
+    if (!mounted) return;
+    if (err != null) {
+      setState(() {
+        _busy = false;
+        _error = err;
+      });
+      return;
+    }
     showSnack(context, 'Nilai $score tersimpan untuk $name.', icon: Icons.grade_rounded);
     Navigator.pop(context);
   }
@@ -522,10 +602,8 @@ class _GradeBodyState extends State<_GradeBody> {
     final state = AppScope.of(context);
     final p = context.pal;
     final a = state.assignmentById(widget.assignmentId)!;
-    final student = (kRosters[a.className] ?? const <RosterStudent>[])
-        .where((r) => r.id == widget.studentId)
-        .firstOrNull;
     final sub = a.submissions[widget.studentId];
+    final name = (sub != null && sub.studentName.isNotEmpty) ? sub.studentName : widget.studentId;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(22, 12, 22, 20),
@@ -544,14 +622,14 @@ class _GradeBodyState extends State<_GradeBody> {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Avatar(student?.initials ?? '?', size: 34),
+                  Avatar(initialsOf(name), size: 34),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          student?.name ?? widget.studentId,
+                          name,
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: p.text),
                         ),
                         const SizedBox(height: 1),
@@ -652,10 +730,24 @@ class _GradeBodyState extends State<_GradeBody> {
                 hintStyle: TextStyle(fontSize: 11.5, color: p.muted),
               ),
             ),
+            if (_error != null) ...[
+              const SizedBox(height: 11),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.error_outline_rounded, size: 14, color: kDanger),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(_error!, style: TextStyle(fontSize: 11.5, color: kDanger, height: 1.4)),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 15),
             PrimaryButton(
               label: 'Simpan Nilai',
               icon: Icons.check_rounded,
+              loading: _busy,
               onPressed: _save,
             ),
           ],
@@ -685,6 +777,9 @@ class _CreateBodyState extends State<_CreateBody> {
   late String _className;
   late DateTime _due;
   bool _initialized = false;
+  bool _noData = false;
+  bool _busy = false;
+  String? _error;
 
   @override
   void didChangeDependencies() {
@@ -693,8 +788,14 @@ class _CreateBodyState extends State<_CreateBody> {
     _initialized = true;
     final state = AppScope.of(context);
     final acc = state.current!;
-    _subject = acc.subjects.first;
-    _className = state.classesTaughtBy(acc.id).first;
+    final subjects = state.teacherSubjects;
+    final classes = state.classesTaughtBy(acc.id);
+    if (subjects.isEmpty || classes.isEmpty) {
+      _noData = true;
+      return;
+    }
+    _subject = subjects.first;
+    _className = classes.first;
     final now = DateTime.now();
     _due = DateTime(now.year, now.month, now.day + 7, 23, 59);
   }
@@ -719,17 +820,30 @@ class _CreateBodyState extends State<_CreateBody> {
     setState(() => _due = DateTime(picked.year, picked.month, picked.day, 23, 59));
   }
 
-  void _publish() {
+  Future<void> _publish() async {
     if (!_formKey.currentState!.validate()) return;
     final state = AppScope.of(context);
-    state.createAssignment(
+    final title = _titleCtrl.text.trim();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final err = await state.createAssignment(
       subject: _subject,
       className: _className,
-      title: _titleCtrl.text.trim(),
+      title: title,
       description: _descCtrl.text.trim(),
       due: _due,
     );
-    showSnack(context, 'Tugas "${_titleCtrl.text.trim()}" dipublikasikan ke $_className.', icon: Icons.campaign_rounded);
+    if (!mounted) return;
+    if (err != null) {
+      setState(() {
+        _busy = false;
+        _error = err;
+      });
+      return;
+    }
+    showSnack(context, 'Tugas "$title" dipublikasikan ke $_className.', icon: Icons.campaign_rounded);
     Navigator.pop(context);
   }
 
@@ -739,6 +853,18 @@ class _CreateBodyState extends State<_CreateBody> {
     final p = context.pal;
     final acc = state.current!;
     final classes = state.classesTaughtBy(acc.id);
+    final subjects = state.teacherSubjects;
+
+    if (_noData) {
+      return const Padding(
+        padding: EdgeInsets.fromLTRB(22, 12, 22, 24),
+        child: EmptyState(
+          icon: Icons.school_outlined,
+          title: 'Belum ada kelas atau mapel',
+          subtitle: 'Anda belum memiliki jadwal mengajar. Hubungi admin untuk penugasan kelas dan mata pelajaran.',
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(22, 12, 22, 20),
@@ -767,7 +893,7 @@ class _CreateBodyState extends State<_CreateBody> {
                     decoration: const InputDecoration(labelText: 'Mata Pelajaran'),
                     style: TextStyle(fontSize: 12.5, color: p.text, fontWeight: FontWeight.w700, fontFamily: kFont),
                     items: [
-                      for (final s in acc.subjects)
+                      for (final s in subjects)
                         DropdownMenuItem(value: s, child: Text(s, overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: (v) => setState(() => _subject = v!),
@@ -842,10 +968,24 @@ class _CreateBodyState extends State<_CreateBody> {
                 ),
               ),
             ),
+            if (_error != null) ...[
+              const SizedBox(height: 11),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.error_outline_rounded, size: 14, color: kDanger),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(_error!, style: TextStyle(fontSize: 11.5, color: kDanger, height: 1.4)),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 15),
             PrimaryButton(
               label: 'Publikasikan Tugas',
               icon: Icons.campaign_rounded,
+              loading: _busy,
               onPressed: _publish,
             ),
           ],

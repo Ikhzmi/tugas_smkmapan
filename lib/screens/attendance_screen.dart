@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
-import '../data.dart';
 import '../models.dart';
 import '../shells.dart';
 import '../theme.dart';
@@ -15,15 +14,15 @@ class AttendanceScreen extends StatelessWidget {
     final state = AppScope.of(context);
     final p = context.pal;
     final acc = state.current!;
-    final cls = acc.className!;
+    final cls = acc.className ?? '';
     final now = DateTime.now();
     final summary = state.attendanceSummaryFor(acc.id);
     final total = summary.values.fold(0, (a, b) => a + b);
     final hadir = summary[AttStatus.hadir]!;
     final pct = total == 0 ? 0.0 : hadir / total;
     final history = state.attendanceHistoryFor(acc.id);
-    final todayEntry = state.attendanceEntry(dateKeyOf(now), cls);
-    final todayStatus = todayEntry?.statuses[acc.id];
+    final todayKey = dateKeyOf(now);
+    final todayRecords = history.where((r) => r.date == todayKey).toList();
 
     return ListView(
       padding: kPagePadding,
@@ -57,7 +56,7 @@ class AttendanceScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Semester $kSemester $kAcademicYear',
+                            '$total sesi presensi tercatat',
                             style: TextStyle(fontSize: 11.5, color: p.muted, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -109,7 +108,7 @@ class AttendanceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 9),
                 Text(
-                  '$hadir dari $total hari tercatat hadir',
+                  '$hadir dari $total sesi tercatat hadir',
                   style: TextStyle(fontSize: 11.5, color: p.muted, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 13),
@@ -138,9 +137,9 @@ class AttendanceScreen extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  todayStatus != null ? Icons.event_available_rounded : Icons.event_busy_outlined,
+                  todayRecords.isNotEmpty ? Icons.event_available_rounded : Icons.event_busy_outlined,
                   size: 19,
-                  color: todayStatus?.color ?? p.muted,
+                  color: todayRecords.isNotEmpty ? todayRecords.first.status.color : p.muted,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -159,8 +158,11 @@ class AttendanceScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (todayStatus != null)
-                  StatusChip(todayStatus)
+                if (todayRecords.isNotEmpty)
+                  Wrap(
+                    spacing: 5,
+                    children: [for (final r in todayRecords.take(3)) StatusChip(r.status)],
+                  )
                 else
                   Pill('Belum diabsen', dense: true, bg: kWarning.withValues(alpha: 0.13), fg: kWarning),
               ],
@@ -184,7 +186,7 @@ class AttendanceScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: p.text),
                       ),
                     ),
-                    Pill('${history.length} hari', dense: true),
+                    Pill('${history.length} sesi', dense: true),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -197,7 +199,7 @@ class AttendanceScreen extends StatelessWidget {
                 else
                   for (var i = 0; i < history.length; i++) ...[
                     if (i > 0) const SizedBox(height: 8),
-                    _HistoryRow(entry: history[i], studentId: acc.id),
+                    _HistoryRow(record: history[i]),
                   ],
               ],
             ),
@@ -209,15 +211,18 @@ class AttendanceScreen extends StatelessWidget {
 }
 
 class _HistoryRow extends StatelessWidget {
-  final AttendanceEntry entry;
-  final String studentId;
-  const _HistoryRow({required this.entry, required this.studentId});
+  final AttendanceRecord record;
+  const _HistoryRow({required this.record});
 
   @override
   Widget build(BuildContext context) {
     final p = context.pal;
-    final date = DateTime.parse(entry.date);
-    final status = entry.statuses[studentId]!;
+    final date = DateTime.tryParse(record.date);
+    final status = record.status;
+    final detail = [
+      if (record.subjectName.isNotEmpty) record.subjectName,
+      if (record.jamMasuk != null) 'masuk ${record.jamMasuk}',
+    ].join(' • ');
     return Panel(
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
       child: Row(
@@ -233,12 +238,14 @@ class _HistoryRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  fmtDate(date),
+                  date == null ? record.date : fmtDate(date),
                   style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: p.text),
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  entry.className,
+                  detail.isEmpty ? record.className : detail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 10.5, color: p.muted),
                 ),
               ],

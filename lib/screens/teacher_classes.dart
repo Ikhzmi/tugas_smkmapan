@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
-import '../data.dart';
-import '../models.dart';
 import '../shells.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -84,21 +82,48 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
   }
 }
 
-class _ClassCard extends StatelessWidget {
+class _ClassCard extends StatefulWidget {
   final String className;
   final String teacherId;
   const _ClassCard({required this.className, required this.teacherId});
 
   @override
+  State<_ClassCard> createState() => _ClassCardState();
+}
+
+class _ClassCardState extends State<_ClassCard> {
+  int? _rosterCount;
+  bool _requested = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_requested) return;
+    _requested = true;
+    final state = AppScope.of(context);
+    final classId = state.classIdFor(widget.className);
+    if (classId == null || classId.isEmpty) {
+      _rosterCount = 0;
+      return;
+    }
+    state.rosterForClass(classId).then((r) {
+      if (mounted) setState(() => _rosterCount = r.length);
+    }).catchError((_) {
+      if (mounted) setState(() => _rosterCount = 0);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final p = context.pal;
-    final roster = kRosters[className] ?? const <RosterStudent>[];
-    final sessions = kSchedule
-        .where((s) => s.className == className && s.teacherId == teacherId && !s.isBreak)
+    final className = widget.className;
+    final rosterCount = _rosterCount;
+    final sessions = state.schedules
+        .where((s) => s.className == className && s.teacherId == widget.teacherId && !s.isBreak)
         .toList()
       ..sort((a, b) => a.day == b.day ? a.start.compareTo(b.start) : a.day.compareTo(b.day));
-    final tasks = state.assignmentsForTeacher(teacherId).where((a) => a.className == className).toList();
+    final tasks = state.assignmentsForTeacher(widget.teacherId).where((a) => a.className == className).toList();
     final pending = tasks.fold(0, (sum, a) => sum + a.pendingCount);
 
     return Glass(
@@ -122,7 +147,7 @@ class _ClassCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${roster.length} siswa • ${tasks.length} tugas aktif',
+                      '${rosterCount == null ? '…' : '$rosterCount'} siswa • ${tasks.length} tugas aktif',
                       style: TextStyle(fontSize: 11, color: p.muted, fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -192,7 +217,9 @@ class _ClassCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          '${sessions[i].start}–${sessions[i].end} • ${sessions[i].room}',
+                          sessions[i].room.isEmpty
+                              ? sessions[i].timeRange
+                              : '${sessions[i].timeRange} • ${sessions[i].room}',
                           style: TextStyle(fontSize: 10.5, color: p.muted),
                         ),
                       ],

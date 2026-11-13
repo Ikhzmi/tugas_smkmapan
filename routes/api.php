@@ -132,6 +132,7 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('signed')->name('guru.submissions.file');
         Route::get('/dashboard', [DashboardController::class, 'teacher']);
         Route::get('/schedules', [DashboardController::class, 'teacherSchedules']);
+        Route::get('/classes/{schoolClass}/students', [AcademicController::class, 'guruClassStudents']);
         Route::get('/exams', [ExamController::class, 'teacherExams']);
         Route::post('/exams', [ExamController::class, 'storeExam']);
         Route::patch('/exams/{exam}', [ExamController::class, 'updateExam']);

@@ -39,7 +39,7 @@ class _TasksScreenState extends State<TasksScreen> {
     final state = AppScope.of(context);
     final p = context.pal;
     final acc = state.current!;
-    final all = state.assignmentsForClass(acc.className!);
+    final all = state.assignmentsForClass(acc.className ?? '');
     final list = all.where((a) {
       final sub = a.submissions[acc.id];
       return switch (_filter) {
@@ -193,7 +193,7 @@ class StudentTaskCard extends StatelessWidget {
     final state = AppScope.of(context);
     final p = context.pal;
     final st = taskStatusOf(state, assignment);
-    final overdue = assignment.due.isBefore(DateTime.now()) && !st.done;
+    final overdue = (assignment.due?.isBefore(DateTime.now()) ?? false) && !st.done;
     return Glass(
       radius: 18,
       blur: 14,
@@ -407,17 +407,6 @@ class _TaskDetailBody extends StatelessWidget {
                 ],
               ),
             ),
-            if (sub.score == null) ...[
-              const SizedBox(height: 12),
-              PrimaryButton(
-                label: 'Perbarui Pengumpulan',
-                icon: Icons.edit_outlined,
-                onPressed: () {
-                  Navigator.pop(context);
-                  showSubmitSheet(parentContext, a);
-                },
-              ),
-            ],
           ] else ...[
             PrimaryButton(
               label: 'Kumpulkan Tugas',
@@ -452,8 +441,10 @@ class _SubmitBody extends StatefulWidget {
 
 class _SubmitBodyState extends State<_SubmitBody> {
   final TextEditingController _ctrl = TextEditingController();
+  final TextEditingController _linkCtrl = TextEditingController();
   bool _busy = false;
   bool _initialized = false;
+  String? _error;
 
   @override
   void didChangeDependencies() {
@@ -461,33 +452,54 @@ class _SubmitBodyState extends State<_SubmitBody> {
     if (_initialized) return;
     _initialized = true;
     final state = AppScope.of(context);
-    final existing = state.assignmentById(widget.assignmentId)!.submissions[state.current!.id];
+    final existing = state.assignmentById(widget.assignmentId)?.submissions[state.current!.id];
     _ctrl.text = existing?.note ?? '';
+    _linkCtrl.text = existing?.fileUrl ?? '';
   }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _linkCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     final state = AppScope.of(context);
     final a = state.assignmentById(widget.assignmentId)!;
+    final link = _linkCtrl.text.trim();
+    if (link.isEmpty) {
+      setState(() => _error = 'Tempel tautan pengumpulan (repository / drive) terlebih dahulu.');
+      return;
+    }
+    final uri = Uri.tryParse(link);
+    if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
+      setState(() => _error = 'Tautan tidak valid. Gunakan URL lengkap, mis. https://github.com/…');
+      return;
+    }
     final ok = await showGlassConfirm(
       context,
       icon: Icons.upload_rounded,
       tone: kSuccess,
       title: 'Kumpulkan tugas ini?',
-      body: 'Pastikan link / catatan pengumpulan "${a.title}" sudah benar sebelum dikirim ke guru.',
+      body: 'Pastikan tautan pengumpulan "${a.title}" sudah benar. Tugas yang sudah dikumpulkan tidak dapat diubah.',
       confirmLabel: 'Kumpulkan',
       cancelLabel: 'Periksa Lagi',
     );
     if (!ok || !mounted) return;
-    setState(() => _busy = true);
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final err = await state.submitTask(widget.assignmentId, note: _ctrl.text.trim(), fileUrl: link);
     if (!mounted) return;
-    state.submitTask(widget.assignmentId, _ctrl.text.trim());
+    if (err != null) {
+      setState(() {
+        _busy = false;
+        _error = err;
+      });
+      return;
+    }
     showSnack(context, 'Tugas berhasil dikumpulkan. Menunggu penilaian guru.', icon: Icons.check_circle_rounded);
     Navigator.pop(context);
   }
@@ -497,6 +509,7 @@ class _SubmitBodyState extends State<_SubmitBody> {
     final state = AppScope.of(context);
     final p = context.pal;
     final a = state.assignmentById(widget.assignmentId)!;
+    final due = a.due;
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 12, 22, 20),
       child: Column(
@@ -514,24 +527,54 @@ class _SubmitBodyState extends State<_SubmitBody> {
           ),
           const SizedBox(height: 14),
           TextField(
-            controller: _ctrl,
-            maxLines: 4,
-            minLines: 3,
+            controller: _linkCtrl,
+            keyboardType: TextInputType.url,
             style: TextStyle(fontSize: 13.5, color: p.text),
             decoration: InputDecoration(
-              hintText: 'Tempel link repository / drive, atau tulis catatan pengumpulan di sini…',
+              labelText: 'Tautan pengumpulan',
+              hintText: 'https://github.com/… atau link drive',
+              hintStyle: TextStyle(fontSize: 12.5, color: p.muted),
+              prefixIcon: Icon(Icons.link_rounded, size: 18, color: p.muted),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _ctrl,
+            maxLines: 4,
+            minLines: 2,
+            style: TextStyle(fontSize: 13.5, color: p.text),
+            decoration: InputDecoration(
+              hintText: 'Catatan pengumpulan untuk guru (opsional)…',
               hintStyle: TextStyle(fontSize: 12.5, color: p.muted),
               alignLabelWithHint: true,
             ),
           ),
-          const SizedBox(height: 8),
+          if (_error != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.error_outline_rounded, size: 14, color: kDanger),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _error!,
+                    style: TextStyle(fontSize: 11.5, color: kDanger, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
           Row(
             children: [
               Icon(Icons.info_outline_rounded, size: 13, color: p.muted),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Batas pengumpulan: ${fmtFull(a.due)} ${fmtTime(a.due)}',
+                  due == null
+                      ? 'Tugas ini tanpa batas waktu pengumpulan.'
+                      : 'Batas pengumpulan: ${fmtFull(due)} ${fmtTime(due)}',
                   style: TextStyle(fontSize: 11, color: p.muted),
                 ),
               ),

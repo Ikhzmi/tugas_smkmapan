@@ -23,7 +23,7 @@ class TeacherHome extends StatelessWidget {
     final pending = state.pendingGradingCount(acc.id);
     final now = DateTime.now();
     final today = state.scheduleForTeacher(acc.id, now.weekday);
-    final totalSessions = kSchedule.where((s) => s.teacherId == acc.id && !s.isBreak).length;
+    final totalSessions = state.schedules.where((s) => s.teacherId == acc.id && !s.isBreak).length;
     final gelar = acc.name.contains(',') ? acc.name.split(',').last.trim() : 'Guru Vokasi';
 
     final recent = <({Assignment assignment, String studentId, Submission sub})>[];
@@ -225,22 +225,24 @@ class _RecentSubmissionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.pal;
     final a = entry.assignment;
-    final student = (kRosters[a.className] ?? const <RosterStudent>[])
-        .where((r) => r.id == entry.studentId)
-        .firstOrNull;
+    final name = entry.sub.studentName.isEmpty ? 'Siswa' : entry.sub.studentName;
+    final words = name.trim().split(RegExp(r'\s+'));
+    final initials = words.length >= 2
+        ? (words[0][0] + words[1][0]).toUpperCase()
+        : name.substring(0, 1).toUpperCase();
     final graded = entry.sub.score != null;
     return Panel(
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
-          Avatar(student?.initials ?? '?', size: 32),
+          Avatar(initials, size: 32),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  student?.name ?? entry.studentId,
+                  name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: p.text),

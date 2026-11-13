@@ -19,15 +19,12 @@ class StudentHome extends StatelessWidget {
     final state = AppScope.of(context);
     final p = context.pal;
     final acc = state.current!;
-    final cls = acc.className!;
-    final subjects = subjectsForClass(cls);
+    final cls = acc.className ?? '';
+    final subjects = state.subjectsForClass(cls);
     final assignments = state.assignmentsForClass(cls);
     final open = assignments.where((a) => !a.submissions.containsKey(acc.id)).toList()
-      ..sort((a, b) => a.due.compareTo(b.due));
-    final grades = gradesFor(acc.id);
-    final avg = grades.isEmpty
-        ? 0.0
-        : grades.map((g) => g.akhir).reduce((a, b) => a + b) / grades.length;
+      ..sort((a, b) => (a.due ?? DateTime(2100)).compareTo(b.due ?? DateTime(2100)));
+    final avg = state.averageGrade ?? 0.0;
     final summary = state.attendanceSummaryFor(acc.id);
     final totalDays = summary.values.fold(0, (a, b) => a + b);
     final pct = totalDays == 0 ? 0 : (summary[AttStatus.hadir]! * 100 / totalDays).round();
@@ -44,8 +41,8 @@ class StudentHome extends StatelessWidget {
             name: acc.name,
             desc: 'Semua materi, tugas, dan ujian dari guru-guru Anda di kelas $cls tersedia di sini.',
             badges: [
-              Pill('Rekayasa Perangkat Lunak', icon: Icons.school_outlined, bg: p.accentSoft, fg: p.accent),
-              Pill('NISN: ${acc.id}', icon: Icons.badge_outlined),
+              Pill(acc.majorName ?? 'Portal Siswa', icon: Icons.school_outlined, bg: p.accentSoft, fg: p.accent),
+              Pill('NISN: ${acc.displayId}', icon: Icons.badge_outlined),
             ],
           ),
         ),
@@ -94,9 +91,9 @@ class StudentHome extends StatelessWidget {
                 icon: Icons.workspace_premium_outlined,
                 color: kPurple,
                 label: 'Akademik',
-                value: avg.toStringAsFixed(1),
+                value: state.grades.isEmpty ? '–' : avg.toStringAsFixed(1),
                 title: 'Nilai Rata-Rata',
-                note: 'Semester $kSemester $kAcademicYear',
+                note: '${state.grades.length} penilaian tercatat',
                 onTap: () => onGoTab(4),
               ),
             ],
@@ -269,7 +266,7 @@ class _DashTaskRow extends StatelessWidget {
                   children: [
                     Pill(assignment.subject, dense: true, bg: p.accentSoft, fg: p.accent),
                     Text(
-                      'Batas: ${fmtShort(assignment.due)}',
+                      assignment.due == null ? 'Tanpa tenggat' : 'Batas: ${fmtShort(assignment.due!)}',
                       style: TextStyle(fontSize: 10.5, color: p.muted, fontWeight: FontWeight.w600),
                     ),
                   ],

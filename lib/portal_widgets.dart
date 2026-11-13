@@ -587,5 +587,5 @@ Future<void> confirmLogout(BuildContext context, {required bool isGuru}) async {
   if (!ok || !context.mounted) return;
   final nav = Navigator.of(context);
   AppScope.of(context).logout();
-  nav.pushNamedAndRemoveUntil('/', (route) => false);
+  nav.popUntil((route) => route.isFirst);
 }

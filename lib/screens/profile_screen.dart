@@ -59,7 +59,7 @@ class ProfileScreen extends StatelessWidget {
                       fg: p.accent,
                     ),
                     Pill(
-                      isGuru ? (acc.homeroom ?? 'Guru Mapel') : acc.className!,
+                      isGuru ? (acc.homeroom ?? 'Guru Mapel') : (acc.className ?? 'Murid'),
                       dense: true,
                       icon: Icons.groups_outlined,
                     ),
@@ -73,13 +73,13 @@ class ProfileScreen extends StatelessWidget {
                       _InfoRow(
                         icon: Icons.badge_outlined,
                         label: isGuru ? 'NIP / ID Guru' : 'NISN',
-                        value: acc.id,
+                        value: acc.displayId,
                       ),
                       if (isGuru) ...[
                         _InfoRow(
                           icon: Icons.menu_book_outlined,
                           label: 'Mapel Diampu',
-                          value: acc.subjects.join(', '),
+                          value: acc.subjects.isEmpty ? '-' : acc.subjects.join(', '),
                         ),
                         _InfoRow(
                           icon: Icons.supervisor_account_outlined,
@@ -90,12 +90,12 @@ class ProfileScreen extends StatelessWidget {
                         _InfoRow(
                           icon: Icons.school_outlined,
                           label: 'Jurusan',
-                          value: 'Rekayasa Perangkat Lunak',
+                          value: acc.majorName ?? '-',
                         ),
                       _InfoRow(
                         icon: Icons.calendar_today_outlined,
                         label: 'Tahun Ajaran',
-                        value: kAcademicYear,
+                        value: acc.tahunAjaran ?? kAcademicYear,
                       ),
                       _InfoRow(
                         icon: Icons.timelapse_rounded,

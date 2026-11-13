@@ -31,11 +31,11 @@ Tambahkan variabel-variabel berikut di **Vercel Dashboard -> Project Settings ->
 
 ### Database (Supabase Session Pooler)
 - `DB_CONNECTION` = `pgsql`
-- `DB_HOST` = `<host-pooler-supabase>` (misal: `aws-0-ap-northeast-2.pooler.supabase.com`)
+- `DB_HOST` = `aws-0-ap-northeast-2.pooler.supabase.com`
 - `DB_PORT` = `5432`
 - `DB_DATABASE` = `postgres`
-- `DB_USERNAME` = `postgres.<project-ref>`
-- `DB_PASSWORD` = `<password-db-anda>`
+- `DB_USERNAME` = `postgres.kwxfkacounktglsrtnap`
+- `DB_PASSWORD` = `smkm08medan`
 - `DB_SSLMODE` = `require`
 - `SUPABASE_NEW_PROJECT_CONFIRMED` = `true`
 
@@ -48,13 +48,13 @@ Tambahkan variabel-variabel berikut di **Vercel Dashboard -> Project Settings ->
 - `FILESYSTEM_DISK` = `local`
 - `MEDIA_DISK` = `supabase-public`
 - `PRIVATE_DISK` = `supabase`
-- `SUPABASE_S3_KEY` = `<access-key-id-s3-supabase>`
-- `SUPABASE_S3_SECRET` = `<secret-access-key-s3-supabase>`
+- `SUPABASE_S3_KEY` = `<access-key-id-s3-supabase>` (Ambil dari Project Settings -> Storage -> S3 Credentials)
+- `SUPABASE_S3_SECRET` = `<secret-access-key-s3-supabase>` (Ambil dari Project Settings -> Storage -> S3 Credentials)
 - `SUPABASE_S3_REGION` = `ap-northeast-2`
-- `SUPABASE_S3_ENDPOINT` = `https://<project-ref>.supabase.co/storage/v1/s3`
+- `SUPABASE_S3_ENDPOINT` = `https://kwxfkacounktglsrtnap.supabase.co/storage/v1/s3`
 - `SUPABASE_S3_BUCKET` = `smkm8-private`
 - `SUPABASE_S3_PUBLIC_BUCKET` = `smkm8-public`
-- `SUPABASE_S3_PUBLIC_URL` = `https://<project-ref>.supabase.co/storage/v1/object/public/smkm8-public`
+- `SUPABASE_S3_PUBLIC_URL` = `https://kwxfkacounktglsrtnap.supabase.co/storage/v1/object/public/smkm8-public`
 
 ## 3. Langkah Deploy di Vercel
 

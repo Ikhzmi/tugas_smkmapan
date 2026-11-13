@@ -22,6 +22,9 @@ extension AttMeta on AttStatus {
         AttStatus.alfa => 'A',
       };
 
+  /// Nilai status yang dipakai API backend ("alpa", bukan "alfa").
+  String get apiValue => this == AttStatus.alfa ? 'alpa' : name;
+
   Color get color => switch (this) {
         AttStatus.hadir => kSuccess,
         AttStatus.terlambat => kWarning,
@@ -31,28 +34,48 @@ extension AttMeta on AttStatus {
       };
 
   Color get soft => color.withValues(alpha: 0.14);
+
+  static AttStatus fromApi(String? v) => switch (v) {
+        'terlambat' => AttStatus.terlambat,
+        'izin' => AttStatus.izin,
+        'sakit' => AttStatus.sakit,
+        'alpa' => AttStatus.alfa,
+        _ => AttStatus.hadir,
+      };
 }
 
 class Account {
   final Role role;
+
+  /// UUID profil (teacher_id / student_id) — kunci identitas di API.
   final String id;
-  final String password;
+  final String userId;
+
+  /// NISN (murid) atau username (guru) untuk ditampilkan.
+  final String displayId;
   final String name;
   final String shortName;
   final String? className;
-  final List<String> subjects;
+  final String? classId;
+  final String? majorName;
   final String? homeroom;
+  final String? tahunAjaran;
+  List<String> subjects;
 
-  const Account({
+  Account({
     required this.role,
     required this.id,
-    required this.password,
+    required this.userId,
+    required this.displayId,
     required this.name,
     required this.shortName,
     this.className,
-    this.subjects = const [],
+    this.classId,
+    this.majorName,
     this.homeroom,
-  });
+    this.tahunAjaran,
+    List<String>? subjects,
+  }) : subjects = subjects ?? [];
 
   String get initials {
     final parts = name.replaceAll(RegExp(r'[,\.]'), '').trim().split(RegExp(r'\s+'));
@@ -61,28 +84,59 @@ class Account {
   }
 
   String get roleLabel => role == Role.murid ? 'Murid' : 'Guru';
+
+  Account copyWith({
+    String? className,
+    String? classId,
+    String? majorName,
+    String? homeroom,
+    String? tahunAjaran,
+    List<String>? subjects,
+  }) =>
+      Account(
+        role: role,
+        id: id,
+        userId: userId,
+        displayId: displayId,
+        name: name,
+        shortName: shortName,
+        className: className ?? this.className,
+        classId: classId ?? this.classId,
+        majorName: majorName ?? this.majorName,
+        homeroom: homeroom ?? this.homeroom,
+        tahunAjaran: tahunAjaran ?? this.tahunAjaran,
+        subjects: subjects ?? this.subjects,
+      );
 }
 
 class ScheduleItem {
+  final String id;
   final int day; // 1 = Senin .. 7 = Minggu
   final String start;
   final String end;
   final String subject;
+  final String subjectCode;
+  final String subjectId;
   final String teacherId;
   final String teacherName;
+  final String classId;
   final String className;
   final String room;
   final bool isBreak;
 
   const ScheduleItem({
+    required this.id,
     required this.day,
     required this.start,
     required this.end,
     required this.subject,
+    this.subjectCode = '',
+    this.subjectId = '',
     required this.teacherId,
     required this.teacherName,
+    this.classId = '',
     required this.className,
-    required this.room,
+    this.room = '',
     this.isBreak = false,
   });
 
@@ -92,7 +146,8 @@ class ScheduleItem {
 class RosterStudent {
   final String id;
   final String name;
-  const RosterStudent(this.id, this.name);
+  final String nisn;
+  const RosterStudent(this.id, this.name, {this.nisn = ''});
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -102,36 +157,57 @@ class RosterStudent {
 }
 
 class Submission {
+  final String id;
+  final String studentId;
+  final String studentName;
   final DateTime submittedAt;
   final String note;
+  final String fileName;
+  final String fileUrl;
   int? score;
   String? feedback;
 
-  Submission({required this.submittedAt, this.note = '', this.score, this.feedback});
+  Submission({
+    required this.id,
+    required this.studentId,
+    this.studentName = '',
+    required this.submittedAt,
+    this.note = '',
+    this.fileName = '',
+    this.fileUrl = '',
+    this.score,
+    this.feedback,
+  });
 }
 
 class Assignment {
   final String id;
   final String subject;
+  final String subjectId;
   final String teacherId;
-  final String teacherName;
+  String teacherName;
+  final String classId;
   final String className;
   final String title;
   final String description;
-  final DateTime due;
+  final DateTime? due;
   final DateTime createdAt;
+  final bool isPublished;
   final Map<String, Submission> submissions;
 
   Assignment({
     required this.id,
     required this.subject,
+    this.subjectId = '',
     required this.teacherId,
     required this.teacherName,
+    this.classId = '',
     required this.className,
     required this.title,
     required this.description,
-    required this.due,
+    this.due,
     required this.createdAt,
+    this.isPublished = true,
     Map<String, Submission>? submissions,
   }) : submissions = submissions ?? {};
 
@@ -139,39 +215,59 @@ class Assignment {
   int get pendingCount => submissions.values.where((s) => s.score == null).length;
 }
 
-class AttendanceEntry {
-  final String date; // yyyy-MM-dd
+/// Satu record presensi API: per siswa, per jadwal, per tanggal.
+class AttendanceRecord {
+  final String id;
+  final String studentId;
+  final String studentName;
+  final String scheduleId;
+  final String classId;
   final String className;
-  final Map<String, AttStatus> statuses;
-  final String recordedBy;
+  final String date; // yyyy-MM-dd
+  final String? jamMasuk;
+  final AttStatus status;
+  final String? catatan;
+  final String subjectName;
+  final String metode;
 
-  AttendanceEntry({
+  const AttendanceRecord({
+    required this.id,
+    required this.studentId,
+    this.studentName = '',
+    required this.scheduleId,
+    this.classId = '',
+    this.className = '',
     required this.date,
-    required this.className,
-    required this.statuses,
-    required this.recordedBy,
+    this.jamMasuk,
+    required this.status,
+    this.catatan,
+    this.subjectName = '',
+    this.metode = 'guru',
   });
 }
 
-class GradeItem {
+/// Nilai dari API: tugas yang sudah dinilai atau ujian yang selesai.
+class GradeEntry {
+  final String id;
+  final bool isExam;
+  final String title;
   final String subject;
-  final String teacher;
-  final int tugas;
-  final int uts;
-  final int uas;
+  final int score;
+  final DateTime gradedAt;
+  final String? feedback;
 
-  const GradeItem({
+  const GradeEntry({
+    required this.id,
+    required this.isExam,
+    required this.title,
     required this.subject,
-    required this.teacher,
-    required this.tugas,
-    required this.uts,
-    required this.uas,
+    required this.score,
+    required this.gradedAt,
+    this.feedback,
   });
 
-  double get akhir => tugas * 0.3 + uts * 0.3 + uas * 0.4;
-
   String get letter {
-    final v = akhir;
+    final v = score.toDouble();
     if (v >= 90) return 'A';
     if (v >= 83) return 'A-';
     if (v >= 76) return 'B+';

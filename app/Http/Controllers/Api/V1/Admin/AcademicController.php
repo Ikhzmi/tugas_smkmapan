@@ -64,6 +64,26 @@ class AcademicController extends Controller
         return ApiResponse::paginated($query->paginate(min(max($request->integer('per_page', 50), 1), 100)));
     }
 
+    public function guruClassStudents(Request $request, SchoolClass $schoolClass): JsonResponse
+    {
+        $teacher = $request->user()->teacher;
+
+        if (! $teacher) {
+            return ApiResponse::error('Profil guru belum tersedia.', [], 403, 'GURU_PROFILE_NOT_FOUND');
+        }
+
+        $teaches = Schedule::query()
+            ->where('class_id', $schoolClass->getKey())
+            ->where('teacher_id', $teacher->getKey())
+            ->exists();
+
+        if (! $teaches && $schoolClass->wali_kelas_id !== $teacher->getKey()) {
+            abort(404);
+        }
+
+        return $this->classStudents($request, $schoolClass);
+    }
+
     public function subjects(Request $request): JsonResponse
     {
         $query = Subject::query()->with('major')->orderBy('nama');

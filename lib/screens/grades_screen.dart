@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
-import '../data.dart';
 import '../models.dart';
 import '../shells.dart';
 import '../theme.dart';
@@ -31,14 +30,9 @@ class GradesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final p = context.pal;
-    final acc = state.current!;
-    final grades = gradesFor(acc.id);
-    final avg = grades.isEmpty
-        ? 0.0
-        : grades.map((g) => g.akhir).reduce((a, b) => a + b) / grades.length;
-    final best = grades.isEmpty
-        ? null
-        : grades.reduce((a, b) => a.akhir >= b.akhir ? a : b);
+    final grades = state.grades;
+    final avg = state.averageGrade ?? 0.0;
+    final best = grades.isEmpty ? null : grades.reduce((a, b) => a.score >= b.score ? a : b);
 
     return ListView(
       padding: kPagePadding,
@@ -47,7 +41,7 @@ class GradesScreen extends StatelessWidget {
           index: 0,
           child: TabHeaderBanner(
             title: 'Nilai Akademik',
-            desc: 'Rekap nilai tugas, UTS, dan UAS semester $kSemester TA $kAcademicYear',
+            desc: 'Rekap nilai tugas dan ujian yang sudah dipublikasikan guru',
             onHome: onHome,
           ),
         ),
@@ -67,12 +61,12 @@ class GradesScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'RATA-RATA SEMESTER',
+                            'RATA-RATA NILAI',
                             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.8, color: p.muted),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${grades.length} mata pelajaran • bobot 30 / 30 / 40',
+                            '${grades.length} penilaian tercatat',
                             style: TextStyle(fontSize: 11, color: p.muted, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -82,16 +76,18 @@ class GradesScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          avg.toStringAsFixed(1),
+                          grades.isEmpty ? '–' : avg.toStringAsFixed(1),
                           style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: p.text, letterSpacing: -1, height: 1),
                         ),
-                        const SizedBox(height: 4),
-                        Pill(
-                          'Predikat ${letterFor(avg)}',
-                          dense: true,
-                          bg: letterColor(letterFor(avg)).withValues(alpha: 0.13),
-                          fg: letterColor(letterFor(avg)),
-                        ),
+                        if (grades.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Pill(
+                            'Predikat ${letterFor(avg)}',
+                            dense: true,
+                            bg: letterColor(letterFor(avg)).withValues(alpha: 0.13),
+                            fg: letterColor(letterFor(avg)),
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -106,14 +102,14 @@ class GradesScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Nilai tertinggi: ${best.subject}',
+                            'Nilai tertinggi: ${best.title}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: p.textSoft),
                           ),
                         ),
                         Text(
-                          best.akhir.toStringAsFixed(1),
+                          '${best.score}',
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: p.accent),
                         ),
                       ],
@@ -125,20 +121,30 @@ class GradesScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        for (var i = 0; i < grades.length; i++)
+        if (grades.isEmpty)
           Reveal(
-            index: (i + 2).clamp(0, 8),
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _GradeCard(item: grades[i]),
+            index: 2,
+            child: const EmptyState(
+              icon: Icons.insights_outlined,
+              title: 'Belum ada nilai',
+              subtitle: 'Nilai muncul di sini setelah guru menilai tugas atau ujian Anda selesai dikerjakan.',
             ),
-          ),
+          )
+        else
+          for (var i = 0; i < grades.length; i++)
+            Reveal(
+              index: (i + 2).clamp(0, 8),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _GradeCard(item: grades[i]),
+              ),
+            ),
         Reveal(
           index: 8,
           child: Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(
-              'Nilai akhir = 30% tugas + 30% UTS + 40% UAS. Hubungi wali kelas bila ada nilai yang belum sesuai.',
+              'Nilai diambil langsung dari server sekolah. Hubungi guru mapel bila ada nilai yang belum sesuai.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: p.muted, height: 1.5),
             ),
@@ -150,7 +156,7 @@ class GradesScreen extends StatelessWidget {
 }
 
 class _GradeCard extends StatelessWidget {
-  final GradeItem item;
+  final GradeEntry item;
   const _GradeCard({required this.item});
 
   @override
@@ -166,21 +172,26 @@ class _GradeCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconWell(Icons.menu_book_rounded, color: p.accent, size: 34, iconSize: 17),
+              IconWell(
+                item.isExam ? Icons.quiz_outlined : Icons.assignment_outlined,
+                color: item.isExam ? kPurple : p.accent,
+                size: 34,
+                iconSize: 17,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.subject,
+                      item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: p.text),
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      item.teacher.split(',').first,
+                      '${item.isExam ? 'Ujian' : item.subject} • ${fmtShort(item.gradedAt)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 10.5, color: p.muted),
@@ -206,67 +217,14 @@ class _GradeCard extends StatelessWidget {
           const SizedBox(height: 13),
           Row(
             children: [
-              _MiniScore(label: 'TUGAS', value: item.tugas, color: p.accent),
-              const SizedBox(width: 10),
-              _MiniScore(label: 'UTS', value: item.uts, color: kInfo),
-              const SizedBox(width: 10),
-              _MiniScore(label: 'UAS', value: item.uas, color: kPurple),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-            decoration: BoxDecoration(
-              color: p.fill.withValues(alpha: p.isDark ? 0.55 : 0.8),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: p.line),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.insights_rounded, size: 15, color: p.accent),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    'Nilai Akhir',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: p.textSoft),
-                  ),
-                ),
-                Text(
-                  item.akhir.toStringAsFixed(1),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: p.accent, letterSpacing: -0.3),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniScore extends StatelessWidget {
-  final String label;
-  final int value;
-  final Color color;
-  const _MiniScore({required this.label, required this.value, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.pal;
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
               Expanded(
                 child: Text(
-                  label,
+                  'SKOR',
                   style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: p.muted),
                 ),
               ),
               Text(
-                '$value',
+                '${item.score}',
                 style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: p.text),
               ),
             ],
@@ -276,23 +234,47 @@ class _MiniScore extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             child: DeviceTier.isLow
                 ? LinearProgressIndicator(
-                    value: value / 100,
+                    value: item.score / 100,
                     minHeight: 4,
                     backgroundColor: p.fill,
-                    valueColor: AlwaysStoppedAnimation(color),
+                    valueColor: AlwaysStoppedAnimation(lc),
                   )
                 : TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: value / 100),
+                    tween: Tween(begin: 0, end: item.score / 100),
                     duration: const Duration(milliseconds: 700),
                     curve: Curves.easeOutCubic,
                     builder: (context, v, _) => LinearProgressIndicator(
                       value: v,
                       minHeight: 4,
                       backgroundColor: p.fill,
-                      valueColor: AlwaysStoppedAnimation(color),
+                      valueColor: AlwaysStoppedAnimation(lc),
                     ),
                   ),
           ),
+          if (item.feedback != null && item.feedback!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+              decoration: BoxDecoration(
+                color: p.fill.withValues(alpha: p.isDark ? 0.55 : 0.8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: p.line),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.rate_review_outlined, size: 15, color: p.accent),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      item.feedback!,
+                      style: TextStyle(fontSize: 11.5, color: p.textSoft, height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

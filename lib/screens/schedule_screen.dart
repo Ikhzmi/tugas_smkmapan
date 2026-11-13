@@ -20,7 +20,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final p = context.pal;
-    final cls = state.current!.className!;
+    final cls = state.current!.className ?? '';
     final items = state.scheduleForClass(cls, _day);
     final isToday = _day == DateTime.now().weekday;
 
@@ -212,7 +212,9 @@ class ScheduleTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${item.teacherName.isEmpty ? 'Kegiatan sekolah' : item.teacherName.split(',').first} • ${item.room}',
+                  item.room.isEmpty
+                      ? (item.teacherName.isEmpty ? 'Kegiatan sekolah' : item.teacherName.split(',').first)
+                      : '${item.teacherName.isEmpty ? 'Kegiatan sekolah' : item.teacherName.split(',').first} • ${item.room}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 11, color: p.muted),

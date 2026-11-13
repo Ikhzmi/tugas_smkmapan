@@ -105,7 +105,8 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subjects = subjectsForClass(widget.className);
+    final state = AppScope.of(context);
+    final subjects = state.subjectsForClass(widget.className);
     final selected = _selected == null
         ? null
         : subjects.where((s) => s.name == _selected).firstOrNull;
@@ -264,7 +265,7 @@ class _SubjectDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final p = context.pal;
-    final sessions = kSchedule
+    final sessions = state.schedules
         .where((s) => s.className == className && s.subject == subject.name && !s.isBreak)
         .toList()
       ..sort((a, b) => a.day == b.day ? a.start.compareTo(b.start) : a.day.compareTo(b.day));
@@ -383,7 +384,8 @@ class _SubjectDetail extends StatelessWidget {
                           style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: p.text),
                         ),
                       ),
-                      Pill(sessions[i].room, dense: true, icon: Icons.place_outlined),
+                      if (sessions[i].room.isNotEmpty)
+                        Pill(sessions[i].room, dense: true, icon: Icons.place_outlined),
                     ],
                   ),
                 ),

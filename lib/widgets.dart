@@ -52,13 +52,21 @@ String timeAgo(DateTime t) {
   return fmtShort(t);
 }
 
-String dueLabel(DateTime due) {
+String dueLabel(DateTime? due) {
+  if (due == null) return 'Tanpa batas waktu';
   final now = DateTime.now();
   final diff = due.difference(now);
   if (diff.isNegative) return 'Terlewat ${fmtShort(due)}';
   if (diff.inHours < 24) return 'Hari ini ${fmtTime(due)}';
   if (diff.inDays < 2) return 'Besok ${fmtTime(due)}';
   return '${fmtShort(due)} ${fmtTime(due)}';
+}
+
+String initialsOf(String name) {
+  final parts = name.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+  return (parts.first.substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
 }
 
 // ── Entrance animation ──────────────────────────────────────

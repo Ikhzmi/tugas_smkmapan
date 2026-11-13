@@ -1,0 +1,35 @@
+{
+    "name": "SMK Muhammadiyah 8 Medan — Portal Akademik",
+    "short_name": "SMK MAPAN",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#F9EFE8",
+    "theme_color": "#E8702A",
+    "description": "Portal Akademik SMK Muhammadiyah 8 Medan — LMS siswa dan portal guru.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

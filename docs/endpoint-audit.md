@@ -44,6 +44,9 @@ Hasil terakhir: **132 route API** terdaftar.
 - Smoke HTTPS Herd berhasil untuk ping, public site, login admin, `/auth/me`,
   analytics admin, dan logout; HTTP perlu memakai URL HTTPS langsung agar POST
   tidak berubah menjadi GET saat redirect.
+- `tests/Feature/ApiContractTest.php` memverifikasi OpenAPI dan route terdaftar
+  dua arah, operationId unik, seluruh `$ref` lokal valid, dan Postman dapat
+  dibaca JSON.
 
 ## Dokumentasi klien
 

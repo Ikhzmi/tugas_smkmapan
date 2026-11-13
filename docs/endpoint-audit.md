@@ -41,6 +41,9 @@ Hasil terakhir: **132 route API** terdaftar.
 - Query pencarian menggunakan `LOWER(...) LIKE` sebagai bentuk portable untuk
   perilaku case-insensitive PostgreSQL/SQLite.
 - Upload gambar/PDF/submission tervalidasi MIME dan ukuran server-side.
+- Smoke HTTPS Herd berhasil untuk ping, public site, login admin, `/auth/me`,
+  analytics admin, dan logout; HTTP perlu memakai URL HTTPS langsung agar POST
+  tidak berubah menjadi GET saat redirect.
 
 ## Dokumentasi klien
 

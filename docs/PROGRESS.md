@@ -21,7 +21,7 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 | 6 — Presensi | done | Presensi guru/siswa, update owner/admin, duplicate/date/ownership guard, dan rekap admin tersedia |
 | 7 — Ujian online | done* | CBT server-side critical flow, kode, attempt, autosave, score, warning, reset, recap, dan polling event tersedia; audit final masih berjalan |
 | 8 — CMS publik & PPDB | done | Public content/forms + admin settings/PPDB/suggestions/facilities/eskul/gallery/video CRUD + image upload tersedia |
-| 9 — Analitik & penutup | doing | Analytics dasar admin, README/API/Mobile/OpenAPI lengkap, Postman, endpoint audit, dan verifikasi kontrak 132 route tersedia |
+| 9 — Analitik & penutup | doing | Analytics dasar admin, README/API/Mobile/OpenAPI lengkap, Postman, endpoint audit, verifikasi kontrak 132 route, dan smoke test HTTPS Herd tersedia |
 
 ## Fase 0 — Audit & Persiapan
 
@@ -55,9 +55,9 @@ Mobile Flutter TIDAK dibuat pada tahap ini.
 
 ### Langkah berikutnya
 
-1. Jalankan smoke test endpoint utama melalui Herd sebelum migrasi Web.
-2. Tambahkan script Postman test otomatis bila collection runner dipakai.
-3. Jangan menjalankan `storage:prune-orphans --delete` tanpa inspeksi dry-run.
+1. Tambahkan script Postman test otomatis bila collection runner dipakai.
+2. Jangan menjalankan `storage:prune-orphans --delete` tanpa inspeksi dry-run.
+3. Pertahankan kontrak OpenAPI/Postman/API.md saat endpoint baru ditambahkan.
 
 ### Catatan sesi lanjutan 2026-11-03
 

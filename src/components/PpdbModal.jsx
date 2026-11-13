@@ -12,7 +12,6 @@ import {
   Sparkles,
   PhoneCall
 } from 'lucide-react';
-import { SCHOOL_INFO, MAJORS_DATA } from '../data/schoolData';
 import { useContent } from '../context/ContentContext';
 import './PpdbModal.css';
 
@@ -40,11 +39,11 @@ export default function PpdbModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const school = schoolInfo || SCHOOL_INFO;
+  const school = schoolInfo || {};
   const copy = sectionCopy?.ppdb || {};
-  const hotline = school.hotlineRaw || school.whatsapp || '6281370806663';
+  const hotline = school.hotlineRaw || school.whatsapp || '';
 
-  const source = majors?.length ? majors : MAJORS_DATA;
+  const source = majors || [];
   const plans = source.map((major) => {
     const themeColor = major.color || DEFAULT_COLOR;
     return {

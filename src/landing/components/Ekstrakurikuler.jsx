@@ -1,18 +1,18 @@
 import AccordionGallery from '@/components/ui/accordion-gallery'
-import { ekstrakurikuler } from '@/data/ekstrakurikuler'
 import { useContent } from '../../context/ContentContext'
 import './Ekstrakurikuler.css'
 
 export function Ekstrakurikuler() {
   const { eskul, schoolInfo, sectionCopy } = useContent()
   const c = sectionCopy?.eskul || {}
-  const source = eskul?.length ? eskul : ekstrakurikuler
   const schoolName = schoolInfo?.name || 'SMK Muhammadiyah 8 Medan'
-  const items = source.map((item, i) => ({
-    image: item.image || ekstrakurikuler[i % ekstrakurikuler.length].image,
-    label: item.name,
-    alt: `Ekstrakurikuler ${item.name} ${schoolName}`,
-  }))
+  const items = (eskul || [])
+    .filter((item) => item.image)
+    .map((item) => ({
+      image: item.image,
+      label: item.name,
+      alt: `Ekstrakurikuler ${item.name} ${schoolName}`,
+    }))
 
   return (
     <section

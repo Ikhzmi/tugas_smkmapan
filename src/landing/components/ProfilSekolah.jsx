@@ -3,7 +3,6 @@ import { motion, useReducedMotion } from 'motion/react'
 import { AtSign, BadgeCheck, BookOpen, Clock, ExternalLink, GraduationCap, Hash, IdCard, Mail, MapPin, MousePointer2, Phone, ShieldCheck } from 'lucide-react'
 import { Tabs } from '@/components/ui/tabs'
 import { useTabActive } from '@/components/ui/tab-active'
-import { profil } from '@/data/profil'
 import { useContent } from '../../context/ContentContext'
 import { renderPrincipalCard } from '../../lib/principalCard'
 import './ProfilSekolah.css'
@@ -24,11 +23,8 @@ function supportsWebGL() {
   }
 }
 
-const CARD_DEPAN = '/images/kartu-kepala-sekolah.jpg?v=2'
-const CARD_BELAKANG = '/images/kartu-kepala-sekolah-belakang.jpg'
-const FOTO_SEJARAH = '/images/gedung-kelas.jpg'
-
 function StaticPrincipalCard({ src }) {
+  if (!src) return null
   return (
     <img
       className="profil-head__card"
@@ -105,13 +101,15 @@ const contactIcons = {
 function SejarahPanel({ data }) {
   return (
     <article className="profil-panel profil-split">
-      <div className="profil-split__media">
-        <img
-          src={data.image}
-          alt={data.imageAlt}
-          loading="lazy"
-        />
-      </div>
+      {data.image ? (
+        <div className="profil-split__media">
+          <img
+            src={data.image}
+            alt={data.imageAlt}
+            loading="lazy"
+          />
+        </div>
+      ) : null}
       <div className="profil-split__body">
         <h3 className="profil-h3">{data.title}</h3>
         {data.paragraphs.map((paragraph) => (
@@ -297,10 +295,10 @@ export function ProfilSekolah() {
 
   const principalPhoto =
     (teachers || []).find((t) => /kepala sekolah/i.test(t.role || ''))?.image || ''
-  const principalName = schoolInfo?.principal || profil.kepalaSekolah.name
+  const principalName = schoolInfo?.principal || ''
   const schoolName = schoolInfo?.name || 'SMK Muhammadiyah 8 Medan'
   const brandTagline = appearance?.tagline || 'Tunas Bangsa Berkarakter'
-  const brandLogo = appearance?.logoUrl || '/images/logo.png'
+  const brandLogo = appearance?.logoUrl || ''
 
   const [generatedCard, setGeneratedCard] = useState('')
   const genToken = useRef(0)
@@ -323,32 +321,26 @@ export function ProfilSekolah() {
   const sekolahName = schoolInfo?.name || 'SMK Muhammadiyah 8 Medan'
 
   const sejarah = {
-    title: profileExtras?.sejarahJudul || profil.sejarah.title,
-    paragraphs: profileExtras?.sejarahParagraf?.length
-      ? profileExtras.sejarahParagraf
-      : profil.sejarah.paragraphs,
-    milestones: profileExtras?.sejarahMilestones?.length
-      ? profileExtras.sejarahMilestones
-      : profil.sejarah.milestones,
-    image: profileExtras?.sejarahFoto || FOTO_SEJARAH,
+    title: profileExtras?.sejarahJudul || '',
+    paragraphs: profileExtras?.sejarahParagraf || [],
+    milestones: profileExtras?.sejarahMilestones || [],
+    image: profileExtras?.sejarahFoto || '',
     imageAlt: `Gedung ${sekolahName}`,
   }
 
   const visiMisi = {
-    visi: profileExtras?.visi || profil.visiMisi.visi,
-    misi: profileExtras?.misi?.length ? profileExtras.misi : profil.visiMisi.misi,
-    tujuan: profileExtras?.tujuan || profil.visiMisi.tujuan,
+    visi: profileExtras?.visi || '',
+    misi: profileExtras?.misi || [],
+    tujuan: profileExtras?.tujuan || '',
   }
 
   const kepalaSekolah = {
-    ...profil.kepalaSekolah,
-    name: schoolInfo?.principal || profil.kepalaSekolah.name,
-    greeting: profileExtras?.kepsekSambutan || profil.kepalaSekolah.greeting,
-    message: profileExtras?.kepsekPesan?.length
-      ? profileExtras.kepsekPesan
-      : profil.kepalaSekolah.message,
-    cardFront: profileExtras?.kartuDepan || generatedCard || principalPhoto || CARD_DEPAN,
-    cardBack: profileExtras?.kartuBelakang || CARD_BELAKANG,
+    name: schoolInfo?.principal || '',
+    role: 'Kepala SMK Muhammadiyah 8 Medan',
+    greeting: profileExtras?.kepsekSambutan || '',
+    message: profileExtras?.kepsekPesan || [],
+    cardFront: profileExtras?.kartuDepan || generatedCard || principalPhoto,
+    cardBack: profileExtras?.kartuBelakang || '',
   }
 
   const instagramHandle = String(schoolInfo?.instagram || '')
@@ -357,20 +349,20 @@ export function ProfilSekolah() {
     .replace(/\/+$/, '')
 
   const identitas = {
-    title: profil.identitas.title,
+    title: 'Identitas sekolah',
     logo: brandLogo,
-    name: schoolInfo?.name || profil.identitas.detail[0].value,
+    name: schoolInfo?.name || '',
     tagline: brandTagline,
     badge: schoolInfo?.predicate || '',
-    address: schoolInfo?.address || profil.identitas.address,
+    address: schoolInfo?.address || '',
     mapsUrl: schoolInfo?.mapsUrl || '',
     hours: schoolInfo?.operatingHours || '',
     // Website tidak lagi ditampilkan; kartu memakai kanal resmi yang dikelola CMS.
     stats: [
-      { label: 'NPSN', value: schoolInfo?.npsn || '10210871' },
-      { label: 'NSS', value: schoolInfo?.nss || profil.identitas.detail[1].value },
-      { label: 'Akreditasi', value: schoolInfo?.accreditation || profil.identitas.detail[2].value },
-      { label: 'Kurikulum', value: schoolInfo?.curriculum || profil.identitas.detail[3].value },
+      { label: 'NPSN', value: schoolInfo?.npsn || '' },
+      { label: 'NSS', value: schoolInfo?.nss || '' },
+      { label: 'Akreditasi', value: schoolInfo?.accreditation || '' },
+      { label: 'Kurikulum', value: schoolInfo?.curriculum || '' },
     ],
     contacts: [
       schoolInfo?.phone && {

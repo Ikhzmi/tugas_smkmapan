@@ -10,8 +10,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { apiGet, apiListAll, apiPost, apiUpload } from '../lib/api';
 import { getExamSession, formatExamSession, consumeReloadResume } from '../lib/examSession';
-import { SCHOOL_INFO } from '../data/schoolData';
-import { ASSETS } from '../data/assets';
+import { useContent } from '../context/ContentContext';
 import SubmissionModal from '../components/siswa/SubmissionModal';
 import MaterialViewerModal from '../components/siswa/MaterialViewerModal';
 import ExamRunner from '../components/siswa/ExamRunner';
@@ -96,6 +95,7 @@ export default function DashboardSiswa() {
   const { user, profile, loading, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const isHeaderHidden = useHeaderScroll();
+  const { schoolInfo, appearance } = useContent();
 
   const [student, setStudent] = useState(null);
   const [schedules, setSchedules] = useState([]);
@@ -749,10 +749,10 @@ export default function DashboardSiswa() {
             </div>
             <div className="siswa-brand-divider" />
             <div className="siswa-brand-meta">
-              <img src={ASSETS.logos.official} alt="Logo SMK Mapan" className="siswa-logo-img" />
+              <img src={appearance?.logoUrl || schoolInfo?.logoUrl || ''} alt="Logo SMK Mapan" className="siswa-logo-img" />
               <div>
                 <span className="siswa-system-name">LMS MAPAN</span>
-                <span className="siswa-school-name">{SCHOOL_INFO.shortName || 'SMK Muhammadiyah 8 Medan'}</span>
+                <span className="siswa-school-name">{schoolInfo?.shortName || 'SMK Muhammadiyah 8 Medan'}</span>
               </div>
             </div>
           </div>

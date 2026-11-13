@@ -5,7 +5,6 @@ import {
   DraggableCardBody,
   DraggableCardContainer,
 } from '@/components/ui/draggable-card'
-import { galeri as staticGaleri } from '@/data/galeri'
 import { useContent } from '../../context/ContentContext'
 import './Galeri.css'
 
@@ -16,9 +15,7 @@ const SCATTER_ROTATIONS = [-6, 4, -3, 7, -5, 3, -7, 5]
 export function Galeri() {
   const { galeri, sectionCopy } = useContent()
   const c = sectionCopy?.galeri || {}
-  const items = (galeri?.length ? galeri : staticGaleri).filter(
-    (item) => item.image,
-  )
+  const items = (galeri || []).filter((item) => item.image)
   const scattered = items.length > PER_ROW
   const rows = items.reduce((acc, item, index) => {
     const row = Math.floor(index / PER_ROW)

@@ -10,7 +10,6 @@ import {
   Wrench,
 } from 'lucide-react'
 import ScrollStack, { ScrollStackItem } from '@/components/ui/scroll-stack'
-import { fasilitasPendukung, fasilitasUtama } from '@/data/fasilitas'
 import { useContent } from '../../context/ContentContext'
 import './Fasilitas.css'
 
@@ -25,11 +24,17 @@ const icons = {
 }
 
 const CATEGORY_LOOK = {
+  ibadah: { icon: 'landmark', accent: '#34d399', label: 'Ibadah' },
+  praktikum: { icon: 'monitor', accent: '#38bdf8', label: 'Ruang Praktik' },
+  olahraga: { icon: 'trophy', accent: '#fb923c', label: 'Olahraga' },
+  akademik: { icon: 'building', accent: '#a78bfa', label: 'Gedung Sekolah' },
   lab: { icon: 'monitor', accent: '#38bdf8', label: 'Ruang Praktik' },
   campus: { icon: 'building', accent: '#a78bfa', label: 'Gedung Sekolah' },
   sports: { icon: 'trophy', accent: '#fb923c', label: 'Olahraga' },
   worship: { icon: 'landmark', accent: '#34d399', label: 'Ibadah' },
 }
+
+const DEFAULT_LOOK = { icon: 'building', accent: '#a78bfa', label: 'Fasilitas' }
 
 const titleCase = (value) => {
   const text = String(value || '').trim()
@@ -39,23 +44,30 @@ const titleCase = (value) => {
 export function Fasilitas() {
   const { facilities, schoolInfo, sectionCopy } = useContent()
   const c = sectionCopy?.fasilitas || {}
-  const utama = facilities?.length
-    ? facilities.map((f, i) => {
-        const base = fasilitasUtama[i % fasilitasUtama.length]
-        const look = CATEGORY_LOOK[String(f.category || '').toLowerCase()] || {}
-        return {
-          id: f.id ?? base.id,
-          name: f.title || base.name,
-          category: look.label || titleCase(f.category) || base.category,
-          icon: look.icon || base.icon,
-          accent: look.accent || base.accent,
-          image: f.image || base.image,
-          imageSmall: f.image || base.imageSmall,
-          description: f.description || base.description,
-          facts: f.tags?.length ? f.tags : base.facts,
-        }
-      })
-    : fasilitasUtama
+  const rows = facilities || []
+  const utama = rows
+    .filter((f) => String(f.category || '').toLowerCase() !== 'pendukung')
+    .map((f) => {
+      const look = CATEGORY_LOOK[String(f.category || '').toLowerCase()] || DEFAULT_LOOK
+      return {
+        id: f.id,
+        name: f.title,
+        category: look.label || titleCase(f.category),
+        icon: look.icon,
+        accent: look.accent,
+        image: f.image,
+        imageSmall: f.image,
+        description: f.description,
+        facts: f.tags || [],
+      }
+    })
+  const pendukung = rows
+    .filter((f) => String(f.category || '').toLowerCase() === 'pendukung')
+    .map((f) => ({
+      id: f.id,
+      name: f.title,
+      icon: icons[String(f.badge || '').toLowerCase()] ? String(f.badge).toLowerCase() : 'building',
+    }))
   const total = String(utama.length).padStart(2, '0')
   const mapsUrl = schoolInfo?.mapsUrl || 'https://maps.app.goo.gl/7QVjJmF8Z7sJepAK6'
 
@@ -153,7 +165,7 @@ export function Fasilitas() {
           <div>
             <p className="fasilitas__support-title">Fasilitas pendukung</p>
             <ul className="fasilitas__support">
-              {fasilitasPendukung.map((item) => {
+              {pendukung.map((item) => {
                 const Icon = icons[item.icon]
 
                 return (

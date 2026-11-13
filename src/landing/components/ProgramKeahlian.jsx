@@ -2,7 +2,6 @@ import { useRef } from 'react'
 import { useInView } from 'motion/react'
 import { ArrowUpRight, Calculator, Network, Palette, Wrench } from 'lucide-react'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
-import { programKeahlian as staticPrograms } from '@/data/program'
 import { useContent } from '../../context/ContentContext'
 import './ProgramKeahlian.css'
 
@@ -57,9 +56,8 @@ export function ProgramKeahlian() {
   const stageRef = useRef(null)
   const inView = useInView(stageRef, { amount: 0.35 })
   const { majors, schoolInfo, sectionCopy } = useContent()
-  const programKeahlian = majors?.length
-    ? majors.map((m) => mapMajorToProgram(m, schoolInfo?.whatsapp || schoolInfo?.hotlineRaw))
-    : staticPrograms
+  const programKeahlian = (majors || []).map((m) =>
+    mapMajorToProgram(m, schoolInfo?.whatsapp || schoolInfo?.hotlineRaw))
   const count = programKeahlian.length
   const fanMode = count <= 4
   const c = sectionCopy?.program || {}

@@ -89,13 +89,15 @@ export function Hero({ onOpenPpdb }) {
   return (
     <section id="beranda" className="hero" aria-labelledby="hero-title">
       {/* Backdrop foto — zoom-in halus */}
-      <motion.img
-        className="hero-backdrop"
-        src={h.backgroundImage || '/images/hero-bg.jpg'}
-        alt=""
-        aria-hidden="true"
-        {...zoomIn(0)}
-      />
+      {h.backgroundImage ? (
+        <motion.img
+          className="hero-backdrop"
+          src={h.backgroundImage}
+          alt=""
+          aria-hidden="true"
+          {...zoomIn(0)}
+        />
+      ) : null}
       {/* Veil overlay — fade-in */}
       <motion.span className="hero-veil" aria-hidden="true" {...fadeIn(0.2, 1.0)} />
 

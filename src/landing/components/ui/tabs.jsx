@@ -12,19 +12,35 @@ export const Tabs = ({
 }) => {
   const uid = useId()
   const reduceMotion = useReducedMotion()
+  // Urutan & tab aktif disimpan sebagai VALUE (bukan elemen), supaya konten
+  // panel selalu memakai props terbaru — data dari API yang datang belakangan
+  // tetap tampil tanpa perlu klik tab ulang.
+  const [order, setOrder] = useState(() => propTabs.map((t) => t.value))
   const [active, setActive] = useState(propTabs[0])
-  const [tabs, setTabs] = useState(propTabs)
   const [hovering, setHovering] = useState(false)
 
+  const tabValues = propTabs.map((t) => t.value).join('|')
+  useEffect(() => {
+    setOrder((prev) => {
+      const fresh = propTabs.map((t) => t.value)
+      const kept = prev.filter((value) => fresh.includes(value))
+      const added = fresh.filter((value) => !kept.includes(value))
+      return [...kept, ...added]
+    })
+  }, [tabValues]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const orderedTabs = order
+    .map((value) => propTabs.find((t) => t.value === value))
+    .filter(Boolean)
+
   const moveSelectedTabToTop = useCallback((idx) => {
-    const newTabs = [...propTabs]
-    const selectedTab = newTabs.splice(idx, 1)
-    newTabs.unshift(selectedTab[0])
-    setTabs(newTabs)
-    setActive(newTabs[0])
+    const selected = propTabs[idx]
+    if (!selected) return
+    setOrder((prev) => [selected.value, ...prev.filter((v) => v !== selected.value)])
+    setActive(selected)
     window.dispatchEvent(
       new CustomEvent('profil-tab-change', {
-        detail: { tabIndex: idx, tabValue: newTabs[0].value },
+        detail: { tabIndex: idx, tabValue: selected.value },
       }),
     )
   }, [propTabs])
@@ -84,7 +100,7 @@ export const Tabs = ({
       </div>
 
       <FadeInDiv
-        tabs={tabs}
+        tabs={orderedTabs}
         active={active}
         hovering={hovering}
         reduceMotion={reduceMotion}

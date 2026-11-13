@@ -4,7 +4,7 @@ import {
   Users, UserPlus, Edit3, Trash2, KeyRound, RefreshCw, AlertCircle, X, UserCheck, Camera, Loader2, Search,
 } from 'lucide-react';
 import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
-import { teacherPhoto } from '../lib/teacherPhoto';
+
 import { uploadImage } from '../lib/uploadImage';
 import Pagination from './ui/Pagination';
 import { TableSkeleton } from './ui/Skeleton';
@@ -242,7 +242,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
             ) : (
               pagedRows.map((t) => {
                 const acc = t.profile_id ? accByProfile[t.profile_id] : null;
-                const foto = t.foto_url || teacherPhoto(`${t.nama} ${t.gelar || ''}`);
+                const foto = t.foto_url || '';
                 return (
                   <tr key={t.id}>
                     <td>

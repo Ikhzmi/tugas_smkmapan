@@ -10,8 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { apiGet, apiListAll, apiPost, apiPatch, apiDelete, apiUpload, ApiError } from '../lib/api';
-import { SCHOOL_INFO } from '../data/schoolData';
-import { ASSETS } from '../data/assets';
+import { useContent } from '../context/ContentContext';
 import { getExamSession, formatExamSession, splitExamSchedule, joinExamSchedule } from '../lib/examSession';
 import GuruModal from '../components/guru/GuruModal';
 import GradeModal from '../components/guru/GradeModal';
@@ -123,6 +122,7 @@ export default function DashboardGuru() {
   const { user, profile, loading, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const isHeaderHidden = useHeaderScroll();
+  const { schoolInfo, appearance } = useContent();
 
   const [teacher, setTeacher] = useState(null);
   const [schedules, setSchedules] = useState([]);
@@ -1067,10 +1067,10 @@ export default function DashboardGuru() {
             </div>
             <div className="siswa-brand-divider" />
             <div className="siswa-brand-meta">
-              <img src={ASSETS.logos.official} alt="Logo SMK Mapan" className="siswa-logo-img" />
+              <img src={appearance?.logoUrl || schoolInfo?.logoUrl || ''} alt="Logo SMK Mapan" className="siswa-logo-img" />
               <div>
                 <span className="siswa-system-name">PORTAL GURU</span>
-                <span className="siswa-school-name">{SCHOOL_INFO.shortName || 'SMK Muhammadiyah 8 Medan'}</span>
+                <span className="siswa-school-name">{schoolInfo?.shortName || 'SMK Muhammadiyah 8 Medan'}</span>
               </div>
             </div>
           </div>

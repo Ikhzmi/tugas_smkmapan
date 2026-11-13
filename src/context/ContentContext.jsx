@@ -3,16 +3,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import {
   apiGet, apiPost, apiPatch, apiPut, apiDelete, apiListAll, getToken, getStoredUser, onAuthChange,
 } from '../lib/api';
-import { ASSETS } from '../data/assets';
-import { SCHOOL_INFO, MAJORS_DATA, TEACHERS_DATA, SHOWCASE_EPISODES } from '../data/schoolData';
-import { teacherPhoto } from '../lib/teacherPhoto';
-
-const majorImages = {
-  TKJ: ASSETS.majors.tkj,
-  DKV: ASSETS.majors.dkv,
-  AKL: ASSETS.majors.akl,
-  TBSM: ASSETS.majors.tsm,
-};
 
 const rupiah = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 
@@ -40,8 +30,8 @@ const mapMajor = (m) => ({
   monthlySpp: m.spp_bulanan,
   registrationFormatted: rupiah(m.biaya_pendaftaran),
   sppFormatted: rupiah(m.spp_bulanan) + ' / bulan',
-  image: m.foto_url || majorImages[m.kode] || ASSETS.facilities.gedungUtama,
-  facilityImage: m.foto_url || majorImages[m.kode] || ASSETS.facilities.gedungUtama,
+  image: m.foto_url || '',
+  facilityImage: m.foto_url || '',
   photo: m.foto_url || '',
   description: m.deskripsi,
   curriculum: m.kurikulum || [],
@@ -56,7 +46,7 @@ const mapTeacher = (t) => ({
   name: t.nama,
   role: t.jabatan,
   department: t.department,
-  image: t.foto_url || teacherPhoto([t.nama, t.gelar].filter(Boolean).join(' ')),
+  image: t.foto_url || '',
   certifications: t.sertifikasi || [],
   bio: t.bio,
   hours: t.jam_kerja,
@@ -78,24 +68,11 @@ const mapEskul = (e) => ({
   maxMembers: e.max_anggota,
 });
 
-const fallbackFacilityImage = (f) => {
-  const badge = String(f.badge || f.judul || '').toLowerCase();
-  const kat = String(f.kategori || '').toLowerCase();
-  if (badge.includes('dkv') || kat === 'lab') return ASSETS.facilities.labDkv;
-  if (badge.includes('ibadah') || badge.includes('masjid') || kat === 'worship') return ASSETS.facilities.mesjid;
-  if (badge.includes('olahraga') || badge.includes('basket') || kat === 'sports') return ASSETS.facilities.lapBasket;
-  if (badge.includes('kelas')) return ASSETS.facilities.gedungKelas;
-  if (badge.includes('diskusi') || badge.includes('kolaborasi') || badge.includes('praktik')) return ASSETS.facilities.belajar;
-  if (badge.includes('aula') || badge.includes('mpls')) return ASSETS.facilities.mpls;
-  if (badge.includes('lingkungan') || badge.includes('eco')) return ASSETS.facilities.fotoSekolah;
-  return ASSETS.facilities.gedungUtama;
-};
-
 const mapFacility = (f) => ({
   id: f.id,
   title: f.judul,
   category: f.kategori,
-  image: f.image_url || fallbackFacilityImage(f),
+  image: f.image_url || '',
   specs: f.specs,
   description: f.deskripsi,
   tags: f.tags || [],
@@ -110,14 +87,21 @@ const mapVideo = (v) => ({
   duration: v.durasi_text,
   description: v.deskripsi,
   software: v.software || [],
-  image: v.thumbnail_url,
+  image: v.thumbnail_url || '',
 });
+
+const formatTanggal = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+};
 
 const mapGallery = (g) => ({
   id: g.id,
   title: g.judul,
   category: g.kategori,
-  date: g.tanggal,
+  date: formatTanggal(g.tanggal),
   description: g.deskripsi,
   image: g.image_url,
   rotate: Number(g.rotate) || 0,
@@ -172,6 +156,32 @@ export const HERO_DEFAULTS = {
 
 const ContentContext = createContext(null);
 
+// Bentuk netral identitas sekolah (tanpa data contoh). Nilai asli selalu
+// diambil dari site_settings key 'sekolah' di API.
+const SCHOOL_INFO_DEFAULTS = {
+  name: '',
+  shortName: '',
+  predicate: '',
+  accreditation: '',
+  curriculum: '',
+  npsn: '',
+  nss: '',
+  hotline: '',
+  hotlineRaw: '',
+  phone: '',
+  website: '',
+  whatsapp: '',
+  mapsUrl: '',
+  instagram: '',
+  logoUrl: '',
+  email: '',
+  address: '',
+  operatingHours: '',
+  principal: '',
+  quote: { text: '', author: '' },
+  stats: [],
+};
+
 // Identitas sekolah tersimpan utuh di site_settings key 'sekolah'.
 // Key lama ('topbar', 'kontak', 'profil') hanya dibaca sebagai fallback
 // supaya nilai yang sudah pernah disimpan sebelum ini tidak hilang.
@@ -180,37 +190,37 @@ function mapSchoolInfo(settings) {
   const pick = (value, fallback) => (value == null || value === '' ? fallback : value);
 
   return {
-    ...SCHOOL_INFO,
-    name: pick(s.nama, SCHOOL_INFO.name),
-    shortName: pick(s.singkatan, SCHOOL_INFO.shortName),
-    predicate: pick(s.predikat, SCHOOL_INFO.predicate),
-    accreditation: pick(s.akreditasi, SCHOOL_INFO.akreditasi),
-    curriculum: pick(s.kurikulum, SCHOOL_INFO.curriculum),
-    npsn: pick(s.npsn, pick(settings.topbar?.npsn, SCHOOL_INFO.npsn)),
-    nss: pick(s.nss, SCHOOL_INFO.nss),
-    hotline: pick(s.hotline, pick(settings.topbar?.hotline, SCHOOL_INFO.hotline)),
-    hotlineRaw: pick(s.hotline_raw, SCHOOL_INFO.hotlineRaw),
-    phone: pick(s.telepon, SCHOOL_INFO.phone),
-    email: pick(s.email, SCHOOL_INFO.email),
-    website: pick(s.website, SCHOOL_INFO.website),
-    address: pick(s.alamat, pick(settings.kontak?.alamat, SCHOOL_INFO.address)),
-    mapsUrl: pick(s.maps_url, SCHOOL_INFO.mapsUrl),
-    whatsapp: pick(s.whatsapp, SCHOOL_INFO.whatsapp),
-    instagram: pick(s.instagram, SCHOOL_INFO.instagram),
-    operatingHours: pick(s.jam_pelayanan, pick(settings.kontak?.jam_pelayanan, SCHOOL_INFO.operatingHours)),
+    ...SCHOOL_INFO_DEFAULTS,
+    name: pick(s.nama, SCHOOL_INFO_DEFAULTS.name),
+    shortName: pick(s.singkatan, SCHOOL_INFO_DEFAULTS.shortName),
+    predicate: pick(s.predikat, SCHOOL_INFO_DEFAULTS.predicate),
+    accreditation: pick(s.akreditasi, SCHOOL_INFO_DEFAULTS.accreditation),
+    curriculum: pick(s.kurikulum, SCHOOL_INFO_DEFAULTS.curriculum),
+    npsn: pick(s.npsn, pick(settings.topbar?.npsn, SCHOOL_INFO_DEFAULTS.npsn)),
+    nss: pick(s.nss, SCHOOL_INFO_DEFAULTS.nss),
+    hotline: pick(s.hotline, pick(settings.topbar?.hotline, SCHOOL_INFO_DEFAULTS.hotline)),
+    hotlineRaw: pick(s.hotline_raw, SCHOOL_INFO_DEFAULTS.hotlineRaw),
+    phone: pick(s.telepon, SCHOOL_INFO_DEFAULTS.phone),
+    email: pick(s.email, SCHOOL_INFO_DEFAULTS.email),
+    website: pick(s.website, SCHOOL_INFO_DEFAULTS.website),
+    address: pick(s.alamat, pick(settings.kontak?.alamat, SCHOOL_INFO_DEFAULTS.address)),
+    mapsUrl: pick(s.maps_url, SCHOOL_INFO_DEFAULTS.mapsUrl),
+    whatsapp: pick(s.whatsapp, SCHOOL_INFO_DEFAULTS.whatsapp),
+    instagram: pick(s.instagram, SCHOOL_INFO_DEFAULTS.instagram),
+    operatingHours: pick(s.jam_pelayanan, pick(settings.kontak?.jam_pelayanan, SCHOOL_INFO_DEFAULTS.operatingHours)),
     principal: pick(
       s.kepala_sekolah,
       pick(
         settings.profil?.kepala_sekolah === 'Luliadi, M.Pd' ? '' : settings.profil?.kepala_sekolah,
-        SCHOOL_INFO.principal,
+        SCHOOL_INFO_DEFAULTS.principal,
       ),
     ),
-    logoUrl: pick(s.logo_url, SCHOOL_INFO.logoUrl),
+    logoUrl: pick(s.logo_url, SCHOOL_INFO_DEFAULTS.logoUrl),
     quote: {
-      text: pick(s.kutipan, SCHOOL_INFO.quote.text),
-      author: pick(s.kutipan_penulis, SCHOOL_INFO.quote.author),
+      text: pick(s.kutipan, SCHOOL_INFO_DEFAULTS.quote.text),
+      author: pick(s.kutipan_penulis, SCHOOL_INFO_DEFAULTS.quote.author),
     },
-    principalPhoto: SCHOOL_INFO.principalPhoto,
+    principalPhoto: '',
   };
 }
 
@@ -361,7 +371,7 @@ function mapSectionCopy(settings) {
 
 export function ContentProvider({ children }) {
   const [content, setContent] = useState({
-    schoolInfo: SCHOOL_INFO,
+    schoolInfo: SCHOOL_INFO_DEFAULTS,
     appearance: APPEARANCE_DEFAULTS,
     sectionCopy: SECTION_COPY_DEFAULTS,
     profileExtras: {
@@ -371,13 +381,13 @@ export function ContentProvider({ children }) {
       sejarahFoto: '', kartuDepan: '', kartuBelakang: '',
     },
     hero: HERO_DEFAULTS,
-    majors: MAJORS_DATA,
-    allMajors: MAJORS_DATA,
-    teachers: TEACHERS_DATA,
+    majors: [],
+    allMajors: [],
+    teachers: [],
     eskul: [],
     facilities: [],
     galeri: [],
-    showcase: SHOWCASE_EPISODES,
+    showcase: [],
   });
   const [ppdbSubmissions, setPpdbSubmissions] = useState([]);
   const [contactMessages, setContactMessages] = useState([]);
@@ -407,28 +417,13 @@ export function ContentProvider({ children }) {
       ]);
 
       const schoolInfo = mapSchoolInfo(settings || {});
-
-      const rawTeachers = (teacherRows || [])
+      const mappedTeachers = (teacherRows || [])
         .filter((t) => t.is_active !== false)
         .map(mapTeacher);
-      const mappedTeachers = rawTeachers.map((t) => {
-        if (t.name.includes('Sulastri')) {
-          return { ...t, role: 'Kepala Sekolah', image: t.image || ASSETS.teachers.umiSulastri };
-        }
-        if (t.name.includes('Luliadi') && t.role === 'Kepala Sekolah') {
-          return { ...t, role: 'Wakil Kepala Sekolah & Pengajar Senior' };
-        }
-        return t;
-      });
-      if (mappedTeachers.length > 0) {
-        mappedTeachers.sort((a, b) => (a.role === 'Kepala Sekolah' ? -1 : b.role === 'Kepala Sekolah' ? 1 : 0));
-      }
 
       // Jurusan non-aktif tetap dibutuhkan CMS supaya bisa ditampilkan lagi,
       // tetapi tidak boleh dipakai komponen landing page.
-      const mappedMajors = (majorsRows && majorsRows.length > 0)
-        ? majorsRows.map(mapMajor)
-        : MAJORS_DATA;
+      const mappedMajors = (majorsRows || []).map(mapMajor);
 
       const showcaseRows = (videoRows || [])
         .filter((v) => v.kategori === 'showreel' && v.is_published !== false);
@@ -453,11 +448,11 @@ export function ContentProvider({ children }) {
         hero: { ...HERO_DEFAULTS, ...(settings.hero || {}) },
         majors: mappedMajors.filter((m) => m.isActive !== false),
         allMajors: mappedMajors,
-        teachers: (mappedTeachers && mappedTeachers.length > 0) ? mappedTeachers : TEACHERS_DATA,
+        teachers: mappedTeachers,
         eskul: (eskulRows || []).filter((e) => e.is_active !== false).map(mapEskul),
         facilities: (facilityRows || []).filter((f) => f.is_active !== false).map(mapFacility),
         galeri: (galleryRows || []).filter((g) => g.is_active !== false).map(mapGallery),
-        showcase: showcaseRows.length > 0 ? showcaseRows.map(mapVideo) : SHOWCASE_EPISODES,
+        showcase: showcaseRows.map(mapVideo),
       });
 
       // PPDB & pesan masuk hanya bisa dibaca admin.

@@ -40,8 +40,6 @@ import { uploadImage } from '../lib/uploadImage';
 import AdminExamSettings from './AdminExamSettings';
 import AdminAttendance from './AdminAttendance';
 import AdminAnalytics from './AdminAnalytics';
-import { ASSETS } from '../data/assets';
-import { SCHOOL_INFO } from '../data/schoolData';
 import '../styles/portal-shell.css';
 import AdminGuruManager from './AdminGuruManager';
 import AdminSiswaManager from './AdminSiswaManager';
@@ -1194,10 +1192,10 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
             <span className="tl tl-green" />
           </div>
           <div className="admin-cms-brand">
-            <img src={ASSETS.logos.official} alt="Logo SMK" className="cms-brand-logo" />
+            <img src={appearance?.logoUrl || ''} alt="Logo SMK" className="cms-brand-logo" />
             <div>
               <h2 className="cms-title">ADMIN STUDIO CMS</h2>
-              <span className="cms-sub">{SCHOOL_INFO.shortName || 'SMK Muhammadiyah 8 Medan'} &bull; Control Panel</span>
+              <span className="cms-sub">{schoolInfo.shortName || 'SMK Muhammadiyah 8 Medan'} &bull; Control Panel</span>
             </div>
           </div>
 
@@ -1354,7 +1352,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
                       <ShieldCheck size={28} className="text-orange" />
                       <div>
                         <span className="badge-title">Super Administrator</span>
-                        <span className="badge-nisn">{SCHOOL_INFO.shortName || 'SMK Muhammadiyah 8 Medan'}</span>
+                        <span className="badge-nisn">{schoolInfo.shortName || 'SMK Muhammadiyah 8 Medan'}</span>
                       </div>
                     </div>
                   </section>

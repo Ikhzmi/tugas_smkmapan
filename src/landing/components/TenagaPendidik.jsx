@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { CometCard } from '@/components/ui/comet-card'
-import { teachers as staticTeachers } from '@/data/teachers'
 import { useContent } from '../../context/ContentContext'
 import './TenagaPendidik.css'
 
@@ -74,9 +73,12 @@ function MarqueeRow({ items, direction }) {
 export function TenagaPendidik() {
   const { teachers, sectionCopy } = useContent()
   const c = sectionCopy?.tenaga || {}
-  const list = teachers?.length
-    ? teachers.map((t) => ({ id: t.id, name: t.name, role: t.role, photo: t.image }))
-    : staticTeachers
+  const list = (teachers || []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    role: t.role,
+    photo: t.image,
+  }))
   const midpoint = Math.ceil(list.length / 2)
   const topRow = list.slice(0, midpoint)
   const bottomRow = list.slice(midpoint)

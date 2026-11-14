@@ -57,7 +57,33 @@ dideteksi otomatis dari ID (satu kolom NISN / username, sesuai referensi).
 
 Data diambil dari API Laravel live (`https://smkm8medan-api.wasmer.app/api/v1`,
 Sanctum bearer token). Basis URL dapat diganti saat build dengan
-`--dart-define=API_BASE_URL=...`. Struktur kode:
+`--dart-define=API_BASE_URL=...`.
+
+## Menjalankan dengan API lokal (folder `../api`)
+
+Backend Laravel 13 butuh PHP ≥ 8.3. Bila `php` di PATH masih 8.2 (XAMPP),
+pakai PHP 8.4 bawaan Herd: `~/.config/herd/bin/php.bat`. Konfigurasi lokal
+memakai `.env.local` (SQLite, tanpa Supabase) sehingga `.env` utama tidak
+terganggu:
+
+```bash
+cd ../api
+composer install                      # autoload optimized bisa lama di Windows
+APP_ENV=local php artisan key:generate
+APP_ENV=local php artisan migrate:fresh --seed --force
+APP_ENV=local php artisan serve --host=0.0.0.0 --port=8000
+```
+
+Lalu jalankan app mengarah ke backend lokal:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1
+# emulator Android : http://10.0.2.2:8000/api/v1
+# perangkat fisik  : http://<IP-LAN-komputer>:8000/api/v1
+```
+
+Akun seeder lokal: murid NISN `2026000001`–`2026000010`, guru `guru1`–`guru3`,
+semua password `password`. Struktur kode:
 
 ```
 lib/

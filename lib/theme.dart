@@ -146,7 +146,7 @@ class LoginPal {
   final Color ctaFrom, ctaTo;
   final Color errorBg, errorBorder, errorText;
   final Color backBg, backBorder, backText;
-  final Color orb1, orb2, orb3;
+  final Color aurora1, aurora2, aurora3;
 
   const LoginPal({
     required this.pageBg,
@@ -172,9 +172,9 @@ class LoginPal {
     required this.backBg,
     required this.backBorder,
     required this.backText,
-    required this.orb1,
-    required this.orb2,
-    required this.orb3,
+    required this.aurora1,
+    required this.aurora2,
+    required this.aurora3,
   });
 
   static const dark = LoginPal(
@@ -201,9 +201,9 @@ class LoginPal {
     backBg: Color(0x0FFFFFFF),
     backBorder: Color(0x21FFFFFF),
     backText: Color(0xADFFFFFF),
-    orb1: Color(0x2EFF6B00),
-    orb2: Color(0x1F0EA5E9),
-    orb3: Color(0x1AA855F7),
+    aurora1: Color(0x40FF8C2A),
+    aurora2: Color(0x30E85D04),
+    aurora3: Color(0x1C38BDF8),
   );
 
   static const light = LoginPal(
@@ -230,9 +230,9 @@ class LoginPal {
     backBg: Color(0xBFFFFFFF),
     backBorder: Color(0x140F172A),
     backText: Color(0xFF475569),
-    orb1: Color(0x1FFF6B00),
-    orb2: Color(0x1A0EA5E9),
-    orb3: Color(0x14A855F7),
+    aurora1: Color(0x2EFF8C2A),
+    aurora2: Color(0x21E85D04),
+    aurora3: Color(0x1738BDF8),
   );
 }
 

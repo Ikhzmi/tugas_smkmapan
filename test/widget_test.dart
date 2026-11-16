@@ -387,7 +387,7 @@ void main() {
     expect(find.text('NISN / NIP / Username'), findsOneWidget);
     expect(find.text('Kata Sandi'), findsOneWidget);
     expect(find.text('Masuk'), findsOneWidget);
-    expect(find.text('Akun demo — ketuk untuk mengisi otomatis'), findsOneWidget);
+    expect(find.text('Akun demo — ketuk untuk mengisi otomatis'), findsNothing);
 
     await tester.tap(find.text('Masuk'));
     await tester.pump(const Duration(milliseconds: 550));
@@ -401,20 +401,15 @@ void main() {
     expect(state.current, isNull);
   });
 
-  apiTest('login: kartu demo mengisi otomatis dan toggle sandi bekerja', (tester, state) async {
-    await tester.tap(find.text('Murid • Akun Demo'));
+  apiTest('login: toggle sandi bekerja', (tester, state) async {
+    await tester.enterText(find.byType(TextField).at(0), '2026000001');
+    await tester.enterText(find.byType(TextField).at(1), 'password');
     await tester.pump(const Duration(milliseconds: 250));
-    expect(tester.widget<TextField>(find.byType(TextField).at(0)).controller?.text, '2026000001');
-    expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller?.text, 'password');
     expect(tester.widget<TextField>(find.byType(TextField).at(1)).obscureText, isTrue);
 
     await tester.tap(find.byIcon(Icons.visibility_outlined));
     await tester.pump(const Duration(milliseconds: 250));
     expect(tester.widget<TextField>(find.byType(TextField).at(1)).obscureText, isFalse);
-
-    await tester.tap(find.text('Guru • Akun Demo'));
-    await tester.pump(const Duration(milliseconds: 250));
-    expect(tester.widget<TextField>(find.byType(TextField).at(0)).controller?.text, 'guru1');
   });
 
   apiTest('login murid sukses membuka LMS MAPAN dan tab nilai', (tester, state) async {

@@ -123,14 +123,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     setState(() => _loading = false);
   }
 
-  void _fillDemo(String id, String pass) {
-    setState(() {
-      _error = null;
-      _idCtrl.text = id;
-      _passCtrl.text = pass;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
@@ -140,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       body: Stack(
         children: [
           Positioned.fill(child: CustomPaint(painter: _LoginBgPainter(lp: lp))),
-          _DriftOrbs(lp: lp),
+          _AuroraBg(lp: lp),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
@@ -217,11 +209,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                     index: 3,
                     child: _formGlass(lp),
                   ),
-                  const SizedBox(height: 14),
-                  Reveal(index: 4, child: _demoCard(lp)),
                   const SizedBox(height: 16),
                   Reveal(
-                    index: 5,
+                    index: 4,
                     child: Column(
                       children: [
                         TextButton.icon(
@@ -563,71 +553,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     );
   }
 
-  Widget _demoCard(LoginPal lp) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: lp.formBg,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: lp.formBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.bolt_rounded, size: 15, color: lp.accent2),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Akun demo — ketuk untuk mengisi otomatis',
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: lp.label),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 11),
-          _demoRow(lp, Icons.backpack_outlined, 'Murid • Akun Demo', 'NISN 2026000001 · password',
-              () => _fillDemo('2026000001', 'password')),
-          const SizedBox(height: 8),
-          _demoRow(lp, Icons.co_present_outlined, 'Guru • Akun Demo', 'Username guru1 · password',
-              () => _fillDemo('guru1', 'password')),
-        ],
-      ),
-    );
-  }
-
-  Widget _demoRow(LoginPal lp, IconData icon, String label, String detail, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: lp.inputBg,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: lp.inputBorder),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: lp.accent),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: lp.text)),
-                  const SizedBox(height: 1),
-                  Text(detail, style: TextStyle(fontSize: 11, color: lp.muted)),
-                ],
-              ),
-            ),
-            Icon(Icons.touch_app_outlined, size: 16, color: lp.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showForgot() {
     showAppSheet(
       context,
@@ -893,38 +818,25 @@ class _BearPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ── Background: dot grid + light-tunnel perspective ─────────
+// ── Background: dot grid yang memudar di area form ─────────
 class _LoginBgPainter extends CustomPainter {
   final LoginPal lp;
   _LoginBgPainter({required this.lp});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dot = Paint()..color = lp.text.withValues(alpha: 0.05);
     for (double x = 12; x < size.width; x += 26) {
       for (double y = 12; y < size.height; y += 26) {
+        // Redupkan dot di zona form (elips tengah-bawah) agar form jadi fokus.
+        final dx = (x - size.width / 2) / (size.width * 0.62);
+        final dy = (y - size.height * 0.66) / (size.height * 0.34);
+        final d = dx * dx + dy * dy;
+        final formFade = d >= 1 ? 1.0 : 0.22 + 0.78 * d;
+        final topFade = 1 - (y / size.height) * 0.45;
+        final dot = Paint()
+          ..color = lp.text.withValues(alpha: 0.055 * formFade * topFade);
         canvas.drawCircle(Offset(x, y), 1, dot);
       }
-    }
-    final vp = Offset(size.width / 2, size.height * 0.34);
-    final line = Paint()
-      ..color = lp.accent.withValues(alpha: 0.055)
-      ..strokeWidth = 1;
-    for (var i = 0; i <= 14; i++) {
-      final t = i / 14;
-      final edge = Offset(size.width * t, size.height);
-      canvas.drawLine(vp, edge, line);
-    }
-    for (var i = 1; i <= 5; i++) {
-      final r = i * i * 22.0;
-      canvas.drawCircle(
-        vp,
-        r,
-        Paint()
-          ..color = lp.accent.withValues(alpha: 0.04)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1,
-      );
     }
   }
 
@@ -932,17 +844,18 @@ class _LoginBgPainter extends CustomPainter {
   bool shouldRepaint(covariant _LoginBgPainter oldDelegate) => oldDelegate.lp != lp;
 }
 
-class _DriftOrbs extends StatefulWidget {
+// ── Aurora: pita glow gradasi yang drift pelan di atas charcoal ─────────
+class _AuroraBg extends StatefulWidget {
   final LoginPal lp;
-  const _DriftOrbs({required this.lp});
+  const _AuroraBg({required this.lp});
 
   @override
-  State<_DriftOrbs> createState() => _DriftOrbsState();
+  State<_AuroraBg> createState() => _AuroraBgState();
 }
 
-class _DriftOrbsState extends State<_DriftOrbs> with SingleTickerProviderStateMixin {
+class _AuroraBgState extends State<_AuroraBg> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 18))..repeat();
+      AnimationController(vsync: this, duration: const Duration(seconds: 26))..repeat();
 
   @override
   void dispose() {
@@ -950,39 +863,76 @@ class _DriftOrbsState extends State<_DriftOrbs> with SingleTickerProviderStateMi
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Skip orbs di device low-end — hemat GPU
-    if (DeviceTier.isLow) return const SizedBox.shrink();
-    final size = MediaQuery.of(context).size;
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (context, _) {
-        final t = _c.value * 2 * math.pi;
-        Widget orb(Color color, double d, double x, double y) => Positioned(
-              left: x,
-              top: y,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 46, sigmaY: 46),
-                child: Container(
-                  width: d,
-                  height: d,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  // Glow pakai RadialGradient (tanpa ImageFilter.blur) supaya murah di GPU;
+  // device low-end dapat fase statis, bukan layer kosong.
+  Widget _layer(double t, Size size) {
+    final lp = widget.lp;
+    final w = size.width;
+    final h = size.height;
+
+    Widget band(Color c, double side, double cx, double cy,
+        double angle, double sx, double sy) {
+      return Positioned(
+        left: cx - side / 2,
+        top: cy - side / 2,
+        child: Transform.rotate(
+          angle: angle,
+          child: Transform.scale(
+            scaleX: sx,
+            scaleY: sy,
+            child: Container(
+              width: side,
+              height: side,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    c,
+                    c.withValues(alpha: c.a * 0.4),
+                    c.withValues(alpha: 0),
+                  ],
+                  stops: const [0, 0.45, 1],
                 ),
               ),
-            );
-        return IgnorePointer(
-          child: SizedBox.expand(
-            child: Stack(
-              children: [
-                orb(widget.lp.orb1, 240, size.width * 0.62 + math.sin(t) * 22, -60 + math.cos(t) * 16),
-                orb(widget.lp.orb2, 200, -70 + math.cos(t * 0.8) * 18, size.height * 0.30 + math.sin(t * 0.9) * 24),
-                orb(widget.lp.orb3, 220, size.width * 0.55 + math.sin(t * 0.7) * 26, size.height * 0.72 + math.cos(t * 0.6) * 20),
-              ],
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    return IgnorePointer(
+      child: SizedBox.expand(
+        child: Stack(
+          children: [
+            // Mahkota amber di atas header.
+            band(lp.aurora1, w * 1.05,
+                w * 0.62 + math.sin(t) * 22, -h * 0.015 + math.cos(t) * 16,
+                -0.14 + math.sin(t * 0.6) * 0.04, 1.7, 0.75),
+            // Bara hangat di kiri atas.
+            band(lp.aurora2, w * 0.8,
+                w * 0.02 + math.cos(t * 0.8) * 18, h * 0.16 + math.sin(t * 0.7) * 20,
+                0.2, 1.3, 0.9),
+            // Aksen dingin samar di kanan tengah — penyeimbang depth.
+            band(lp.aurora3, w * 0.7,
+                w * 0.98 + math.sin(t * 0.5) * 16, h * 0.42 + math.cos(t * 0.6) * 18,
+                -0.1, 1.1, 1.25),
+            // Pantulan amber di dasar layar.
+            band(lp.aurora1.withValues(alpha: lp.aurora1.a * 0.7), w * 1.1,
+                w * 0.5 + math.sin(t * 0.4) * 24, h * 1.02 + math.cos(t * 0.5) * 14,
+                0.10 + math.cos(t * 0.7) * 0.03, 1.8, 0.6),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    if (DeviceTier.isLow) return _layer(0.9, size);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) => _layer(_c.value * 2 * math.pi, size),
     );
   }
 }

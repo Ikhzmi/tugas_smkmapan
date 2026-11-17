@@ -8,6 +8,7 @@ use App\Models\Assignment;
 use App\Models\Exam;
 use App\Models\Material;
 use App\Models\Schedule;
+use App\Models\SchoolClass;
 use App\Models\Submission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,6 +60,24 @@ class DashboardController extends Controller
         }
 
         return ApiResponse::paginated(Schedule::query()->with(['schoolClass', 'subject'])->where('teacher_id', $teacher->getKey())->orderBy('hari')->orderBy('jam_mulai')->paginate(min(max($request->integer('per_page', 50), 1), 100)));
+    }
+
+    public function teacherClassStudents(Request $request, SchoolClass $schoolClass): JsonResponse
+    {
+        $teacher = $request->user()->teacher;
+        if (! $teacher) {
+            return ApiResponse::error('Profil guru belum tersedia.', [], 403, 'GURU_PROFILE_NOT_FOUND');
+        }
+
+        $teaches = Schedule::query()
+            ->where('teacher_id', $teacher->getKey())
+            ->where('class_id', $schoolClass->getKey())
+            ->exists();
+        if (! $teaches) {
+            return ApiResponse::error('Anda tidak mengampu kelas ini.', [], 403, 'CLASS_NOT_TAUGHT');
+        }
+
+        return ApiResponse::paginated($schoolClass->students()->orderBy('nama')->paginate(min(max($request->integer('per_page', 100), 1), 100)));
     }
 
     public function studentSchedules(Request $request): JsonResponse

@@ -85,7 +85,7 @@ class ExamService
                     'id' => $question->getKey(),
                     'tipe' => $question->tipe,
                     'pertanyaan' => $question->pertanyaan,
-                    'opsi' => $question->opsi,
+                    'opsi' => Question::normalizeOpsi($question->opsi),
                     'bobot' => $question->bobot,
                     'gambar_url' => $question->gambar_url,
                 ];

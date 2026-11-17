@@ -17,4 +17,22 @@ class Question extends DomainModel
     {
         return $this->belongsTo(Exam::class);
     }
+
+    /** @return list<string> */
+    public static function normalizeOpsi(mixed $opsi): array
+    {
+        if (is_string($opsi)) {
+            $decoded = json_decode($opsi, true);
+            $opsi = json_last_error() === JSON_ERROR_NONE ? $decoded : [$opsi];
+        }
+        if (! is_array($opsi)) {
+            return [];
+        }
+        if (array_is_list($opsi)) {
+            return array_map(static fn ($item): string => (string) $item, $opsi);
+        }
+        ksort($opsi);
+
+        return array_map(static fn ($item): string => (string) $item, array_values($opsi));
+    }
 }

@@ -31,6 +31,8 @@ return [
     'allowed_origins_patterns' => [
         // Deployment web di Vercel (produksi + preview).
         '~^https://[a-z0-9-]+\.vercel\.app$~',
+        // Domain kustom produksi (www maupun apex).
+        '~^https://(www\.)?smkmd08medan\.my\.id$~',
         // Server dev Vite (port bebas: 5173, 4173, dsb.).
         '~^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$~',
         // IP LAN untuk uji di HP (server.host aktif di vite.config.js).

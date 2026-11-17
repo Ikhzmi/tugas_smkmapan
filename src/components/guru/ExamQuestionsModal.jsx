@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import GuruModal from './GuruModal';
 import { TEMPLATE_CSV_NAME, TEMPLATE_XLSX_NAME } from '../../lib/questionTemplateData';
+import { normalizeOpsi } from '../../lib/examOptions';
 import './ExamQuestionsModal.css';
 
 const TEMPLATE_BASE = `${import.meta.env.BASE_URL}templates/`;
@@ -62,12 +63,13 @@ export default function ExamQuestionsModal({
   const startEdit = (q) => {
     setPane('manual');
     setEditingId(q.id);
+    const opsi = normalizeOpsi(q.opsi);
     setForm({
       pertanyaan: q.pertanyaan || '',
-      a: q.opsi?.[0] || '',
-      b: q.opsi?.[1] || '',
-      c: q.opsi?.[2] || '',
-      d: q.opsi?.[3] || '',
+      a: opsi[0] || '',
+      b: opsi[1] || '',
+      c: opsi[2] || '',
+      d: opsi[3] || '',
       kunci: q.kunci_jawaban || 'A',
       bobot: q.bobot ?? 1,
       gambar_url: q.gambar_url || '',
@@ -224,7 +226,7 @@ export default function ExamQuestionsModal({
                   )}
 
                   <div className="eqm-options">
-                    {(q.opsi || []).map((o, idx) => {
+                    {normalizeOpsi(q.opsi).map((o, idx) => {
                       const letter = String.fromCharCode(65 + idx);
                       const isKey = letter === q.kunci_jawaban;
                       return (

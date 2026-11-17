@@ -10,6 +10,7 @@ import {
   setActiveExam, clearActiveExam,
 } from '../../lib/examSession';
 import { playNotificationSound } from '../../lib/sounds';
+import { normalizeOpsi } from '../../lib/examOptions';
 import './ExamRunner.css';
 
 const HURUF = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -167,7 +168,11 @@ export default function ExamRunner({
       return;
     }
 
-    setQuestions(Array.isArray(payload.questions) ? payload.questions : []);
+    setQuestions(
+      Array.isArray(payload.questions)
+        ? payload.questions.map((q) => ({ ...q, opsi: normalizeOpsi(q.opsi) }))
+        : [],
+    );
     setAnswers(payload.answers && typeof payload.answers === 'object' ? payload.answers : {});
     const warn = Number(payload.warnings) || 0;
     warningsRef.current = warn;

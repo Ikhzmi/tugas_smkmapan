@@ -14,6 +14,7 @@ import { useContent } from '../context/ContentContext';
 import SubmissionModal from '../components/siswa/SubmissionModal';
 import MaterialViewerModal from '../components/siswa/MaterialViewerModal';
 import ExamRunner from '../components/siswa/ExamRunner';
+import ExamErrorBoundary from '../components/siswa/ExamErrorBoundary';
 import PresensiSiswa from '../components/siswa/PresensiSiswa';
 import './DashboardSiswa.css';
 import './DashboardGuru.css';
@@ -1453,29 +1454,33 @@ export default function DashboardSiswa() {
         onClose={() => setMaterialView(null)}
       />
 
-      <ExamRunner
+      <ExamErrorBoundary
         key={examTarget?.id || 'empty'}
-        open={!!examTarget}
-        exam={examTarget}
-        student={student}
-        needsCode={!!examTarget?.butuh_kode}
-        alreadyUnlocked={examTarget ? unlockedExams.has(examTarget.id) : false}
-        onUnlocked={loadData}
-        resumeAttempt={
-          examTarget && attemptByExam.get(examTarget.id)?.status === 'berjalan'
-            ? attemptByExam.get(examTarget.id)
-            : null
-        }
-        completedAttempt={
-          examTarget
-            && attemptByExam.get(examTarget.id)
-            && attemptByExam.get(examTarget.id).status !== 'berjalan'
-            ? attemptByExam.get(examTarget.id)
-            : null
-        }
         onClose={() => { setExamTarget(null); loadData(); }}
-        onFinished={loadData}
-      />
+      >
+        <ExamRunner
+          open={!!examTarget}
+          exam={examTarget}
+          student={student}
+          needsCode={!!examTarget?.butuh_kode}
+          alreadyUnlocked={examTarget ? unlockedExams.has(examTarget.id) : false}
+          onUnlocked={loadData}
+          resumeAttempt={
+            examTarget && attemptByExam.get(examTarget.id)?.status === 'berjalan'
+              ? attemptByExam.get(examTarget.id)
+              : null
+          }
+          completedAttempt={
+            examTarget
+              && attemptByExam.get(examTarget.id)
+              && attemptByExam.get(examTarget.id).status !== 'berjalan'
+              ? attemptByExam.get(examTarget.id)
+              : null
+          }
+          onClose={() => { setExamTarget(null); loadData(); }}
+          onFinished={loadData}
+        />
+      </ExamErrorBoundary>
 
       {/* Glass Confirmation Modal */}
       <GlassConfirmModal

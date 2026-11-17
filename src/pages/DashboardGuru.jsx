@@ -278,14 +278,19 @@ export default function DashboardGuru() {
         .sort((a, b) => new Date(b.dimulai_at || 0) - new Date(a.dimulai_at || 0));
       const attendanceRows = attRaw.map((a) => ({ ...a, students: a.student || null }));
 
-      // Roster siswa dihimpun dari presensi/pengumpulan/pengerjaan: API guru
-      // belum punya endpoint daftar siswa per kelas (hanya admin yang punya).
+      // Roster resmi per kelas ampu (endpoint guru), diperkaya siswa dari
+      // riwayat presensi/pengumpulan/pengerjaan bila ada yang belum terdaftar.
+      const classIds = [...new Set(scheduleRows.map((s) => s.class_id).filter(Boolean))];
+      const rosterNested = await Promise.all(
+        classIds.map((id) => apiListAll(`/guru/classes/${id}/students`).catch(() => [])),
+      );
       const roster = new Map();
       const addStudent = (stu) => {
         if (stu?.id && !roster.has(stu.id)) {
           roster.set(stu.id, { id: stu.id, nama: stu.nama, nisn: stu.nisn, class_id: stu.class_id });
         }
       };
+      rosterNested.flat().forEach(addStudent);
       attRaw.forEach((a) => addStudent(a.student));
       subsNested.flat().forEach((s) => addStudent(s.student));
       atpNested.flat().forEach((a) => addStudent(a.student));

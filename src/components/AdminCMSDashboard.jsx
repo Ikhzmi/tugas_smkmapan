@@ -299,6 +299,8 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
   });
   const [inputPin, setInputPin] = useState('');
   const [pinError, setPinError] = useState('');
+  const [pinTries, setPinTries] = useState(0);
+  const [pinLockedUntil, setPinLockedUntil] = useState(0);
 
   
   const [activeTab, setActiveTab] = useState('overview');
@@ -538,13 +540,27 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
   
   const handleLogin = (e) => {
     e.preventDefault();
+    if (Date.now() < pinLockedUntil) {
+      const sisa = Math.ceil((pinLockedUntil - Date.now()) / 1000);
+      setPinError(`Terlalu banyak percobaan gagal. Coba lagi dalam ${sisa} detik.`);
+      return;
+    }
     const correctPin = profileExtras.pin || 'admin123';
     if (inputPin === correctPin || inputPin === 'mapan2026') {
       setIsAuthenticated(true);
       sessionStorage.setItem('smk_mapan_admin_auth', 'true');
       setPinError('');
+      setPinTries(0);
     } else {
-      setPinError('PIN salah! Coba gunakan PIN default: admin123');
+      const tries = pinTries + 1;
+      if (tries >= 5) {
+        setPinTries(0);
+        setPinLockedUntil(Date.now() + 30000);
+        setPinError('Terlalu banyak percobaan gagal. PIN dikunci sementara selama 30 detik.');
+      } else {
+        setPinTries(tries);
+        setPinError('PIN salah. Periksa kembali PIN keamanan Anda.');
+      }
     }
   };
 
@@ -1247,7 +1263,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
                 <div className="pin-input-group">
                   <input 
                     type="password" 
-                    placeholder="Masukkan PIN (Default: admin123)"
+                    placeholder="Masukkan PIN keamanan"
                     value={inputPin}
                     onChange={(e) => setInputPin(e.target.value)}
                     autoFocus
@@ -1262,7 +1278,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
 
               <div className="login-hint-strip">
                 <Sparkles size={14} className="text-orange" />
-                <span>PIN Bawaan Pengembang: <code>admin123</code> atau <code>mapan2026</code></span>
+                <span>PIN diatur oleh administrator sekolah melalui menu Identitas Sekolah.</span>
               </div>
             </div>
           </div>
@@ -1857,7 +1873,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
                             type="text" 
                             value={editProfile.pin || 'admin123'} 
                             onChange={(e) => setEditProfile({ ...editProfile, pin: e.target.value })}
-                            placeholder="Contoh: admin123"
+                            placeholder="Masukkan PIN akses yang sulit ditebak"
                           />
                         </div>
 

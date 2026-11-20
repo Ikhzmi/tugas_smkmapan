@@ -3,6 +3,7 @@ import 'app_state.dart';
 import 'portal_widgets.dart';
 import 'screens/attendance_screen.dart';
 import 'screens/grades_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/student_home.dart';
@@ -189,8 +190,9 @@ class _PortalShellState extends State<PortalShell> {
               (state.loading && state.schedules.isEmpty && state.assignments.isEmpty))
             Positioned.fill(
               child: _DataOverlay(
-                loading: state.loading,
                 error: state.loadError,
+                progress: state.loadProgress,
+                stage: state.loadStage,
                 onRetry: () => state.refresh(),
               ),
             ),
@@ -223,10 +225,16 @@ const kPagePadding = EdgeInsets.fromLTRB(16, 14, 16, 132);
 
 /// Overlay load awal / gagal muat data API, dengan tombol coba lagi.
 class _DataOverlay extends StatelessWidget {
-  final bool loading;
   final String? error;
+  final double progress;
+  final String stage;
   final VoidCallback onRetry;
-  const _DataOverlay({required this.loading, required this.error, required this.onRetry});
+  const _DataOverlay({
+    required this.error,
+    required this.progress,
+    required this.stage,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -261,14 +269,28 @@ class _DataOverlay extends StatelessWidget {
           : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
-                  width: 26,
-                  height: 26,
-                  child: CircularProgressIndicator(strokeWidth: 2.6),
+                const TeddyMascot(),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: 220,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: progress),
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeOut,
+                      builder: (context, value, _) => LinearProgressIndicator(
+                        value: value,
+                        minHeight: 6,
+                        backgroundColor: p.muted.withValues(alpha: 0.18),
+                        valueColor: AlwaysStoppedAnimation(p.accent),
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
-                  'Memuat data dari server…',
+                  stage.isEmpty ? 'Memuat data dari server…' : stage,
                   style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: p.textSoft),
                 ),
               ],

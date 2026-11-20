@@ -23,6 +23,10 @@ class AppState extends ChangeNotifier {
   bool loading = false;
   String? loadError;
 
+  /// Progres load awal (0..1) dan tahap terakhir, untuk overlay loading.
+  double loadProgress = 0;
+  String loadStage = '';
+
   /// true selama pemulihan sesi dari token tersimpan.
   bool restoring = true;
 
@@ -178,6 +182,8 @@ class AppState extends ChangeNotifier {
     _scheduleSubjects.clear();
     loading = false;
     loadError = null;
+    loadProgress = 0;
+    loadStage = '';
   }
 
   void _startHeartbeat() {
@@ -216,14 +222,40 @@ class AppState extends ChangeNotifier {
     if (current == null) return;
     loading = true;
     loadError = null;
+    loadProgress = 0;
+    loadStage = 'Menghubungi server…';
     notifyListeners();
     try {
       final guru = isGuru;
-      final dash = await api.dashboard(guru);
-      stats = (dash['stats'] as Map?)?.cast<String, dynamic>() ?? {};
+      // Tahap ke-5: pengumpulan tugas (guru) atau nilai (murid).
+      const total = 5;
+      var done = 0;
+      void tick(String label) {
+        done++;
+        loadProgress = done / total;
+        loadStage = label;
+        notifyListeners();
+      }
 
-      final rawSchedules = await api.schedules(guru);
-      final rawAssignments = await api.assignments(guru);
+      Future<T> step<T>(Future<T> future, String label) =>
+          future.then((value) {
+            tick('$label siap');
+            return value;
+          });
+
+      // Semua request independen dikirim bersamaan, bukan berurutan.
+      final results = await Future.wait<dynamic>([
+        step(api.dashboard(guru), 'Dashboard'),
+        step(api.schedules(guru), 'Jadwal'),
+        step(api.assignments(guru), 'Tugas'),
+        step(api.attendance(guru), 'Presensi'),
+        if (!guru) step(api.grades(), 'Nilai'),
+      ], eagerError: true);
+      final dash = (results[0] as Map).cast<String, dynamic>();
+      final rawSchedules = results[1] as List<dynamic>;
+      final rawAssignments = results[2] as List<dynamic>;
+      final rawAttendance = results[3] as List<dynamic>;
+      stats = (dash['stats'] as Map?)?.cast<String, dynamic>() ?? {};
 
       if (guru) {
         schedules = rawSchedules
@@ -240,11 +272,14 @@ class AppState extends ChangeNotifier {
             .toList();
         _applyGuruMeta(rawSchedules);
         _buildDirectories();
+        loadStage = 'Mengambil pengumpulan tugas…';
+        notifyListeners();
         await Future.wait(assignments.map(_loadSubmissions));
+        tick('Pengumpulan siap');
         for (final a in assignments) {
           a.teacherName = _teacherNames[a.teacherId] ?? current!.name;
         }
-        attendanceRecords = (await api.attendance(true))
+        attendanceRecords = rawAttendance
             .map((j) => attendanceFromJson((j as Map).cast<String, dynamic>(),
                 subjectName: _scheduleSubjects[_s(j['schedule_id'])] ?? ''))
             .toList();
@@ -271,13 +306,14 @@ class AppState extends ChangeNotifier {
         for (final a in assignments) {
           a.teacherName = _teacherNames[a.teacherId] ?? 'Guru';
         }
-        grades = gradesFromJson(await api.grades());
-        attendanceRecords = (await api.attendance(false))
+        grades = gradesFromJson((results[4] as Map).cast<String, dynamic>());
+        attendanceRecords = rawAttendance
             .map((j) => attendanceFromJson((j as Map).cast<String, dynamic>(),
                 subjectName: _scheduleSubjects[_s(j['schedule_id'])] ?? ''))
             .toList();
       }
 
+      loadStage = 'Menyusun data…';
       _rebuildNotifs();
       loading = false;
       notifyListeners();

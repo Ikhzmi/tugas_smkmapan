@@ -339,44 +339,6 @@ html.dark .cms-theme-toggle svg { color: #facc15; }
 }
 @keyframes slideToast { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ===== Login gate ===== */
-.admin-login-gate {
-  flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;
-  background: transparent;
-}
-/* Mode full-page: modal display:block & header fixed, jadi flex:1 tak meregang.
-   Beri tinggi viewport agar kartu PIN benar-benar di tengah. */
-.cms-fullpage-modal .admin-login-gate {
-  min-height: 100vh;
-  width: 100%;
-}
-.login-card {
-  background: var(--card-bg); backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border-radius: 24px; padding: 44px; width: 100%; max-width: 460px; text-align: center;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12); border: 1px solid var(--card-border);
-}
-.login-lock-circle {
-  width: 72px; height: 72px; border-radius: 20px; background: rgba(232, 112, 42, 0.14);
-  color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
-}
-.login-card h3 { font-size: 1.3rem; font-weight: 800; color: var(--text-strong); margin-bottom: 8px; }
-.login-card p { font-size: 0.9rem; color: var(--text-faint); margin-bottom: 24px; }
-.pin-input-group { display: flex; gap: 8px; }
-.pin-input-group input {
-  flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--input-border);
-  font-size: 0.95rem; font-weight: 600; text-align: center; outline: none;
-  background: var(--input-bg); color: var(--text-strong);
-}
-.pin-input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232, 112, 42, 0.15); }
-.pin-error-alert { margin-top: 12px; font-size: 0.8rem; color: #ef4444; font-weight: 600; }
-.login-hint-strip {
-  margin-top: 24px; padding: 10px 14px; background: var(--card-bg-soft); border-radius: 12px;
-  font-size: 0.775rem; color: var(--text-soft); display: flex; align-items: center;
-  justify-content: center; gap: 8px; border: 1px solid var(--card-border);
-}
-.login-hint-strip code { background: var(--hover-bg); padding: 2px 6px; border-radius: 4px; font-weight: 700; color: var(--text-strong); }
-
 /* ===== Layout (sidebar + main) ===== */
 .admin-cms-layout { flex: 1; display: block; overflow: hidden; }
 .cms-fullpage-modal .admin-cms-layout { display: block; padding-top: 0; }

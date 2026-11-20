@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LogOut, GraduationCap, BookOpen, Layers,
@@ -9,7 +9,7 @@ import {
   CalendarClock, ShieldAlert, BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { apiGet, apiListAll, apiPost, apiPatch, apiDelete, apiUpload, ApiError } from '../lib/api';
+import { apiGet, apiListAll, apiPost, apiPatch, apiDelete, apiUpload, mapLimit, ApiError } from '../lib/api';
 import { useContent } from '../context/ContentContext';
 import { getExamSession, formatExamSession, splitExamSchedule, joinExamSchedule } from '../lib/examSession';
 import GuruModal from '../components/guru/GuruModal';
@@ -120,6 +120,11 @@ const emptyExam = {
 export default function DashboardGuru() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
+  // useAuth adalah hook per-komponen, dan fetchMe menyiarkan auth change ke
+  // semuanya. Objek user/profile jadi baru tiap siaran; memakai identitas stabil
+  // mencegah loadData ikut terpicu berulang kali.
+  const userId = user?.id || null;
+  const userRole = profile?.role || null;
   const { theme, setTheme } = useTheme();
   const isHeaderHidden = useHeaderScroll();
   const { schoolInfo, appearance } = useContent();
@@ -159,6 +164,8 @@ export default function DashboardGuru() {
   const [liveEvents, setLiveEvents] = useState([]);
 
   const [dataLoading, setDataLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(true);
+  const contentLoadedRef = useRef(false);
   const [activeTab, setActiveTab] = useState('kelas');
   const [notice, setNotice] = useState('');
 
@@ -210,7 +217,7 @@ export default function DashboardGuru() {
   };
 
   const loadData = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
 
     let dash = null;
     try {
@@ -225,21 +232,58 @@ export default function DashboardGuru() {
     if (!t) {
       setTeacher(null);
       setDataLoading(false);
+      setContentLoading(false);
       return;
     }
     setTeacher(t);
 
+    const sortByName = (rows) => rows.sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || '')));
+
+    // Gelombang 1 — jadwal, presensi, roster kelas. Tab Presensi hanya bergantung
+    // pada ini, jadi tidak ikut menunggu materi/tugas/ujian beserta pengumpulannya.
+    let scheduleRows = [];
     try {
-      const [schRaw, matRaw, asgRaw, exmRaw, attRaw, site] = await Promise.all([
+      const [schRaw, attRaw, site] = await Promise.all([
         apiListAll('/guru/schedules'),
-        apiListAll('/guru/materials'),
-        apiListAll('/guru/assignments'),
-        apiListAll('/guru/exams'),
         apiListAll('/guru/attendance'),
         apiGet('/public/site', { auth: false }).catch(() => ({})),
       ]);
 
-      const scheduleRows = schRaw.map((s) => ({ ...s, classes: s.school_class || null, subjects: s.subject || null }));
+      scheduleRows = schRaw.map((s) => ({ ...s, classes: s.school_class || null, subjects: s.subject || null }));
+
+      const classIds = [...new Set(scheduleRows.map((s) => s.class_id).filter(Boolean))];
+      const rosterNested = await Promise.all(
+        classIds.map((id) => apiListAll(`/guru/classes/${id}/students`).catch(() => [])),
+      );
+      const roster = new Map();
+      const addStudent = (stu) => {
+        if (stu?.id && !roster.has(stu.id)) {
+          roster.set(stu.id, { id: stu.id, nama: stu.nama, nisn: stu.nisn, class_id: stu.class_id });
+        }
+      };
+      rosterNested.flat().forEach(addStudent);
+      attRaw.forEach((a) => addStudent(a.student));
+
+      setSchedules(scheduleRows);
+      setAttendance(attRaw.map((a) => ({ ...a, students: a.student || null })));
+      setStudents(sortByName(Array.from(roster.values())));
+      setExamFeatureOn(site?.ujian?.fitur_aktif !== false);
+    } catch (err) {
+      setNotice(err?.message || 'Gagal memuat data guru.');
+    } finally {
+      setDataLoading(false);
+    }
+
+    // Gelombang 2 — materi, tugas, ujian + pengumpulan/pengerjaan. Berjalan setelah
+    // presensi bisa dipakai; spinner hanya pada pemuatan pertama, bukan saat refresh.
+    if (!contentLoadedRef.current) setContentLoading(true);
+    try {
+      const [matRaw, asgRaw, exmRaw] = await Promise.all([
+        apiListAll('/guru/materials'),
+        apiListAll('/guru/assignments'),
+        apiListAll('/guru/exams'),
+      ]);
+
       const materialRows = matRaw.map((m) => ({ ...m, subjects: m.subject || null, classes: m.school_class || null }));
       const assignmentRows = asgRaw.map((a) => ({ ...a, subjects: a.subject || null, classes: a.school_class || null }));
       const examRows = exmRaw.map((x) => ({
@@ -260,8 +304,8 @@ export default function DashboardGuru() {
 
       // API hanya menyediakan pengumpulan per tugas dan pengerjaan per ujian.
       const [subsNested, atpNested] = await Promise.all([
-        Promise.all(assignmentRows.map((a) => apiListAll(`/guru/assignments/${a.id}/submissions`).catch(() => []))),
-        Promise.all(examRows.map((x) => apiListAll(`/guru/exams/${x.id}/attempts`).catch(() => []))),
+        mapLimit(assignmentRows, 4, (a) => apiListAll(`/guru/assignments/${a.id}/submissions`).catch(() => [])),
+        mapLimit(examRows, 4, (x) => apiListAll(`/guru/exams/${x.id}/attempts`).catch(() => [])),
       ]);
 
       const classNameById = new Map(
@@ -276,28 +320,7 @@ export default function DashboardGuru() {
       const submissionRows = subsNested.flat().map(attachStudent);
       const attemptRows = atpNested.flat().map(attachStudent)
         .sort((a, b) => new Date(b.dimulai_at || 0) - new Date(a.dimulai_at || 0));
-      const attendanceRows = attRaw.map((a) => ({ ...a, students: a.student || null }));
 
-      // Roster resmi per kelas ampu (endpoint guru), diperkaya siswa dari
-      // riwayat presensi/pengumpulan/pengerjaan bila ada yang belum terdaftar.
-      const classIds = [...new Set(scheduleRows.map((s) => s.class_id).filter(Boolean))];
-      const rosterNested = await Promise.all(
-        classIds.map((id) => apiListAll(`/guru/classes/${id}/students`).catch(() => [])),
-      );
-      const roster = new Map();
-      const addStudent = (stu) => {
-        if (stu?.id && !roster.has(stu.id)) {
-          roster.set(stu.id, { id: stu.id, nama: stu.nama, nisn: stu.nisn, class_id: stu.class_id });
-        }
-      };
-      rosterNested.flat().forEach(addStudent);
-      attRaw.forEach((a) => addStudent(a.student));
-      subsNested.flat().forEach((s) => addStudent(s.student));
-      atpNested.flat().forEach((a) => addStudent(a.student));
-      const studentRows = Array.from(roster.values())
-        .sort((a, b) => String(a.nama || '').localeCompare(String(b.nama || '')));
-
-      setSchedules(scheduleRows);
       setMaterials(materialRows);
       setAssignments(assignmentRows);
       setSubmissions(submissionRows);
@@ -305,19 +328,38 @@ export default function DashboardGuru() {
       setQuestionCounts(counts);
       setExamCodes(codes);
       setAttempts(attemptRows);
-      setStudents(studentRows);
-      setAttendance(attendanceRows);
-      setExamFeatureOn(site?.ujian?.fitur_aktif !== false);
+      setStudents((prev) => {
+        const roster = new Map(prev.map((s) => [s.id, s]));
+        const addStudent = (stu) => {
+          if (stu?.id && !roster.has(stu.id)) {
+            roster.set(stu.id, { id: stu.id, nama: stu.nama, nisn: stu.nisn, class_id: stu.class_id });
+          }
+        };
+        subsNested.flat().forEach((s) => addStudent(s.student));
+        atpNested.flat().forEach((a) => addStudent(a.student));
+        return sortByName(Array.from(roster.values()));
+      });
     } catch (err) {
       setNotice(err?.message || 'Gagal memuat data guru.');
     } finally {
-      setDataLoading(false);
+      contentLoadedRef.current = true;
+      setContentLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
-    if (user && profile?.role === 'guru') queueMicrotask(loadData);
-  }, [user, profile, loadData]);
+    if (userId && userRole === 'guru') queueMicrotask(loadData);
+  }, [userId, userRole, loadData]);
+
+  // Bulk upsert mengembalikan baris tersimpan; cukup digabung ke state,
+  // tidak perlu memuat ulang seluruh dashboard.
+  const handlePresensiSaved = useCallback((rows) => {
+    setAttendance((prev) => {
+      const byId = new Map(prev.map((a) => [a.id, a]));
+      (rows || []).forEach((r) => byId.set(r.id, { ...r, students: r.student || null }));
+      return Array.from(byId.values());
+    });
+  }, []);
 
   
   const dismissLiveEvent = useCallback((id) => {
@@ -1266,7 +1308,7 @@ export default function DashboardGuru() {
               schedules={schedules}
               students={students}
               attendance={attendance}
-              onChanged={loadData}
+              onSaved={handlePresensiSaved}
             />
           )}
 
@@ -1319,7 +1361,7 @@ export default function DashboardGuru() {
                 </button>
               </div>
 
-              {dataLoading ? (
+              {contentLoading ? (
                 <p className="guru-empty"><Loader2 size={15} className="gm-spin" /> Memuat materi...</p>
               ) : filteredMaterials.length === 0 ? (
                 <div className="guru-empty-box">
@@ -1445,7 +1487,7 @@ export default function DashboardGuru() {
                 </button>
               </div>
 
-              {dataLoading ? (
+              {contentLoading ? (
                 <p className="guru-empty"><Loader2 size={15} className="gm-spin" /> Memuat tugas...</p>
               ) : filteredAssignments.length === 0 ? (
                 <div className="guru-empty-box">
@@ -1567,7 +1609,7 @@ export default function DashboardGuru() {
                 </button>
               </div>
 
-              {dataLoading ? (
+              {contentLoading ? (
                 <p className="guru-empty"><Loader2 size={15} className="gm-spin" /> Memuat ujian...</p>
               ) : filteredExams.length === 0 ? (
                 <div className="guru-empty-box">
@@ -1716,7 +1758,7 @@ export default function DashboardGuru() {
                 exams={exams}
                 schedules={schedules}
                 taughtClasses={taughtClasses}
-                loading={dataLoading}
+                loading={contentLoading}
               />
             </div>
           )}
@@ -2107,7 +2149,7 @@ export default function DashboardGuru() {
 
       
       <GradeModal
-        key={grading?.submission?.id || 'empty'}
+        key={grading?.submission?.id || 'grading-empty'}
         open={!!grading}
         submission={grading?.submission || null}
         assignment={grading?.assignment || null}
@@ -2130,7 +2172,7 @@ export default function DashboardGuru() {
       />
 
       <ExamCodeModal
-        key={codeModal?.id || 'empty'}
+        key={codeModal?.id || 'code-empty'}
         open={!!codeModal}
         exam={codeModal}
         codeRow={codeModal ? examCodes.get(codeModal.id) : null}

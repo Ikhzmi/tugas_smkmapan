@@ -87,19 +87,35 @@ function buildUrl(path, query) {
   return url.toString();
 }
 
-/**
- * Request ke API. Mengembalikan `data` dari envelope { data, message, meta }.
- * Untuk list berpaginasi pakai `apiList` / `apiListAll`.
- */
-export async function api(path, {
-  method = 'GET',
-  body,
-  form,
-  query,
-  auth = true,
-  signal,
-  envelope = false,
-} = {}) {
+const TIMEOUT_MS = 20000;
+const RETRY_BACKOFF_MS = [500, 1500];
+const PAGE_CONCURRENCY = 4;
+
+const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+
+// Hanya GET yang diulang: POST/PATCH presensi atau jawaban ujian tidak idempoten.
+const isRetryable = (err) => err instanceof ApiError
+  && (err.status === 0 || err.status === 429 || err.status >= 500);
+
+function requestSignal(signal) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(
+    () => ctrl.abort(new DOMException('Permintaan melewati batas waktu.', 'TimeoutError')),
+    TIMEOUT_MS,
+  );
+  const forward = () => ctrl.abort(signal.reason);
+  if (signal) {
+    if (signal.aborted) forward();
+    else signal.addEventListener('abort', forward, { once: true });
+  }
+  ctrl.signal.addEventListener('abort', () => {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', forward);
+  }, { once: true });
+  return ctrl.signal;
+}
+
+async function sendRequest(path, { method, body, form, query, auth, signal, envelope }) {
   const headers = { Accept: 'application/json' };
   const token = auth ? getToken() : '';
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -118,10 +134,13 @@ export async function api(path, {
       method,
       headers,
       body: payload,
-      signal,
+      signal: requestSignal(signal),
     });
   } catch (err) {
     if (err?.name === 'AbortError') throw err;
+    if (err?.name === 'TimeoutError') {
+      throw new ApiError('Server tidak merespons. Coba lagi sebentar.', { code: 'TIMEOUT' });
+    }
     throw new ApiError('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.', {
       code: 'NETWORK_ERROR',
     });
@@ -148,6 +167,33 @@ export async function api(path, {
   return json?.data ?? null;
 }
 
+/**
+ * Request ke API. Mengembalikan `data` dari envelope { data, message, meta }.
+ * Untuk list berpaginasi pakai `apiList` / `apiListAll`.
+ */
+export async function api(path, {
+  method = 'GET',
+  body,
+  form,
+  query,
+  auth = true,
+  signal,
+  envelope = false,
+  retry = true,
+} = {}) {
+  const options = { method, body, form, query, auth, signal, envelope };
+  const attempts = method === 'GET' && retry ? RETRY_BACKOFF_MS.length + 1 : 1;
+
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await sendRequest(path, options);
+    } catch (err) {
+      if (attempt >= attempts - 1 || !isRetryable(err)) throw err;
+      await sleep(RETRY_BACKOFF_MS[attempt]);
+    }
+  }
+}
+
 export const apiGet = (path, options) => api(path, { ...options, method: 'GET' });
 export const apiPost = (path, body, options) => api(path, { ...options, method: 'POST', body });
 export const apiPatch = (path, body, options) => api(path, { ...options, method: 'PATCH', body });
@@ -160,18 +206,38 @@ export async function apiList(path, query = {}, options = {}) {
   return { items: res?.data ?? [], meta: res?.meta ?? {} };
 }
 
-/** Ambil seluruh halaman list (per_page maksimum 100). */
+/** Jalankan fn atas items dengan konkurensi terbatas, hasil tetap berurutan. */
+export async function mapLimit(items, limit, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await fn(items[index], index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
+/**
+ * Ambil seluruh halaman list (per_page maksimum 100).
+ * Halaman pertama memberi tahu last_page, sisanya diambil paralel — bukan serial.
+ */
 export async function apiListAll(path, query = {}, options = {}) {
-  const items = [];
-  let page = 1;
-  for (;;) {
-    const res = await apiList(path, { per_page: 100, ...query, page }, options);
-    items.push(...res.items);
-    const lastPage = Number(res.meta?.last_page || 1);
-    if (page >= lastPage || res.items.length === 0) break;
-    page += 1;
-  }
-  return items;
+  const params = { per_page: 100, ...query };
+  const first = await apiList(path, { ...params, page: 1 }, options);
+  const lastPage = Number(first.meta?.last_page || 1);
+  if (lastPage <= 1 || first.items.length === 0) return first.items;
+
+  const pages = Array.from({ length: lastPage - 1 }, (_, i) => i + 2);
+  const rest = await mapLimit(
+    pages,
+    PAGE_CONCURRENCY,
+    (page) => apiList(path, { ...params, page }, options).then((res) => res.items),
+  );
+  return first.items.concat(rest.flat());
 }
 
 /** Unggah multipart (file) ke endpoint API. */

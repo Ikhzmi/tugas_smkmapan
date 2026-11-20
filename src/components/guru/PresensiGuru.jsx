@@ -3,7 +3,7 @@ import {
   UserCheck, CalendarDays, Loader2, CheckCircle2, AlertTriangle,
   Users, Save, CheckCheck,
 } from 'lucide-react';
-import { apiPost, apiPatch } from '../../lib/api';
+import { apiPost } from '../../lib/api';
 import './PresensiGuru.css';
 
 const STATUS = [
@@ -27,15 +27,15 @@ const formatTanggal = (iso) => {
 };
 
 const friendlyError = (err) => {
-  if (err?.code === 'ATTENDANCE_DUPLICATE') {
-    return 'Sebagian presensi sudah ada. Muat ulang lalu simpan lagi.';
+  if (err?.code === 'ATTENDANCE_STUDENT_NOT_IN_CLASS') {
+    return 'Sebagian siswa sudah tidak terdaftar di kelas ini. Muat ulang lalu simpan lagi.';
   }
   return err?.message || 'Gagal menyimpan presensi.';
 };
 
 const EMPTY_EDITS = {};
 
-export default function PresensiGuru({ schedules = [], students = [], attendance = [], onChanged }) {
+export default function PresensiGuru({ schedules = [], students = [], attendance = [], onSaved }) {
   const [scheduleId, setScheduleId] = useState('');
   const [tanggal, setTanggal] = useState(() => toDateKey(new Date()));
   const [draftState, setDraftState] = useState({ key: '', edits: EMPTY_EDITS });
@@ -133,36 +133,26 @@ export default function PresensiGuru({ schedules = [], students = [], attendance
 
   const handleSave = async () => {
     if (!schedule) return;
-    const targets = siswaKelas.filter((s) => draft[s.id]);
+    const entries = siswaKelas
+      .filter((s) => draft[s.id] && (tersimpan.get(s.id)?.status || null) !== draft[s.id])
+      .map((s) => ({ student_id: s.id, status: draft[s.id] }));
 
-    if (!targets.length) {
-      setError('Belum ada siswa yang ditandai.');
-      return;
-    }
+    if (!entries.length) return;
 
     setBusy(true);
     setError('');
     setFlash('');
     try {
-      for (const s of targets) {
-        const existing = tersimpan.get(s.id);
-        const status = draft[s.id];
-        if (existing) {
-          if (existing.status === status) continue;
-          await apiPatch(`/guru/attendance/${existing.id}`, { status });
-        } else {
-          await apiPost('/guru/attendance', {
-            student_id: s.id,
-            schedule_id: schedule.id,
-            tanggal,
-            status,
-          });
-        }
-      }
+      const saved = await apiPost('/guru/attendance/bulk', {
+        schedule_id: schedule.id,
+        tanggal,
+        entries,
+      });
 
-      setFlash(`Presensi tersimpan untuk ${targets.length} siswa.`);
+      setFlash(`Presensi tersimpan untuk ${entries.length} siswa.`);
       setTimeout(() => setFlash(''), 4000);
-      if (onChanged) await onChanged();
+      setDraftState({ key: '', edits: EMPTY_EDITS });
+      if (onSaved) onSaved(saved);
     } catch (err) {
       setError(friendlyError(err));
     } finally {

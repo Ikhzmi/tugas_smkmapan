@@ -1,5 +1,5 @@
 /* oxlint-disable react/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   apiGet, apiPost, apiPatch, apiPut, apiDelete, apiListAll, getToken, getStoredUser, onAuthChange,
 } from '../lib/api';
@@ -482,8 +482,20 @@ export function ContentProvider({ children }) {
   useEffect(() => { queueMicrotask(fetchAll); }, [fetchAll]);
 
   // PPDB & pesan masuk hanya bisa dibaca admin, jadi saat app dibuka
-  // dalam keadaan anonim hasilnya kosong. Muat ulang tiap sesi berubah.
-  useEffect(() => onAuthChange(() => { fetchAll(); }), [fetchAll]);
+  // dalam keadaan anonim hasilnya kosong. Muat ulang saat sesi berubah —
+  // tetapi fetchMe menyiarkan auth change tiap sinkronisasi profil, sehingga
+  // tanpa penjaga ini seluruh konten publik dimuat ulang berkali-kali.
+  const authSignature = () => {
+    const u = getStoredUser();
+    return `${getToken() ? 1 : 0}|${u?.id || ''}|${u?.role || ''}`;
+  };
+  const authSignatureRef = useRef(authSignature());
+  useEffect(() => onAuthChange(() => {
+    const next = authSignature();
+    if (next === authSignatureRef.current) return;
+    authSignatureRef.current = next;
+    fetchAll();
+  }), [fetchAll]);
 
   const updateSiteSetting = async (key, patch) => {
     const settings = (await apiGet('/admin/site-settings').catch(() => ({}))) || {};

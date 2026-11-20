@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   X, 
-  Lock, 
-  Unlock, 
+  LogOut, 
   Save, 
   Download, 
   Upload, 
@@ -294,15 +293,6 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
   const isHeaderHidden = useHeaderScroll();
 
   
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('smk_mapan_admin_auth') === 'true';
-  });
-  const [inputPin, setInputPin] = useState('');
-  const [pinError, setPinError] = useState('');
-  const [pinTries, setPinTries] = useState(0);
-  const [pinLockedUntil, setPinLockedUntil] = useState(0);
-
-  
   const [activeTab, setActiveTab] = useState('overview');
   const [statusNotification, setStatusNotification] = useState('');
 
@@ -538,46 +528,17 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
   const msgPaged = msgFiltered.slice((msgCurrentPage - 1) * MSG_PAGE_SIZE, msgCurrentPage * MSG_PAGE_SIZE);
 
   
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (Date.now() < pinLockedUntil) {
-      const sisa = Math.ceil((pinLockedUntil - Date.now()) / 1000);
-      setPinError(`Terlalu banyak percobaan gagal. Coba lagi dalam ${sisa} detik.`);
-      return;
-    }
-    const correctPin = profileExtras.pin || 'admin123';
-    if (inputPin === correctPin || inputPin === 'mapan2026') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('smk_mapan_admin_auth', 'true');
-      setPinError('');
-      setPinTries(0);
-    } else {
-      const tries = pinTries + 1;
-      if (tries >= 5) {
-        setPinTries(0);
-        setPinLockedUntil(Date.now() + 30000);
-        setPinError('Terlalu banyak percobaan gagal. PIN dikunci sementara selama 30 detik.');
-      } else {
-        setPinTries(tries);
-        setPinError('PIN salah. Periksa kembali PIN keamanan Anda.');
-      }
-    }
-  };
-
   const handleLogout = () => {
     setConfirmState({
       open: true,
       tone: 'logout',
       title: 'Keluar dari Panel Admin?',
-      message: 'Sesi pengelolaan CMS Anda akan diakhiri. Anda perlu memasukkan PIN kembali untuk mengelola konten.',
+      message: 'Sesi admin Anda akan diakhiri dan token akses dicabut. Anda perlu login kembali untuk mengelola konten.',
       confirmText: 'Keluar Sekarang',
       cancelText: 'Tetap di Sini',
       loading: false,
       extraDetails: null,
       onConfirm: () => {
-        setIsAuthenticated(false);
-        sessionStorage.removeItem('smk_mapan_admin_auth');
-        setInputPin('');
         setConfirmState((prev) => ({ ...prev, open: false }));
         if (onLogout) {
           onLogout();
@@ -1216,16 +1177,14 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
           </div>
 
           <div className="admin-cms-top-actions">
-            {isAuthenticated && (
-              <button 
-                onClick={handleLogout}
-                className="btn-cms-action btn-cms-danger"
-                title="Kunci sesi admin"
-              >
-                <Lock size={15} />
-                <span>Kunci</span>
-              </button>
-            )}
+            <button
+              onClick={handleLogout}
+              className="btn-cms-action btn-cms-danger"
+              title="Keluar dari panel admin"
+            >
+              <LogOut size={15} />
+              <span>Keluar</span>
+            </button>
 
             <AnimatedThemeToggler
               theme={theme}
@@ -1250,40 +1209,6 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
         )}
 
         
-        {!isAuthenticated ? (
-          <div className="admin-login-gate">
-            <div className="login-card">
-              <div className="login-lock-circle">
-                <Lock size={32} />
-              </div>
-              <h3>Autentikasi Akses Admin CMS</h3>
-              <p>Masukkan PIN Keamanan untuk membuka akses edit konten sekolah.</p>
-
-              <form onSubmit={handleLogin} className="login-form">
-                <div className="pin-input-group">
-                  <input 
-                    type="password" 
-                    placeholder="Masukkan PIN keamanan"
-                    value={inputPin}
-                    onChange={(e) => setInputPin(e.target.value)}
-                    autoFocus
-                  />
-                  <button type="submit" className="btn btn-primary">
-                    <Unlock size={16} />
-                    <span>Masuk Studio</span>
-                  </button>
-                </div>
-                {pinError && <div className="pin-error-alert">{pinError}</div>}
-              </form>
-
-              <div className="login-hint-strip">
-                <Sparkles size={14} className="text-orange" />
-                <span>PIN diatur oleh administrator sekolah melalui menu Identitas Sekolah.</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          
           <div className="admin-cms-layout">
             
             
@@ -1844,15 +1769,15 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
                       </div>
                     </div>
 
-                    {/* Sub-Card 3: Kepemimpinan, Visi & Keamanan */}
+                    {/* Sub-Card 3: Kepemimpinan, Visi & Slogan */}
                     <div className="cms-sub-card">
                       <div className="cms-sub-card-header">
                         <div className="cms-sub-card-title">
                           <ShieldCheck size={18} />
-                          <span>Kepemimpinan, Slogan & Keamanan Akses</span>
+                          <span>Kepemimpinan, Slogan & Visi</span>
                         </div>
                         <div className="cms-sub-card-desc">
-                          Profil kepala sekolah, arah visi institusional, dan proteksi PIN admin.
+                          Profil kepala sekolah, arah visi institusional, dan slogan utama sekolah.
                         </div>
                       </div>
 
@@ -1864,16 +1789,6 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
                             value={editSchool.principal || ''} 
                             onChange={(e) => setEditSchool({ ...editSchool, principal: e.target.value })}
                             placeholder="Nama Lengkap & Gelar Kepala Sekolah"
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>PIN Akses Dashboard Admin</label>
-                          <input 
-                            type="text" 
-                            value={editProfile.pin || 'admin123'} 
-                            onChange={(e) => setEditProfile({ ...editProfile, pin: e.target.value })}
-                            placeholder="Masukkan PIN akses yang sulit ditebak"
                           />
                         </div>
 
@@ -3603,9 +3518,8 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
 
             </main>
           </div>
-        )}
 
-        {isAuthenticated && mobileTabBar}
+        {mobileTabBar}
       </div>
 
       {/* Modal layer: klik di dalam modal tidak boleh ikut menutup dashboard */}

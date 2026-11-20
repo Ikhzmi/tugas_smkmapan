@@ -7,7 +7,7 @@ import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 
 import { uploadImage } from '../lib/uploadImage';
 import Pagination from './ui/Pagination';
-import { TableSkeleton } from './ui/Skeleton';
+import { TableSkeleton, SkeletonLine } from './ui/Skeleton';
 import './AdminPeopleManager.css';
 
 const PAGE_SIZE = 8;
@@ -176,7 +176,12 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
       <div className="panel-title-strip">
         <div>
           <h3>Data Guru & Akun Login</h3>
-          <p>Kelola direktori guru/staf sekaligus akun portal guru ({rows.length} data).</p>
+          <p>
+            Kelola direktori guru/staf sekaligus akun portal guru{' '}
+            {loading && !rows.length
+              ? <SkeletonLine height={11} width={58} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+              : `(${rows.length} data)`}.
+          </p>
         </div>
         <div className="apm-toolbar">
           <button className="btn btn-outline" onClick={load} title="Muat ulang data">
@@ -215,7 +220,11 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
             aria-label="Cari guru"
           />
         </div>
-        <span className="apm-muted">{filteredRows.length} dari {rows.length} guru</span>
+        <span className="apm-muted">
+          {loading && !rows.length
+            ? <SkeletonLine height={11} width={88} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+            : `${filteredRows.length} dari ${rows.length} guru`}
+        </span>
       </div>
 
       {loading ? (

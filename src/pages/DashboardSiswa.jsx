@@ -94,6 +94,10 @@ const mapStudent = (raw) => ({
 export default function DashboardSiswa() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
+  // Identitas stabil: objek user/profile dibuat ulang tiap siaran auth change,
+  // dan itu dulu memicu loadData berulang kali (satu kali per konsumen useAuth).
+  const userId = user?.id || null;
+  const userRole = profile?.role || null;
   const { theme, setTheme } = useTheme();
   const isHeaderHidden = useHeaderScroll();
   const { schoolInfo, appearance } = useContent();
@@ -152,7 +156,7 @@ export default function DashboardSiswa() {
   }, [user, profile, loading, navigate]);
 
   const loadData = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
     try {
       const dash = await apiGet('/siswa/dashboard');
       if (!dash?.student) {
@@ -222,11 +226,11 @@ export default function DashboardSiswa() {
     } finally {
       setDataLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
-    if (user && profile?.role === 'siswa') queueMicrotask(loadData);
-  }, [user, profile, loadData]);
+    if (userId && userRole === 'siswa') queueMicrotask(loadData);
+  }, [userId, userRole, loadData]);
 
   useEffect(() => {
     const tick = () => setClockNow(Date.now());
@@ -1435,7 +1439,7 @@ export default function DashboardSiswa() {
 
       
       <SubmissionModal
-        key={submitTarget?.assignment?.id || 'empty'}
+        key={submitTarget?.assignment?.id || 'submit-empty'}
         open={!!submitTarget}
         assignment={submitTarget?.assignment}
         subjectName={submitTarget?.subjectName}
@@ -1455,7 +1459,7 @@ export default function DashboardSiswa() {
       />
 
       <ExamErrorBoundary
-        key={examTarget?.id || 'empty'}
+        key={examTarget?.id || 'exam-empty'}
         onClose={() => { setExamTarget(null); loadData(); }}
       >
         <ExamRunner

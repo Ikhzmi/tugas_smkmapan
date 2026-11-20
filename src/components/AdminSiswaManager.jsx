@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { apiListAll, apiPost, apiPatch, apiDelete } from '../lib/api';
 import Pagination from './ui/Pagination';
-import { TableSkeleton } from './ui/Skeleton';
+import { TableSkeleton, SkeletonLine } from './ui/Skeleton';
 import './AdminPeopleManager.css';
 
 const PAGE_SIZE = 10;
@@ -172,7 +172,12 @@ export default function AdminSiswaManager({ onNotify }) {
       <div className="panel-title-strip">
         <div>
           <h3>Data Siswa & Akun LMS</h3>
-          <p>Kelola data peserta didik sekaligus akun login LMS ({rows.length} data).</p>
+          <p>
+            Kelola data peserta didik sekaligus akun login LMS{' '}
+            {loading && !rows.length
+              ? <SkeletonLine height={11} width={58} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+              : `(${rows.length} data)`}.
+          </p>
         </div>
         <div className="apm-toolbar">
           <button className="btn btn-outline" onClick={load} title="Muat ulang data">
@@ -234,7 +239,11 @@ export default function AdminSiswaManager({ onNotify }) {
             </optgroup>
           ))}
         </select>
-        <span className="apm-muted">{filteredRows.length} dari {rows.length} siswa</span>
+        <span className="apm-muted">
+          {loading && !rows.length
+            ? <SkeletonLine height={11} width={96} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+            : `${filteredRows.length} dari ${rows.length} siswa`}
+        </span>
       </div>
 
       {loading ? (

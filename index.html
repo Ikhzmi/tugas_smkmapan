@@ -44,6 +44,19 @@
             '<p style="color:#555;margin:0">Coba: hard reload (Ctrl+Shift+R), matikan ekstensi/VPN, atau buka <strong>http://127.0.0.1:5173</strong>.</p>';
           box.querySelector('pre').textContent = body + '\n\nUA: ' + navigator.userAgent;
           root.appendChild(box);
+
+          // Cold-start bisa melewati 5 detik; begitu React mount, box ini harus
+          // hilang agar tidak menutupi aplikasi yang sebenarnya sehat.
+          var observer = new MutationObserver(function () {
+            for (var i = 0; i < root.children.length; i++) {
+              if (root.children[i] !== box) {
+                observer.disconnect();
+                box.remove();
+                return;
+              }
+            }
+          });
+          observer.observe(root, { childList: true });
         }, 5000);
       })();
     </script>

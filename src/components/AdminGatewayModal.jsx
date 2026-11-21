@@ -111,7 +111,7 @@ export default function AdminGatewayModal({ isOpen, onClose }) {
           <div className="admin-notice-box">
             <ShieldCheck size={18} className="text-orange flex-shrink-0" />
             <p className="admin-notice-text">
-              Portal administrasi ini diproteksi oleh Autentikasi Dua Faktor (2FA) internal sekolah. 
+              Portal administrasi ini memverifikasi akun dan peran pengguna di server sebelum memberi akses. 
               Pendidik dapat menggunakan kredensial NUPTK resmi untuk login ke ruang guru.
             </p>
           </div>

@@ -131,7 +131,7 @@ export default function LoginAdmin() {
 
           <div className="admin-security-notice">
             <ShieldCheck size={15} />
-            <p>Akses admin diproteksi sistem autentikasi ganda (2FA). Hanya personil berwenang yang dapat masuk.</p>
+            <p>Akses admin diverifikasi di server melalui autentikasi akun dan pemeriksaan peran. Hanya personil berwenang yang dapat masuk.</p>
           </div>
         </section>
 

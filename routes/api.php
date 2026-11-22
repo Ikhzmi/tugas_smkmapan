@@ -175,6 +175,7 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware(['auth:sanctum', 'role:guru'])->prefix('guru')->group(function (): void {
         Route::get('/attendance', [AttendanceController::class, 'teacherIndex']);
         Route::post('/attendance', [AttendanceController::class, 'teacherStore']);
+        Route::post('/attendance/bulk', [AttendanceController::class, 'teacherBulk']);
         Route::patch('/attendance/{attendance}', [AttendanceController::class, 'update']);
     });
 });

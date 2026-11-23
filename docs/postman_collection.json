@@ -1,17 +1,21 @@
 {
     "info": {
         "name": "SMKM 8 Medan API v1",
-        "description": "Koleksi lengkap 136 route API v1 (mencakup rute presigned direct upload Supabase Storage).",
+        "description": "SMKM 8 Medan API v1: cakupan 138 route method/path dari routes/api.php dalam 140 request Postman (termasuk tiga variasi login), dan presigned direct upload. Default base_url adalah HTTPS development (.test), bukan produksi. Isi token dan kredensial uji lewat Postman Variables; jangan commit rahasia. Request yang mengubah data hanya untuk staging/fixture berizin.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [
         {
             "key": "base_url",
-            "value": "https://smkm8medan-api.wasmer.app/api/v1"
+            "value": "https://smkm8medan-api.test/api/v1"
         },
         {
             "key": "local_base_url",
-            "value": "http://smkm8medan-api.test/api/v1"
+            "value": "https://smkm8medan-api.test/api/v1"
+        },
+        {
+            "key": "production_base_url",
+            "value": "https://smkm8medan-api.wasmer.app/api/v1"
         },
         {
             "key": "admin_token",
@@ -39,11 +43,11 @@
         },
         {
             "key": "student_nisn",
-            "value": "2026000001"
+            "value": ""
         },
         {
             "key": "dev_password",
-            "value": "password"
+            "value": ""
         },
         {
             "key": "device_id",
@@ -2285,6 +2289,34 @@
                                 ],
                                 "url": "{{base_url}}/guru/schedules"
                             }
+                        },
+                        {
+                            "name": "Daftar siswa kelas yang diampu",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/classes/{{class_id}}/students?per_page=100",
+                                "description": "Hanya untuk kelas yang diampu guru ini. Server membalas 403 CLASS_NOT_TAUGHT untuk kelas di luar jadwal guru. Respons data berisi daftar siswa dengan pagination.",
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "pm.test('Berhasil mengambil roster kelas yang diampu', () => pm.response.to.have.status(200));",
+                                                "const body = pm.response.json();",
+                                                "const first = body.data && body.data[0];",
+                                                "if (first && first.id) { pm.collectionVariables.set('student_id', first.id); }"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
                         }
                     ],
                     "auth": {
@@ -2764,6 +2796,48 @@
                                                 "if (value) {",
                                                 "    pm.collectionVariables.set('attendance_id', value);",
                                                 "}"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Simpan presensi bulk (staging saja)",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": "{{base_url}}/guru/attendance/bulk",
+                                "description": "MENULIS/meng-upsert presensi. Jalankan hanya pada staging dengan fixture dan tanggal yang disetujui. Semua siswa harus berada di kelas pada schedule_id; kirim 1–200 entries. Status: hadir, terlambat, izin, sakit, alpa.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"schedule_id\": \"{{schedule_id}}\",\n    \"tanggal\": \"{{tanggal}}\",\n    \"entries\": [\n        {\n            \"student_id\": \"{{student_id}}\",\n            \"status\": \"hadir\",\n            \"jam_masuk\": \"07:00\",\n            \"catatan\": \"\"\n        }\n    ]\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "event": [
+                                    {
+                                        "listen": "test",
+                                        "script": {
+                                            "type": "text/javascript",
+                                            "exec": [
+                                                "pm.test('Presensi bulk berhasil', () => pm.response.to.have.status(200));",
+                                                "const body = pm.response.json();",
+                                                "pm.test('Respons memuat daftar presensi tersimpan', () => pm.expect(body.data).to.be.an('array'));",
+                                                "pm.test('Jumlah tersimpan sesuai fixture', () => pm.expect(body.data.length).to.eql(1));",
+                                                "if (body.data && body.data[0] && body.data[0].id) { pm.collectionVariables.set('attendance_id', body.data[0].id); }"
                                             ]
                                         }
                                     }

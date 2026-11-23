@@ -10,11 +10,12 @@ use App\Models\Gallery;
 use App\Models\LoginEvent;
 use App\Models\PpdbRegistration;
 use App\Models\SiteSetting;
-use App\Models\SiteVisit;
 use App\Models\Suggestion;
 use App\Models\Video;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,18 +42,22 @@ class ContentController extends Controller
             $range = 7;
         }
         $since = now()->subDays($range - 1)->startOfDay();
-        $visits = SiteVisit::query()->where('visited_at', '>=', $since)->get();
-        $logins = LoginEvent::query()->where('logged_in_at', '>=', $since)->get();
+        $visits = DB::table('site_visits')->where('visited_at', '>=', $since);
+        $logins = DB::table('login_events')->where('logged_in_at', '>=', $since);
 
         return ApiResponse::success([
             'range_days' => $range,
-            'visits_total' => $visits->count(),
-            'logins_total' => $logins->count(),
-            'visits_by_day' => $visits->groupBy(fn (SiteVisit $visit): string => $visit->visited_at->toDateString())->map->count(),
-            'logins_by_day' => $logins->groupBy(fn (LoginEvent $event): string => $event->logged_in_at->toDateString())->map->count(),
-            'visits_by_role' => $visits->groupBy('role')->map->count(),
-            'logins_by_role' => $logins->groupBy('role')->map->count(),
-            'latest_logins' => $logins->sortByDesc('logged_in_at')->take(20)->values(),
+            'visits_total' => (clone $visits)->count(),
+            'logins_total' => (clone $logins)->count(),
+            'visits_by_day' => $this->dailyCounts(clone $visits, 'visited_at'),
+            'logins_by_day' => $this->dailyCounts(clone $logins, 'logged_in_at'),
+            'visits_by_role' => $this->roleCounts(clone $visits),
+            'logins_by_role' => $this->roleCounts(clone $logins),
+            'latest_logins' => LoginEvent::query()
+                ->where('logged_in_at', '>=', $since)
+                ->latest('logged_in_at')
+                ->limit(20)
+                ->get(),
         ]);
     }
 
@@ -243,6 +248,33 @@ class ContentController extends Controller
             'headers' => ['Content-Type' => $data['content_type']],
             'expires_at' => $expiresAt->toISOString(),
         ], 'URL unggah berkas dibuat.');
+    }
+
+    /** @return array<string, int> */
+    private function dailyCounts(Builder $query, string $column): array
+    {
+        $postgres = $query->getConnection()->getDriverName() === 'pgsql';
+        $dateExpression = $postgres ? "DATE({$column} AT TIME ZONE ?)" : "DATE({$column})";
+        $bindings = $postgres ? [config('app.timezone', 'UTC')] : [];
+
+        return $query
+            ->selectRaw("{$dateExpression} as day, COUNT(*) as aggregate", $bindings)
+            ->groupByRaw($dateExpression, $bindings)
+            ->orderBy('day')
+            ->get()
+            ->mapWithKeys(fn (object $row): array => [(string) $row->day => (int) $row->aggregate])
+            ->all();
+    }
+
+    /** @return array<string, int> */
+    private function roleCounts(Builder $query): array
+    {
+        return $query
+            ->selectRaw('role, COUNT(*) as aggregate')
+            ->groupBy('role')
+            ->get()
+            ->mapWithKeys(fn (object $row): array => [(string) $row->role => (int) $row->aggregate])
+            ->all();
     }
 
     /** @return array<string, string> */

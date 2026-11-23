@@ -113,22 +113,37 @@ class ExamController extends Controller
     public function recap(Request $request, Exam $exam): JsonResponse
     {
         $this->ensureTeacherOwns($request, $exam);
-        $attempts = $exam->attempts()->with('student')->get();
-        $completed = $attempts->where('status', 'selesai')->filter(fn ($attempt): bool => $attempt->nilai_akhir !== null);
+        $attempts = $exam->attempts();
+        $completed = (clone $attempts)->where('status', 'selesai')->whereNotNull('nilai_akhir');
 
-        return ApiResponse::success([
-            'exam_id' => $exam->getKey(),
-            'total_attempts' => $attempts->count(),
-            'completed_attempts' => $completed->count(),
-            'average_score' => $completed->isEmpty() ? null : round((float) $completed->avg('nilai_akhir'), 2),
-            'by_status' => $attempts->groupBy('status')->map->count(),
-            'students' => $completed->map(fn ($attempt): array => [
+        $statusCounts = (clone $attempts)
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->get()
+            ->mapWithKeys(fn (object $row): array => [(string) $row->status => (int) $row->aggregate]);
+        $completedStats = (clone $completed)
+            ->selectRaw('COUNT(*) as aggregate, AVG(nilai_akhir) as average_score')
+            ->first();
+        $students = (clone $completed)
+            ->with('student')
+            ->latest('dikumpulkan_at')
+            ->get()
+            ->map(fn (Attempt $attempt): array => [
                 'attempt_id' => $attempt->getKey(),
                 'student_id' => $attempt->student_id,
                 'student_name' => $attempt->student?->nama,
                 'score' => $attempt->nilai_akhir,
                 'submitted_at' => $attempt->dikumpulkan_at?->toISOString(),
-            ])->values(),
+            ])
+            ->values();
+
+        return ApiResponse::success([
+            'exam_id' => $exam->getKey(),
+            'total_attempts' => (int) $statusCounts->sum(),
+            'completed_attempts' => (int) $completedStats->aggregate,
+            'average_score' => $completedStats->average_score === null ? null : round((float) $completedStats->average_score, 2),
+            'by_status' => $statusCounts,
+            'students' => $students,
         ]);
     }
 

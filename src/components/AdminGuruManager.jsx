@@ -12,6 +12,13 @@ import './AdminPeopleManager.css';
 
 const PAGE_SIZE = 8;
 
+// Username awal yang diusulkan saat admin mau membuatkan akun untuk guru lama.
+const suggestUsername = (value) => String(value || '')
+  .toLowerCase()
+  .replace(/[^a-z0-9._-]+/g, '.')
+  .replace(/\.{2,}/g, '.')
+  .replace(/^[._-]+|[._-]+$/g, '');
+
 const emptyForm = {
   nama: '',
   gelar: '',
@@ -39,6 +46,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const photoInputRef = useRef(null);
+  const accountBoxRef = useRef(null);
 
   const load = useCallback(async () => {
     setError('');
@@ -73,6 +81,13 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
   const pagedRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  // Saat bagian akun dibuka di tengah form panjang, dekatkan kolomnya.
+  useEffect(() => {
+    if (form?.buat_akun) {
+      accountBoxRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [form?.buat_akun]);
 
   const handlePhoto = async (e) => {
     const file = e.target.files?.[0];
@@ -119,8 +134,22 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
           ? 'Guru baru beserta akun loginnya berhasil dibuat.'
           : 'Data guru baru berhasil ditambahkan.');
       } else {
-        await apiPatch(`/admin/teachers/${form.id}`, profil);
-        onNotify?.('Data guru berhasil diperbarui.');
+        const payload = { ...profil };
+        if (form.buat_akun) {
+          payload.create_account = true;
+          payload.username = form.username.trim().toLowerCase() || undefined;
+          payload.password = form.password;
+          payload.password_confirmation = form.password;
+        }
+        const result = await apiPatch(`/admin/teachers/${form.id}`, payload);
+        if (form.buat_akun && !(result?.teacher?.user_id || result?.initial_password)) {
+          throw new Error(
+            'Data guru tersimpan, tetapi akun login belum dibuat. Server API perlu diperbarui agar fitur ini aktif.',
+          );
+        }
+        onNotify?.(form.buat_akun
+          ? 'Data guru diperbarui dan akun login berhasil dibuat.'
+          : 'Data guru berhasil diperbarui.');
       }
       setForm(null);
       await load();
@@ -136,7 +165,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
   const handleDelete = async (row) => {
     const acc = row.profile_id ? accByProfile[row.profile_id] : null;
     const pesan = acc
-      ? `Hapus guru "${row.nama}" SEKALIGUS akun login ${acc.email}? Data jadwal/materi miliknya akan ikut kebijakan database (on delete set null / cascade).`
+      ? `Hapus guru "${row.nama}" SEKALIGUS akun login ${acc.email || acc.username}? Data jadwal/materi miliknya akan ikut kebijakan database (on delete set null / cascade).`
       : `Hapus guru "${row.nama}" dari direktori?`;
     if (!window.confirm(pesan)) return;
     setError('');
@@ -271,7 +300,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                       {acc ? (
                         <span className="apm-badge apm-badge-ok">
                           <UserCheck size={12} />
-                          {acc.email}
+                          {acc.email || acc.username || 'Akun aktif'}
                         </span>
                       ) : (
                         <span className="apm-badge apm-badge-none">Belum punya akun</span>
@@ -288,6 +317,10 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                             setForm({
                               mode: 'edit',
                               id: t.id,
+                              has_account: Boolean(acc),
+                              buat_akun: false,
+                              username: suggestUsername(t.nama),
+                              password: '',
                               nama: t.nama || '',
                               gelar: t.gelar || '',
                               jabatan: t.jabatan || '',
@@ -301,6 +334,34 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                           <Edit3 size={13} />
                           Edit
                         </button>
+                        {!acc && (
+                          <button
+                            className="apm-btn-small"
+                            title="Buatkan akun login untuk guru ini"
+                            onClick={() => {
+                              setError('');
+                              setModalError('');
+                              setForm({
+                                mode: 'edit',
+                                id: t.id,
+                                has_account: false,
+                                buat_akun: true,
+                                username: suggestUsername(t.nama),
+                                password: '',
+                                nama: t.nama || '',
+                                gelar: t.gelar || '',
+                                jabatan: t.jabatan || '',
+                                department: t.department || '',
+                                email: t.email || '',
+                                jam_kerja: t.jam_kerja || '',
+                                foto_url: t.foto_url || '',
+                              });
+                            }}
+                          >
+                            <UserPlus size={13} />
+                            Buat Akun
+                          </button>
+                        )}
                         {acc && (
                           <button
                             className="apm-btn-small"
@@ -435,7 +496,7 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                     <input className="apm-input" value={form.jam_kerja} onChange={set('jam_kerja')} placeholder="Senin – Jumat, 07.30 – 15.00" />
                   </div>
 
-                  {form.mode === 'add' && (
+                  {(form.mode === 'add' || !form.has_account) && (
                     <>
                       <label className="apm-checkbox apm-field-full">
                         <input
@@ -443,10 +504,12 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                           checked={form.buat_akun}
                           onChange={(e) => setForm((f) => ({ ...f, buat_akun: e.target.checked }))}
                         />
-                        Sekalian buatkan akun login portal guru
+                        {form.mode === 'add'
+                          ? 'Sekalian buatkan akun login portal guru'
+                          : 'Guru ini belum punya akun — buatkan akun login sekarang'}
                       </label>
                       {form.buat_akun && (
-                        <div className="apm-account-box apm-field-full">
+                        <div className="apm-account-box apm-field-full" ref={accountBoxRef}>
                           <div className="apm-field">
                             <label>Username akun *</label>
                             <input
@@ -482,7 +545,11 @@ export default function AdminGuruManager({ onNotify, onDataChange }) {
                       ? 'Menunggu unggahan…'
                       : saving
                         ? 'Menyimpan…'
-                        : form.mode === 'add' ? 'Simpan & Buat' : 'Simpan Perubahan'}
+                        : form.mode === 'add'
+                          ? 'Simpan & Buat'
+                          : form.buat_akun
+                            ? 'Simpan & Buat Akun'
+                            : 'Simpan Perubahan'}
                   </span>
                 </button>
               </div>

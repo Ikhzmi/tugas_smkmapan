@@ -5,6 +5,7 @@ import { Tabs } from '@/components/ui/tabs'
 import { useTabActive } from '@/components/ui/tab-active'
 import { useContent } from '../../context/ContentContext'
 import { renderPrincipalCard } from '../../lib/principalCard'
+import useInViewOnce from '../hooks/useInViewOnce'
 import './ProfilSekolah.css'
 
 const lanyardModule = import('@/components/ui/lanyard')
@@ -39,6 +40,9 @@ function StaticPrincipalCard({ src }) {
 function PrincipalCard({ data }) {
   const active = useTabActive()
   const [webgl] = useState(supportsWebGL)
+  // Kartu 3D baru disiapkan saat bagian ini mendekati viewport; sebelumnya
+  // cukup foto statis supaya navigasi ke beranda tetap ringan.
+  const [stageRef, stageVisible] = useInViewOnce()
 
   return (
     <div className="profil-head__media">
@@ -48,8 +52,8 @@ function PrincipalCard({ data }) {
           ? ' Kartu dapat ditarik dan dibalik untuk melihat sisi belakang.'
           : ''}
       </p>
-      <div className="profil-head__stage">
-        {webgl ? (
+      <div className="profil-head__stage" ref={stageRef}>
+        {webgl && stageVisible ? (
           <Suspense fallback={<StaticPrincipalCard src={data.cardFront} />}>
             <Lanyard
               key={data.cardFront}

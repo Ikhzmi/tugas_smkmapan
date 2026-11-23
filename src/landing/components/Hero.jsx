@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import {
   ArrowDown,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import StarBorder from '@/components/ui/star-border'
 import { useContent, HERO_DEFAULTS } from '../../context/ContentContext'
+import { isSplashDone, onSplashDone } from '../../lib/splashGate'
 import { VideoProfileModal } from './VideoProfileModal'
 import './Hero.css'
 
@@ -30,55 +31,66 @@ export function Hero({ onOpenPpdb }) {
     ? h.scriptWords
     : HERO_DEFAULTS.scriptWords
 
+  // Hero dipasang di belakang splash, jadi koreografi masuknya ditahan sampai
+  // splash benar-benar selesai — tanpa ini animasinya habis di balik layar.
+  const [splashDone, setSplashDone] = useState(() => isSplashDone())
+  useEffect(() => {
+    if (splashDone) return undefined
+    return onSplashDone(() => setSplashDone(true))
+  }, [splashDone])
+
+  /* `animate` baru aktif setelah splash selesai; sebelumnya elemen diam di initialState. */
+  const staged = (initial, target, transition) => ({
+    initial,
+    animate: splashDone ? target : undefined,
+    transition,
+  })
+
   /* Helper: fade-up dari bawah (elemen copy utama) */
   const fadeUp = (delay = 0, distance = 26) =>
     reduceMotion
       ? {}
-      : {
-          initial: { opacity: 0, y: distance },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.72, delay, ease: [0.22, 1, 0.36, 1] },
-        }
+      : staged(
+          { opacity: 0, y: distance },
+          { opacity: 1, y: 0 },
+          { duration: 0.72, delay, ease: [0.22, 1, 0.36, 1] },
+        )
 
   /* Helper: fade-in murni (latar / overlay) */
   const fadeIn = (delay = 0, duration = 1.1) =>
     reduceMotion
       ? {}
-      : {
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          transition: { duration, delay, ease: 'easeOut' },
-        }
+      : staged({ opacity: 0 }, { opacity: 1 }, { duration, delay, ease: 'easeOut' })
 
   /* Helper: zoom-in ringan untuk backdrop foto */
   const zoomIn = (delay = 0) =>
     reduceMotion
       ? {}
-      : {
-          initial: { opacity: 0, scale: 1.06 },
-          animate: { opacity: 1, scale: 1 },
-          transition: { duration: 1.4, delay, ease: [0.22, 1, 0.36, 1] },
-        }
+      : staged(
+          { opacity: 0, scale: 1.06 },
+          { opacity: 1, scale: 1 },
+          { duration: 1.4, delay, ease: [0.22, 1, 0.36, 1] },
+        )
 
   /* Helper: slide masuk dari kanan untuk hero-script */
   const slideFromRight = (delay = 0) =>
     reduceMotion
       ? {}
-      : {
-          initial: { opacity: 0, x: 40, rotate: -6 },
-          animate: { opacity: 1, x: 0, rotate: -6 },
-          transition: { duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] },
-        }
+      : staged(
+          { opacity: 0, x: 40, rotate: -6 },
+          { opacity: 1, x: 0, rotate: -6 },
+          { duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] },
+        )
 
   /* Helper: slide naik dari bawah untuk footer */
   const slideUp = (delay = 0) =>
     reduceMotion
       ? {}
-      : {
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] },
-        }
+      : staged(
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0 },
+          { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] },
+        )
 
   const handleScroll = () => {
     document
@@ -176,15 +188,15 @@ export function Hero({ onOpenPpdb }) {
               <motion.li
                 key={index}
                 className="hero-stat"
-                {...(reduceMotion ? {} : {
-                  initial: { opacity: 0, y: 32, scale: 0.96 },
-                  animate: { opacity: 1, y: 0, scale: 1 },
-                  transition: {
+                {...(reduceMotion ? {} : staged(
+                  { opacity: 0, y: 32, scale: 0.96 },
+                  { opacity: 1, y: 0, scale: 1 },
+                  {
                     duration: 0.65,
                     delay: 0.44 + index * 0.1,
                     ease: [0.22, 1, 0.36, 1],
                   },
-                })}
+                ))}
               >
                 <stat.icon className="hero-stat__icon" />
                 <span className="hero-stat__value">{stat.value}</span>

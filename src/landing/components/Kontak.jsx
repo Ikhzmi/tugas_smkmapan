@@ -9,6 +9,7 @@ import {
   Send,
 } from 'lucide-react'
 import DotGrid from '@/components/ui/dot-grid'
+import useInViewOnce from '../hooks/useInViewOnce'
 import { useContent } from '../../context/ContentContext'
 import './Kontak.css'
 
@@ -48,6 +49,8 @@ export function Kontak() {
   const c = sectionCopy?.kontak || {}
   const [form, setForm] = useState({ name: '', contact: '', message: '' })
   const [status, setStatus] = useState('idle')
+  // Latar dot-grid WebGL baru dibuat saat bagian kontak mendekati viewport.
+  const [dotsRef, dotsVisible] = useInViewOnce()
 
   const schoolName = schoolInfo?.name || 'SMK Muhammadiyah 8 Medan'
   const whatsapp = schoolInfo?.whatsapp || schoolInfo?.hotlineRaw || ''
@@ -117,8 +120,8 @@ export function Kontak() {
       className="kontak"
       aria-labelledby="kontak-title"
     >
-      <div className="kontak__dots" aria-hidden="true">
-        <DotGrid
+      <div className="kontak__dots" aria-hidden="true" ref={dotsRef}>
+        {dotsVisible ? <DotGrid
           className="kontak__dot-grid"
           baseColor={isDark ? '#2b3546' : '#a99d91'}
           activeColor={isDark ? '#ff6a2b' : '#FE4000'}
@@ -136,7 +139,7 @@ export function Kontak() {
           glow={0.55}
           fade={0.15}
           opacity={isDark ? 0.85 : 0.75}
-        />
+        /> : null}
       </div>
 
       <div className="kontak__inner">

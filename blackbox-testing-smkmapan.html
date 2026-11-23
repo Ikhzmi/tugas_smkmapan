@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dokumen Blackbox Testing — SMK MAPAN (smkmapan.vercel.app)</title>
+<style>
+  /* ============ Palet situs SMK MAPAN ============
+     primary  #FE4000  (oranye-merah landing)
+     accent   #e8702a  (oranye dashboard)
+     cream    #F9EFE8  (latar mode terang)
+     navy     #0c1726  (teks utama)
+     border   #e5e4e7
+  ================================================= */
+  :root{
+    --primary:#FE4000; --accent:#e8702a; --cream:#F9EFE8; --navy:#0c1726;
+    --border:#e5e4e7; --muted:#5b6472; --surface:#ffffff; --elevated:#f5ebe0;
+    --ok:#1a7f4b; --ok-bg:#e9f5ee; --fail:#c62828; --fail-bg:#fdecea;
+    --block:#b45309; --block-bg:#fdf1e0; --skip:#6b7280; --skip-bg:#f3f4f6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{
+    font-family:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--cream); color:var(--navy); font-size:10pt; line-height:1.5;
+  }
+  @page{size:A4;margin:0}
+  .page{
+    width:210mm; min-height:297mm; padding:15mm 16mm 16mm; margin:0 auto 8mm;
+    background:var(--surface); position:relative; page-break-after:always;
+    box-shadow:0 2px 14px rgba(12,23,38,.10); overflow:hidden;
+  }
+  .page:last-child{page-break-after:auto;margin-bottom:0}
+  @media print{
+    body{background:#fff}
+    .page{box-shadow:none;margin:0;width:auto;min-height:auto;height:297mm}
+    .toolbar{display:none!important}
+  }
+  /* ---- toolbar layar ---- */
+  .toolbar{
+    position:fixed;top:14px;right:14px;z-index:99;display:flex;gap:8px;align-items:center;
+    background:var(--navy);color:#fff;border-radius:10px;padding:8px 12px;font-size:9pt;
+    box-shadow:0 4px 18px rgba(12,23,38,.35);
+  }
+  .toolbar button{
+    background:var(--primary);color:#fff;border:0;border-radius:7px;padding:7px 14px;
+    font:inherit;font-weight:700;cursor:pointer;
+  }
+  .toolbar button:hover{background:var(--accent)}
+  /* ---- elemen umum ---- */
+  .kicker{font-size:7.5pt;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--primary)}
+  h1{font-size:24pt;line-height:1.15;font-weight:800;letter-spacing:-.01em}
+  h2{font-size:14pt;font-weight:800;margin:2mm 0 3mm;letter-spacing:-.01em}
+  h3{font-size:10.5pt;font-weight:800;margin:3mm 0 1.5mm}
+  p{margin:0 0 2mm}
+  .muted{color:var(--muted)}
+  .small{font-size:8.5pt}
+  .rule{height:1px;background:var(--border);border:0;margin:4mm 0}
+  .rule-accent{height:3px;width:26mm;background:var(--primary);border:0;margin:5mm 0}
+  code,.mono{font-family:'JetBrains Mono','Cascadia Code',Consolas,monospace;font-size:8pt}
+  .footer{
+    position:absolute;left:16mm;right:16mm;bottom:9mm;display:flex;justify-content:space-between;
+    border-top:1px solid var(--border);padding-top:2.5mm;font-size:7.5pt;color:var(--muted);
+  }
+  .footer b{color:var(--navy)}
+  .chip{display:inline-block;border-radius:4px;padding:.6mm 2mm;font-size:7pt;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+  .chip.ok{color:var(--ok);background:var(--ok-bg);border:1px solid #bfe3cd}
+  .chip.fail{color:var(--fail);background:var(--fail-bg);border:1px solid #f3c1bd}
+  .chip.block{color:var(--block);background:var(--block-bg);border:1px solid #f0d9b0}
+  .chip.skip{color:var(--skip);background:var(--skip-bg);border:1px solid #dfe2e7}
+  .chip.sev-c{color:#fff;background:var(--fail)}
+  .chip.sev-h{color:#fff;background:var(--primary)}
+  .chip.sev-m{color:#fff;background:var(--accent)}
+  .chip.sev-l{color:var(--navy);background:var(--elevated);border:1px solid var(--border)}
+  /* ---- tabel ---- */
+  table{width:100%;border-collapse:collapse;font-size:8.2pt}
+  thead{display:table-header-group}
+  th{
+    background:var(--navy);color:#fff;text-align:left;font-size:7.2pt;font-weight:800;
+    letter-spacing:.08em;text-transform:uppercase;padding:2.2mm 2.4mm;
+  }
+  td{border-bottom:1px solid var(--border);padding:2.2mm 2.4mm;vertical-align:top;line-height:1.42}
+  tr:nth-child(even) td{background:#fbf7f3}
+  tr{page-break-inside:avoid}
+  td.id{font-family:'JetBrains Mono',Consolas,monospace;font-size:7.6pt;font-weight:700;color:var(--primary);white-space:nowrap}
+  .steps{color:var(--muted);display:block;margin-top:1mm;font-size:7.8pt}
+  .tbl-meta td{border-bottom:1px solid var(--border);padding:1.8mm 2.4mm}
+  .tbl-meta td:first-child{width:34mm;font-weight:700;color:var(--muted);font-size:8pt}
+  /* ---- kartu temuan ---- */
+  .bug{border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:6px;padding:3mm 3.5mm;margin-bottom:3mm;page-break-inside:avoid}
+  .bug.crit{border-left-color:var(--fail)}
+  .bug h3{margin:0 0 1.5mm;display:flex;align-items:center;gap:2.5mm;flex-wrap:wrap}
+  .bug p{margin-bottom:1.8mm}
+  .evidence{
+    background:var(--navy);color:#ffd9c7;border-radius:6px;padding:2.5mm 3mm;margin:2mm 0;
+    font-family:'JetBrains Mono',Consolas,monospace;font-size:7.4pt;line-height:1.55;overflow-wrap:anywhere;
+  }
+  .evidence .hl{color:#ff8a50;font-weight:700}
+  ol,ul{margin:0 0 2mm 5mm}
+  li{margin-bottom:1mm}
+  /* ---- statistik ---- */
+  .stats{display:flex;gap:3mm;margin:4mm 0}
+  .stat{flex:1;border:1px solid var(--border);border-radius:8px;padding:3.5mm 4mm;background:#fbf7f3}
+  .stat .n{font-size:19pt;font-weight:800;line-height:1.1}
+  .stat .l{font-size:7.3pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .stat.ok .n{color:var(--ok)} .stat.fail .n{color:var(--fail)}
+  .stat.block .n{color:var(--block)} .stat.skip .n{color:var(--skip)}
+  .bar{display:flex;height:7mm;border-radius:5px;overflow:hidden;margin:2mm 0 1mm;border:1px solid var(--border)}
+  .bar div{height:100%}
+  .legend{display:flex;gap:5mm;font-size:7.5pt;color:var(--muted);flex-wrap:wrap}
+  .legend i{display:inline-block;width:2.6mm;height:2.6mm;border-radius:2px;margin-right:1.4mm}
+  /* ---- cover ---- */
+  .cover{display:flex;flex-direction:column;height:257mm}
+  .cover-top{display:flex;justify-content:space-between;align-items:center;font-size:8pt;font-weight:700}
+  .cover-mid{margin-top:34mm}
+  .palette{display:flex;gap:2.5mm;margin:6mm 0}
+  .swatch{width:17mm;height:10mm;border-radius:4px;border:1px solid rgba(12,23,38,.12)}
+  .swatch span{display:block;font-size:6.4pt;font-family:Consolas,monospace;margin-top:10.8mm;color:var(--muted)}
+  .cover-meta{margin-top:auto}
+  .toc td{padding:1.7mm 2.4mm}
+  .sign{display:flex;gap:8mm;margin-top:8mm}
+  .sign div{flex:1;border:1px solid var(--border);border-radius:8px;padding:4mm;text-align:center;font-size:8.5pt}
+  .sign .line{height:14mm;border-bottom:1px solid var(--navy);margin:3mm 6mm 2mm}
+  .note{background:var(--elevated);border:1px solid #ecd9c6;border-radius:6px;padding:2.5mm 3mm;font-size:8.5pt;margin:2.5mm 0}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>Dokumen siap cetak · A4</span>
+  <button onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<!-- ================= HAL 1 · COVER ================= -->
+<section class="page">
+  <div class="cover">
+    <div class="cover-top">
+      <span>SMK MUHAMMADIYAH 8 MEDAN · SMK MAPAN</span>
+      <span class="mono">DOK-QA/SMKMAPAN/XI/2026 · v1.2</span>
+    </div>
+    <div class="cover-mid">
+      <div class="kicker">Dokumen Pengujian Perangkat Lunak</div>
+      <h1 style="margin-top:4mm">Blackbox Testing<br>Website Sekolah &amp;<br>Portal Akademik</h1>
+      <hr class="rule-accent">
+      <p style="font-size:11pt;max-width:150mm">
+        Pengujian fungsional menyeluruh terhadap <b>landing page</b>, sistem autentikasi,
+        dan tiga dashboard peran — <b>Admin</b>, <b>Guru</b>, dan <b>Siswa</b> —
+        pada situs produksi <code>https://smkmapan.vercel.app</code>.
+      </p>
+      <div class="palette">
+        <div><div class="swatch" style="background:#FE4000"></div><span>#FE4000</span></div>
+        <div><div class="swatch" style="background:#e8702a"></div><span>#e8702a</span></div>
+        <div><div class="swatch" style="background:#F9EFE8"></div><span>#F9EFE8</span></div>
+        <div><div class="swatch" style="background:#0c1726"></div><span>#0c1726</span></div>
+        <div><div class="swatch" style="background:#e5e4e7"></div><span>#e5e4e7</span></div>
+      </div>
+      <p class="small muted">Palet dokumen diambil langsung dari design system situs (tailwind.config.js).</p>
+    </div>
+    <div class="cover-meta">
+      <hr class="rule">
+      <table class="tbl-meta">
+        <tr><td>Objek Uji</td><td>Website SMK MAPAN — Landing Page, Login Portal, Dashboard Admin / Guru / Siswa (LMS &amp; CBT)</td></tr>
+        <tr><td>URL Produksi</td><td><code>https://smkmapan.vercel.app</code> · API <code>https://smkm8medan-api.wasmer.app/api/v1</code></td></tr>
+        <tr><td>Metode</td><td>Blackbox (fungsional, berbasis spesifikasi perilaku) + audit live terotomasi &amp; verifikasi source code</td></tr>
+        <tr><td>Tanggal Pengujian</td><td>16 – 17 November 2026 (WIB) · <b>Retest 21 November 2026</b></td></tr>
+        <tr><td>Penguji</td><td>AffandiEYD — QA Manual dibantu otomasi browser (Chromium 150 / Qoder Desktop)</td></tr>
+        <tr><td>Versi Dokumen</td><td>1.2 · 105 kasus uji · 22 halaman · addendum audit source &amp; browser 22 Nov 2026</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 1 / 22</span></div>
+</section>
+
+<!-- ================= HAL 2 · INFORMASI PENGUJIAN ================= -->
+<section class="page">
+  <div class="kicker">Bagian 1</div>
+  <h2>Informasi Pengujian</h2>
+  <h3>1.1 Lingkup</h3>
+  <p>Pengujian mencakup seluruh permukaan fungsional yang dapat diakses pengguna akhir:</p>
+  <ul>
+    <li><b>Landing page</b> (<code>/</code>) — navigasi, section profil/program/eskul/galeri/fasilitas/tenaga pendidik/kontak, modal PPDB, toggle tema.</li>
+    <li><b>Autentikasi</b> — <code>/login</code> (guru &amp; siswa), <code>/admin/login</code> (admin), pemeriksaan role, proteksi route, sesi &amp; logout. Gate PIN client-side historis sudah dihapus dari source terbaru.</li>
+    <li><b>Dashboard Admin</b> (<code>/admin/dashboard</code>) — Ringkasan &amp; analitik, CMS konten (Profil, Hero, Tampilan, Teks Section, Jurusan, Fasilitas, Eskul, Guru, Galeri), Data Siswa/Guru, Kelas, Jadwal, Mapel, Presensi, Pengaturan Ujian, Pesan, Kelola Akun.</li>
+    <li><b>Dashboard Guru</b> (<code>/guru/dashboard</code>) — Kelas &amp; Jadwal, Presensi, Materi, Tugas &amp; Penilaian, Ujian/CBT (kode akses, kelola soal, pengerjaan, reset), Rekap Nilai + ekspor.</li>
+    <li><b>Dashboard Siswa</b> (<code>/lms/dashboard</code>) — Dashboard, Mata Pelajaran, Jadwal Kelas, Presensi mandiri, Tugas Saya, Ujian/CBT (kode, pengerjaan, anti-curang).</li>
+  </ul>
+  <h3>1.2 Lingkungan &amp; Alat</h3>
+  <table class="tbl-meta">
+    <tr><td>Frontend</td><td>React 19 + Vite 8 + Tailwind 4, hosting Vercel (16–17 Nov: <code>index-l-eShG-1.js</code>; retest 21 Nov: <code>index-BSD_wKoR.js</code>)</td></tr>
+    <tr><td>Backend</td><td>REST API <code>smkm8medan-api.wasmer.app/api/v1</code> (Wasmer Edge), auth token Bearer + sesi perangkat</td></tr>
+    <tr><td>Browser uji</td><td>Chromium 150 (Electron/Qoder Desktop), Windows x64, viewport desktop, koneksi internet stabil</td></tr>
+    <tr><td>Teknik</td><td>Eksekusi UI live (klik, isi form, navigasi), inspeksi DOM/network/console, verifikasi silang dengan source code</td></tr>
+  </table>
+  <h3>1.3 Akun Uji</h3>
+  <table>
+    <thead><tr><th>Peran</th><th>Username / NISN</th><th>Kata Sandi</th><th>Route Tujuan</th></tr></thead>
+    <tbody>
+      <tr><td>Admin</td><td class="mono">[akun uji — rahasia disimpan terpisah]</td><td class="mono">[DIHAPUS dari dokumen]</td><td class="mono">/admin/dashboard</td></tr>
+      <tr><td>Guru</td><td class="mono">[akun uji — rahasia disimpan terpisah]</td><td class="mono">[DIHAPUS dari dokumen]</td><td class="mono">/guru/dashboard</td></tr>
+      <tr><td>Siswa</td><td class="mono">[akun uji — rahasia disimpan terpisah]</td><td class="mono">[DIHAPUS dari dokumen]</td><td class="mono">/lms/dashboard</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted" style="margin-top:2mm">Pembaruan 22 Nov 2026: PIN Admin Studio client-side telah dihapus dari source terbaru; akses admin mengandalkan autentikasi akun dan pemeriksaan role server. Status bukti ada di hal. 22.</p>
+  <h3>1.4 Ketentuan Status</h3>
+  <p class="small">
+    <span class="chip ok">LULUS</span> perilaku sesuai harapan &nbsp;
+    <span class="chip fail">GAGAL</span> perilaku menyimpang / cacat &nbsp;
+    <span class="chip block">TERBLOKIR</span> tidak dapat dieksekusi akibat cacat lain &nbsp;
+    <span class="chip skip">TIDAK DIUJI</span> di luar eksekusi live (alasan dicatat)
+  </p>
+  <div class="note"><b>Etika pengujian:</b> operasi destruktif (hapus data, ganti sandi, ubah konten) tidak dieksekusi agar data demo bersama tetap utuh; kasus tersebut ditandai <i>Tidak Diuji</i>. Attempt hasil pengujian 21 Nov tercatat masih perlu dipulihkan pada saat laporan dibuat; keadaan data produksi saat audit 22 Nov tidak diverifikasi dan tidak diubah (lihat hal. 21–22).</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 2 / 22</span></div>
+</section>
+
+<!-- ================= HAL 3 · RINGKASAN ================= -->
+<section class="page">
+  <div class="kicker">Bagian 2</div>
+  <h2>Ringkasan Eksekutif</h2>
+  <div class="stats">
+    <div class="stat"><div class="n">105</div><div class="l">Total Kasus Uji</div></div>
+    <div class="stat ok"><div class="n">57</div><div class="l">Lulus termasuk terbatas</div></div>
+    <div class="stat fail"><div class="n">1</div><div class="l">Gagal historis</div></div>
+    <div class="stat block"><div class="n">0</div><div class="l">Terblokir</div></div>
+    <div class="stat skip"><div class="n">47</div><div class="l">Tidak diuji/ulang</div></div>
+  </div>
+  <div class="bar">
+    <div style="width:54.286%;background:#1a7f4b"></div>
+    <div style="width:0.952%;background:#c62828"></div>
+    <div style="width:44.762%;background:#c9ced6"></div>
+  </div>
+  <div class="legend">
+    <span><i style="background:#1a7f4b"></i>Lulus keseluruhan* 54,3%</span>
+    <span><i style="background:#c62828"></i>Gagal historis 1,0%</span>
+    <span><i style="background:#c9ced6"></i>Tidak diuji/ulang 44,8%</span>
+  </div>
+  <p style="margin-top:1mm"><b>Rekap historis 21 Nov 2026:</b> 64/65 kasus live lulus (98,5%); SI-17 gagal karena overlay cold-start (BUG-04). <b>Addendum 22 Nov:</b> source lokal memuat perbaikan watchdog dan menghapus gate PIN; regresi produksi belum diverifikasi penuh. 14 kasus ditambahkan (1 smoke check live terbatas, 13 belum diuji). Tanda * = pass terbatas, bukan end-to-end penuh. Angka 64/65 adalah hasil siklus 21 Nov; rekap 105 kasus di bawah memakai status tindak lanjut konservatif, sehingga sebagian hasil historis yang tidak diuji ulang tidak dihitung sebagai lulus terkini. Status unik: <b>56 lulus historis + 1 lulus terbatas, 1 gagal historis, 0 terblokir, 47 tidak diuji/diuji ulang</b> dari 105 skenario. Lihat hal. 22.</p>
+  <h3>2.1 Cakupan per Modul</h3>
+  <table>
+    <thead><tr><th>Modul</th><th>Kasus</th><th>Lulus</th><th>Gagal</th><th>Blokir</th><th>Tdk Diuji</th><th>Hasil Eksekusi</th></tr></thead>
+    <tbody>
+      <tr><td>Landing Page (LP)</td><td>16</td><td>9</td><td>0</td><td>0</td><td>7</td><td><span class="chip block">TAMBAHAN 2 KASUS BELUM DIUJI</span></td></tr>
+      <tr><td>Autentikasi &amp; Sesi (AU)</td><td>20</td><td>10*</td><td>0</td><td>0</td><td>10</td><td><span class="chip block">9 PASS + 1 TERBATAS; LOGOUT PERLU RETEST</span></td></tr>
+      <tr><td>Dashboard Admin (AD)</td><td>21</td><td>13</td><td>0</td><td>0</td><td>8</td><td><span class="chip block">3 KASUS PERLU RETEST</span></td></tr>
+      <tr><td>Dashboard Guru (GU)</td><td>18</td><td>12</td><td>0</td><td>0</td><td>6</td><td><span class="chip block">2 KASUS BARU BELUM DIUJI</span></td></tr>
+      <tr><td>Dashboard Siswa (SI)</td><td>21</td><td>12</td><td>1</td><td>0</td><td>8</td><td><span class="chip block">BUG-04 HISTORIS; 2 KASUS PERLU RETEST</span></td></tr>
+      <tr><td>Keamanan (SE)</td><td>9</td><td>1</td><td>0</td><td>0</td><td>8</td><td><span class="chip block">PIN FIX SOURCE; RETEST ROLE/API</span></td></tr>
+      <tr><td><b>Total</b></td><td><b>105</b></td><td><b>56 historis + 1 terbatas</b></td><td><b>1 historis</b></td><td><b>0</b></td><td><b>47</b></td><td><b>56 lulus historis + 1 pass terbatas</b>; 7 belum diuji ulang</td></tr>
+    </tbody>
+  </table>
+  <h3>2.2 Daftar Temuan</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Severity</th><th>Ringkasan</th><th>Kasus Terkait</th><th>Retest 21 Nov</th></tr></thead>
+    <tbody>
+      <tr><td class="id">BUG-01</td><td><span class="chip sev-c">CRITICAL</span></td><td>Runner CBT crash — <code>(opsi || []).map is not a function</code>; siswa tak dapat mengerjakan ujian</td><td class="mono">SI-12, SI-17 → SI-13…16</td><td><span class="chip ok">FIXED</span></td></tr>
+      <tr><td class="id">SEC-01</td><td><span class="chip sev-h">HIGH</span></td><td><i>Historis:</i> PIN default Admin Studio terekspos; gate client-side tidak memberi proteksi server.</td><td class="mono">SE-01, AD-02, AD-03</td><td><span class="chip block">STATUS 21 NOV; addendum hal. 22</span></td></tr>
+      <tr><td class="id">BUG-02</td><td><span class="chip sev-m">MEDIUM</span></td><td>API <code>/siswa/assignments</code> intermiten HTTP 500 (lalu 200)</td><td class="mono">SI-07 (observasi)</td><td><span class="chip block">TERBUKA</span></td></tr>
+      <tr><td class="id">BUG-03</td><td><span class="chip sev-m">MEDIUM</span></td><td>Roster presensi guru X DKV 1 kosong (0 siswa) padahal admin mencatat 5 siswa</td><td class="mono">GU-04</td><td><span class="chip ok">FIXED</span></td></tr>
+      <tr><td class="id">BUG-04</td><td><span class="chip sev-m">MEDIUM</span></td><td><i>Historis:</i> overlay watchdog menutupi aplikasi sehat setelah cold-start &gt;5 dtk</td><td class="mono">SI-17</td><td><span class="chip fail">STATUS 21 NOV; source diperbaiki, produksi belum retest</span></td></tr>
+      <tr><td class="id">OBS-01</td><td><span class="chip sev-l">LOW</span></td><td>Tabel admin sesaat menampilkan “0 data” sebelum fetch selesai</td><td class="mono">AD-07, AD-11</td><td><span class="chip block">TERBUKA</span></td></tr>
+      <tr><td class="id">OBS-02</td><td><span class="chip sev-l">INFO</span></td><td>Latensi login 5–9 dtk (cold-start Wasmer); indikator progres tak konsisten</td><td class="mono">AU-04, AU-05</td><td><span class="chip block">TERBUKA</span></td></tr>
+      <tr><td class="id">OBS-03</td><td><span class="chip sev-l">INFO</span></td><td>Warning deprecated Rive di console; tidak mengganggu fungsi</td><td class="mono">LP-01</td><td><span class="chip block">TERBUKA</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 3 / 22</span></div>
+</section>
+
+<!-- ================= HAL 4 · BUG-01 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 3 · Temuan Utama</div>
+  <h2>3.1 BUG-01 — Crash Runner Ujian CBT (Critical) <span class="chip ok">FIXED</span></h2>
+  <div class="bug crit">
+    <h3><span class="chip sev-c">CRITICAL</span> Siswa tidak dapat membuka lembar soal ujian <span class="chip ok">TERATASI</span></h3>
+    <table class="tbl-meta">
+      <tr><td>Modul</td><td>Dashboard Siswa → Ujian / CBT → ExamRunner</td></tr>
+      <tr><td>Kasus uji</td><td>SI-12 (Mulai Ujian), SI-17 (Lanjutkan Ujian); memblokir SI-13 – SI-16</td></tr>
+      <tr><td>Lokasi kode</td><td><code>src/components/siswa/ExamRunner.jsx:767</code> — <code>(current.opsi || []).map(...)</code></td></tr>
+      <tr><td>Reproducibility</td><td>2/2 percobaan (100%) pada ujian “Ujian Tengah Semester Pemrograman”</td></tr>
+    </table>
+    <h3>Langkah Reproduksi</h3>
+    <ol>
+      <li>Login memakai akun siswa uji resmi dari penyimpanan kredensial terpisah → tab <b>Ujian / CBT</b>.</li>
+      <li>Klik <b>Masukkan Kode</b> pada ujian UTS → gunakan kode valid yang dibagikan guru di sesi uji privat → <b>Buka Ujian</b>.</li>
+      <li>Pada layar intro aturan, klik <b>Mulai Ujian</b>.</li>
+      <li>Amati: halaman <b>kosong total</b> (<code>#root</code> kosong, body 31 byte); percobaan berikutnya memunculkan fallback “Aplikasi gagal dimuat”.</li>
+    </ol>
+    <h3>Bukti Runtime (ditangkap via error listener)</h3>
+    <div class="evidence">Uncaught TypeError: <span class="hl">(we.opsi || []).map is not a function</span><br>@ smkmapan.vercel.app/assets/index-l-eShG-1.js:352<br>GET /api/v1/siswa/attempts/[ID attempt disunting] → 200<br>questions[0].opsi = <span class="hl">objek opsi pilihan ganda (butir &amp; jawaban disunting)</span>  ← objek, bukan array</div>
+    <h3>Analisis Akar Masalah</h3>
+    <p>API mengembalikan field <code>opsi</code> tiap soal sebagai <b>objek kunci→teks</b> (<code>{A:…, B:…, C:…, D:…}</code>), sedangkan frontend memperlakukannya sebagai <b>array</b> dan memanggil <code>.map()</code>. Objek tidak memiliki metode <code>.map</code> → TypeError tak tertangkap → React 19 meng-unmount seluruh pohon komponen → layar putih. Tidak ada error boundary yang melindungi runner.</p>
+    <h3>Dampak</h3>
+    <ul>
+      <li><b>Alur inti CBT lumpuh total</b>: pengerjaan soal, penyimpanan jawaban, timer, submit, dan anti-curang tidak dapat digunakan siswa.</li>
+      <li>Attempt terlanjur dibuat (<code>POST …/attempts → 201</code>, status <code>berjalan</code>); siswa terjebak “SEDANG DIKERJAKAN” dan timer server terus berjalan.</li>
+      <li>Pemulihan hanya melalui refresh manual + “Lanjutkan Ujian” (yang crash lagi) atau <b>reset attempt oleh guru</b>.</li>
+    </ul>
+    <h3>Perbaikan &amp; Verifikasi Retest (commit <code>bd42159</code> / <code>a2f168f</code>)</h3>
+    <p class="small"><b>Backend:</b> <code>ExamService.php:88</code> → <code>Question::normalizeOpsi(...)</code> (string JSON / list / objek → array). <b>Frontend:</b> <code>src/lib/examOptions.js</code> pada jalur <code>setQuestions</code> (<code>ExamRunner.jsx:171–175</code>) + <code>ExamQuestionsModal.jsx:66,229</code>. <b>Error boundary:</b> <code>ExamErrorBoundary.jsx</code> membungkus runner (<code>DashboardSiswa.jsx:1457–1483</code>).</p>
+    <div class="evidence">Retest 21 Nov · "Mulai Ujian" → lembar soal <span class="hl">TAMPIL</span> (dulu #root kosong)<br>SOAL 1 · opsi <span class="hl">A Polymorphism / B Encapsulation / C Inheritance / D Overloading</span><br>Timer 59:48 → 59:24 · pilih B → <span class="hl">"Menyimpan..." → "Tersimpan"</span> · 1/5 terjawab<br>POST …/attempts → <span class="hl">201</span> · PUT …/answers/{qid} → <span class="hl">200</span> · console error: <span class="hl">0</span></div>
+    <p class="small">SI-12/13/15 <span class="chip ok">LULUS</span> · SI-14 timer terverifikasi · SI-16 tidak dieksekusi · SI-17 → BUG-04.</p>
+  </div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 4 / 22</span></div>
+</section>
+
+<!-- ================= HAL 5 · TEMUAN LAIN ================= -->
+<section class="page">
+  <div class="kicker">Bagian 3 · Temuan Lanjutan</div>
+  <h2>3.2 Temuan Keamanan &amp; Cacat Lainnya</h2>
+  <div class="bug">
+    <h3><span class="chip sev-h">HIGH</span> SEC-01 (historis) — PIN Default Admin Studio Terekspos di UI <span class="chip block">HISTORIS</span></h3>
+    <p><b>Temuan historis 21 Nov:</b> UI sebelumnya membocorkan PIN, validasi dan throttle dilakukan di sisi klien, sehingga bukan faktor autentikasi yang aman. Commit <code>0abebe7</code> kemudian menghapus gate tersebut; source Admin Studio saat ini tidak lagi memakai PIN sebagai lapisan akses. Ini bukan bukti otorisasi API telah diuji live ulang.</p>
+    <div class="evidence">Riwayat: PIN &amp; nilai rahasia <span class="hl">DIHAPUS/REDACTED</span> dari salinan laporan ini<br>Source terkini: tidak ada gate Admin Studio berbasis PIN/sessionStorage<br>Kontrol yang dinyatakan: token akun + pemeriksaan role admin; perlu uji endpoint berizin</div>
+    <p><b>Status:</b> eksposur UI lama ditutup pada source. SEC-01 historis tidak lagi berlaku pada source terbaru, tetapi verifikasi role server, pencabutan token, dan akses API masih belum diuji live (AU-17/19/20, AD-21, SE-09).</p>
+  </div>
+  <div class="bug">
+    <h3><span class="chip sev-m">MEDIUM</span> BUG-02 — HTTP 500 Intermiten pada API Tugas Siswa <span class="chip block">TERBUKA</span></h3>
+    <p>Saat memuat dashboard siswa, console mencatat dua kegagalan <code>GET /api/v1/siswa/assignments?per_page=100&amp;page=1 → 500</code>. Permintaan ulang manual beberapa menit kemudian mengembalikan <code>200</code> dengan data valid. Indikasi ketidakstabilan backend (cold-start/timeout Wasmer Edge).</p>
+    <p><b>Dampak:</b> daftar tugas siswa dapat gagal tampil sesaat. <b>Retest 21 Nov:</b> kedua pemuatan <code>200</code> — tidak tereproduksi. Sejak commit <code>0abebe7</code>, client API terbaru menerapkan timeout 20 dtk dan retry GET terbatas (0,5/1,5 dtk) untuk network/429/5xx; perubahan tersedia di source lokal tetapi perilaku produksi belum diverifikasi ulang. Tetap perlu memastikan komponen menampilkan error/retry yang dapat dipahami, bukan hanya empty-state.</p>
+  </div>
+  <div class="bug">
+    <h3><span class="chip sev-m">MEDIUM</span> BUG-03 — Roster Presensi Guru Tidak Konsisten dengan Data Admin <span class="chip ok">FIXED</span></h3>
+    <p>Tab Presensi guru untuk <b>X DKV 1</b> menampilkan <i>“0 siswa — Belum ada siswa di kelas ini. Hubungi admin untuk mendaftarkan siswa ke X DKV 1.”</i>, padahal menu <b>Kelas</b> admin mencatat <b>5 siswa</b> (Siswa 2, 4, 6, 8, 10) dan Data Siswa 10 siswa aktif. Guru tidak dapat mempresensi kelas itu.</p>
+    <p><b>Perbaikan:</b> endpoint baru <code>GET /guru/classes/{schoolClass}/students</code> (<code>routes/api.php:135</code> → <code>DashboardController::teacherClassStudents</code>, guard 403 bila kelas tidak diampu); <code>DashboardGuru.jsx:281–293</code> mengambil roster resmi per kelas ampu. <b>Retest 21 Nov:</b> Presensi X DKV 1 → <b>5 siswa</b> (Siswa 10, 2, 4, 6, 8); X TKJ 1 → <b>5 siswa</b>; Rekap Nilai X DKV 1 <b>5</b> (dulu 0), X TKJ 1 <b>5</b> (dulu 1) → GU-04 <span class="chip ok">LULUS</span>.</p>
+  </div>
+  <div class="bug">
+    <h3><span class="chip sev-l">LOW / INFO</span> OBS-01 · OBS-02 · OBS-03 — Observasi Minor <span class="chip block">MASIH TERBUKA</span></h3>
+    <ul>
+      <li><b>OBS-01:</b> <b>retest mengonfirmasi</b> — pada t=60ms &amp; 200ms header “(0 data)” + “0 dari 0 siswa” tampil bersama skeleton; terisi “(10 data)” di t≈700ms. Skeleton hanya mengganti badan tabel, bukan hitungan header.</li>
+      <li><b>OBS-02:</b> <b>Retest:</b> login admin 5,5 dtk redirect + 7,1 dtk render; login siswa &gt;11 dtk. Cold-start ini juga pemicu BUG-04.</li>
+      <li><b>OBS-03:</b> kedua warning deprecated Rive masih muncul di console build <code>index-BSD_wKoR.js:350</code>; kosmetik.</li>
+    </ul>
+  </div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 5 / 22</span></div>
+</section>
+
+<!-- ================= HAL 6 · LP 1-7 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.1 Landing Page <span class="muted" style="font-weight:400;font-size:9pt">(/)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">LP-01</td><td>Memuat halaman utama<span class="steps">1. Buka https://smkmapan.vercel.app 2. Amati judul tab, konten, console.</span></td><td>Halaman termuat penuh; judul sesuai identitas sekolah; tanpa error fatal.</td><td>Title “SMK Muhammadiyah 8 Medan | SMK Pusat Keunggulan &amp; Mapan Learning Ecosystem”; seluruh section render; hanya warning Rive (OBS-03).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-02</td><td>Kelengkapan navbar<span class="steps">1. Amati menu atas 2. Cocokkan dengan section halaman.</span></td><td>Menu Beranda, Profil, Program, Sekolah, Kontak + tombol tema, PPDB, dan login tersedia.</td><td>Semua menu hadir; tombol “Toggle theme”, “PPDB”, dan navigasi login tersedia; navbar fixed saat scroll.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-03</td><td>Navigasi anchor ke section<span class="steps">1. Klik menu Profil 2. Amati posisi scroll.</span></td><td>Halaman menggulir ke section #profil tepat di bawah navbar.</td><td>Tidak dieksekusi live; struktur anchor (#beranda…#kontak) terverifikasi di DOM &amp; kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">LP-04</td><td>Dropdown menu bersarang<span class="steps">1. Inspeksi submenu Profil, Program, Sekolah.</span></td><td>Profil: Sejarah/Visi-Misi/Kepsek/Identitas; Program: 4 jurusan; Sekolah: Eskul/Galeri/Fasilitas/Tenaga Pendidik.</td><td>Seluruh submenu hadir dengan href anchor yang benar (Sejarah, Visi &amp; Misi, Kepala Sekolah, Identitas; AKL, DKV, TSM, TKJ; dll.).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-05</td><td>Hero &amp; CTA utama<span class="steps">1. Amati headline dan tombol hero.</span></td><td>Headline sekolah + CTA “Daftar PPDB 2026” dan “Tonton Video Profil” tampil.</td><td>H1 “Tempat Tumbuhnya Generasi Hebat Masa Depan”; kedua CTA hadir; tombol “Scroll untuk Jelajahi” tersedia.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-06</td><td>Membuka modal PPDB<span class="steps">1. Klik tombol PPDB di navbar 2. Amati modal.</span></td><td>Modal pra-pendaftaran terbuka dengan judul dan pilihan jurusan.</td><td>Modal terbuka; judul “PRA PENDAFTARAN”; konten biaya (Pendaftaran, SPP/bulan) tampil.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-07</td><td>Kartu jurusan pada modal PPDB<span class="steps">1. Hitung kartu jurusan di modal.</span></td><td>4 jurusan aktif tampil sesuai data sekolah.</td><td>4 kartu: Akuntansi &amp; Keuangan Lembaga, DKV, Teknik Sepeda Motor, TKJ — konsisten dengan data admin (4 jurusan).</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 6 / 22</span></div>
+</section>
+
+<!-- ================= HAL 7 · LP 8-14 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.1 Landing Page <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">LP-08</td><td>Tautan pendaftaran WhatsApp<span class="steps">1. Inspeksi href tombol “Daftar Sekarang” tiap kartu jurusan.</span></td><td>Link wa.me ke hotline sekolah dengan pesan pra-pendaftaran terisi sesuai jurusan.</td><td>4 link menuju <code>wa.me/6282165415890</code> dengan teks pesan ter-encode; format nomor bersih (hanya digit).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-09</td><td>Menutup modal PPDB<span class="steps">1. Klik tombol tutup (aria “Tutup Modal”) 2. Amati halaman.</span></td><td>Modal tertutup; halaman kembali normal tanpa reload.</td><td>Tidak dieksekusi live (berpindah halaman via URL); tombol tutup dengan aria-label tersedia di DOM.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">LP-10</td><td>Toggle tema terang/gelap<span class="steps">1. Klik “Toggle theme” 2. Amati perubahan warna &amp; persistensi.</span></td><td>Tema berganti dan tersimpan (localStorage smk-mapan-theme).</td><td>Tidak dieksekusi live; kunci tema &amp; komponen AnimatedThemeToggler terverifikasi di kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">LP-11</td><td>Modal video profil<span class="steps">1. Klik “Tonton Video Profil” 2. Putar video.</span></td><td>VideoProfileModal terbuka dan video dapat diputar.</td><td>Tidak dieksekusi live (pemutaran media tidak diuji pada sesi ini).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">LP-12</td><td>Section Tenaga Pendidik<span class="steps">1. Gulir ke #tenaga-pendidik 2. Amati kartu guru.</span></td><td>Direktori guru tampil dengan nama &amp; jabatan.</td><td>Kartu guru tampil (Ade Arihta Akbar, S.S — Guru Bahasa Arab; Afifah Septiarini, S.Pd; Ahmad Antoni, A.Md — Wakasek Kesiswaan; dst.).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-13</td><td>Kontak &amp; footer<span class="steps">1. Amati section #kontak dan footer.</span></td><td>Email, telepon, dan media sosial sekolah tampil benar.</td><td>smkmd08medan@gmail.com, (061) 8229601, tautan Instagram hadir; konsisten dengan Identitas Sekolah di admin.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">LP-14</td><td>Route tak dikenal<span class="steps">1. Buka URL acak, mis. /xyz123.</span></td><td>Redirect ke beranda (catch-all Navigate to “/”).</td><td>Tidak dieksekusi live; aturan <code>path="*" → Navigate "/"</code> terverifikasi di App.jsx:105.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Kesimpulan modul:</b> landing page berfungsi baik untuk seluruh interaksi yang dieksekusi (9/9 lulus). Sisa kasus bersifat navigasi minor/media dan direkomendasikan untuk putaran uji berikutnya.</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 7 / 22</span></div>
+</section>
+
+<!-- ================= HAL 8 · AU 1-8 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.2 Autentikasi &amp; Login <span class="muted" style="font-weight:400;font-size:9pt">(/login · /admin/login)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">AU-01</td><td>Tampilan halaman login portal<span class="steps">1. Buka /login 2. Amati field &amp; elemen.</span></td><td>Field “NISN / Username” dan “Kata Sandi”, tombol Masuk, link Beranda, maskot, panel brand.</td><td>Semua elemen hadir; label sesuai; placeholder “Masukkan NISN atau username” / “Masukkan kata sandi”; maskot Teddy &amp; LightTunnel render.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-02</td><td>Submit form kosong<span class="steps">1. Biarkan kedua field kosong 2. Klik Masuk.</span></td><td>Validasi menolak; pesan “Username dan kata sandi wajib diisi.”</td><td>Persis sesuai: error alert “Username dan kata sandi wajib diisi.”; tidak ada request login terkirim.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-03</td><td>Kredensial salah<span class="steps">1. Isi “siswapalsu / salah123” 2. Klik Masuk.</span></td><td>Login ditolak dengan pesan kesalahan; tetap di /login.</td><td>Error “Identifier atau kata sandi salah.”; URL tetap /login; sesi tidak terbentuk.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-04</td><td>Login siswa valid (NISN)<span class="steps">1. Isi NISN &amp; sandi akun uji resmi 2. Klik Masuk.</span></td><td>Redirect ke /lms/dashboard; profil siswa benar.</td><td>Login uji sebelumnya berhasil menuju /lms/dashboard; profil/kelas cocok. Identitas siswa/NISN disunting; latensi historis ±6–9 dtk (OBS-02).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-05</td><td>Login guru valid (username)<span class="steps">1. Isi username &amp; sandi akun uji resmi 2. Klik Masuk.</span></td><td>Redirect ke /guru/dashboard; profil guru benar.</td><td>Berhasil → /guru/dashboard; “Guru Demo FigCraft”, 2 kelas diampu. Identifier non-numerik dipetakan ke email internal.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-06</td><td>Login admin valid<span class="steps">1. Buka /admin/login 2. Isi username &amp; sandi akun uji resmi 3. Submit.</span></td><td>Redirect ke /admin/dashboard setelah verifikasi server.</td><td>Berhasil → /admin/dashboard; field khusus “Username”/“Kata Sandi” (id admin-username/admin-password).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-07</td><td>Toggle lihat kata sandi<span class="steps">1. Klik ikon mata pada field sandi.</span></td><td>Tipe input berganti password↔text; aria-label berubah.</td><td>Tidak dieksekusi live; tombol toggle + aria “Tampilkan/Sembunyikan kata sandi” terverifikasi di kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-08</td><td>Akses dashboard siswa tanpa sesi<span class="steps">1. Setelah logout, buka /lms/dashboard langsung.</span></td><td>RequireRole menolak; redirect ke /login.</td><td>Persis sesuai: URL berpindah ke /login; konten dashboard tidak sempat tampil.</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 8 / 22</span></div>
+</section>
+
+<!-- ================= HAL 9 · AU 9-15 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.2 Autentikasi &amp; Login <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">AU-09</td><td>Akses dashboard admin tanpa sesi<span class="steps">1. Buka /admin/dashboard tanpa login.</span></td><td>Redirect ke /admin/login.</td><td>Tidak dieksekusi live; RequireRole role="admin" redirectTo="/admin/login" terverifikasi (App.jsx:45).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-10</td><td>Lintas peran (siswa membuka dashboard guru)<span class="steps">1. Login siswa 2. Buka /guru/dashboard.</span></td><td>Ditolak; redirect ke /login (role tidak cocok).</td><td>Tidak dieksekusi live; guard role terverifikasi di RequireRole &amp; DashboardGuru.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-11</td><td>Logout siswa<span class="steps">1. Klik Keluar 2. Konfirmasi “Keluar Sekarang”.</span></td><td>Dialog “Keluar dari Akun Siswa?”; sesi diakhiri; kembali ke /login.</td><td>Dialog muncul dengan tombol “Tetap di Sini”/“Keluar Sekarang”; setelah konfirmasi → /login; token dibersihkan.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-12</td><td>Logout guru<span class="steps">1. Klik Keluar 2. Konfirmasi.</span></td><td>Dialog “Keluar dari Portal Guru?”; sesi diakhiri.</td><td>Dialog &amp; konfirmasi berfungsi; sesi guru berakhir (login berikutnya meminta kredensial ulang).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AU-13</td><td>Logout admin<span class="steps">1. Klik keluar 2. Konfirmasi dan periksa route.</span></td><td>Sesi server dicabut, state lokal dibersihkan; kembali ke /admin/login.</td><td>Retest historis 21 Nov mencatat logout admin. Source terbaru mengirim request logout ke API; pencabutan server dan kegagalan jaringan belum diverifikasi ulang.</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+      <tr><td class="id">AU-14</td><td>Redirect route legacy<span class="steps">1. Buka /login/guru, /elearning, /lms/login, /admin.</span></td><td>Semua redirect ke /login (atau /admin/login untuk /admin).</td><td>Tidak dieksekusi live; 6 aturan Navigate terverifikasi di App.jsx:37–67.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-15</td><td>Resume sesi otomatis<span class="steps">1. Dengan sesi aktif, buka /login.</span></td><td>ensureSession memvalidasi; redirect otomatis ke dashboard peran tanpa ketik ulang.</td><td>Tidak dieksekusi terisolasi; mekanisme terverifikasi di kode (LoginPortal useEffect + SessionResume). Selama uji, perpindahan halaman dengan sesi aktif konsisten masuk dashboard.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Kesimpulan modul:</b> 10/10 kasus yang dieksekusi lulus. Validasi form, pesan kesalahan, routing peran, dan logout tiga peran bekerja sesuai spesifikasi. Uji lintas peran &amp; sesi multi-perangkat disarankan pada putaran berikutnya (lihat SE-03/04).</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 9 / 22</span></div>
+</section>
+
+<!-- ================= HAL 10 · AD 1-7 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.3 Dashboard Admin <span class="muted" style="font-weight:400;font-size:9pt">(/admin/dashboard · Admin Studio CMS)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">AD-01</td><td>Proteksi dashboard admin<span class="steps">1. Login sebagai admin uji 2. Amati route dan otorisasi sebelum CMS dimuat.</span></td><td>Hanya sesi valid ber-role admin dapat membuka dashboard/CMS; tidak mengandalkan gate PIN di browser.</td><td>Historis 21 Nov: ada gerbang PIN client-side (cacat SEC-01). Source terbaru menghapus gate dan menggunakan RequireRole; uji runtime role/API belum dilakukan ulang.</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+      <tr><td class="id">AD-02</td><td>Validasi role non-admin<span class="steps">1. Dengan sesi guru/siswa uji, buka route admin secara langsung.</span></td><td>Akses admin ditolak oleh guard/server tanpa merender data CMS.</td><td>Kasus lama menguji gate PIN client-side (nilai rahasia dihapus dari laporan). Source gate sudah dihapus; matriks role runtime perlu diuji di staging (AD-21).</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+      <tr><td class="id">AD-03</td><td>Akses CMS dengan sesi admin valid<span class="steps">1. Login lewat autentikasi akun resmi 2. Buka Admin Studio.</span></td><td>Role admin terverifikasi server; CMS terbuka tanpa flag PIN client-side.</td><td>Source terbaru telah menghapus flag PIN dan mempertahankan route admin; alur CMS produksi belum diuji ulang setelah perubahan.</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+      <tr><td class="id">AD-04</td><td>Ringkasan &amp; statistik sekolah<span class="steps">1. Buka menu Ringkasan 2. Cocokkan angka dengan data riil.</span></td><td>Kartu jurusan/guru/siswa/fasilitas sesuai database.</td><td>4 Jurusan, 25 Pengajar, 10 Siswa, 7 Fasilitas — konsisten dengan Data Siswa (10), Kelas (2×5), dan menu CMS (Fasilitas 7, Eskul 4, Guru 25).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-05</td><td>Identitas sekolah<span class="steps">1. Amati kartu Identitas Sekolah.</span></td><td>Nama, singkatan, NPSN, akreditasi, hotline, email benar.</td><td>SMK Muhammadiyah 8 Medan / SMK MAPAN / NPSN 10211244 / A (Unggul) BAN-SM / 0813-7080-6663 / smkmd08medan@gmail.com; tombol “Ubah” tersedia.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-06</td><td>Analitik kunjungan &amp; login<span class="steps">1. Amati Statistik &amp; Aktivitas 2. Amati grafik.</span></td><td>Page views, total login, rata-rata harian, grafik kunjungan &amp; login per peran tampil.</td><td>97 page views / 94 login / 3 rata-rata per hari (30 hari); grafik kunjungan harian 18/10–16/11 dan frekuensi login per peran (Guru/Siswa/Admin) render.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-07</td><td>Tabel Data Siswa<span class="steps">1. Buka menu Data Siswa 2. Amati kolom &amp; isi. (Data identitas dalam laporan disamarkan.)</span></td><td>10 siswa; kolom NISN, Nama, Kelas, No. HP, Akun LMS, Aksi (Edit/Reset Sandi).</td><td>10 dari 10 siswa tampil pada uji historis; contoh identitas dan nomor NISN disunting. Filter kelas &amp; tombol Tambah Siswa/Refresh ada. Sempat “0 data” sesaat → OBS-01.</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 10 / 22</span></div>
+</section>
+
+<!-- ================= HAL 11 · AD 8-14 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.3 Dashboard Admin <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">AD-08</td><td>Filter kelas Data Siswa<span class="steps">1. Pilih filter X TKJ 1 2. Amati tabel.</span></td><td>Hanya siswa kelas terpilih (5 siswa).</td><td>Tidak dieksekusi live; opsi filter “Semua kelas / X DKV 1 / X TKJ 1” tersedia di UI.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AD-09</td><td>Tambah siswa baru<span class="steps">1. Klik Tambah Siswa 2. Isi form 3. Simpan.</span></td><td>Siswa &amp; akun LMS terbuat; tabel bertambah.</td><td>Tidak dieksekusi (menghindari perubahan data demo bersama). Form &amp; alur terverifikasi di AdminSiswaManager + studentImport (impor XLSX).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AD-10</td><td>Edit / reset sandi siswa<span class="steps">1. Klik Edit atau Reset Sandi pada baris siswa.</span></td><td>Perubahan tersimpan; sandi ter-reset sesuai konfirmasi.</td><td>Tidak dieksekusi (operasi sensitif pada akun demo). Tombol aksi hadir di setiap baris.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AD-11</td><td>Tabel Data Guru<span class="steps">1. Buka menu Data Guru.</span></td><td>Direktori guru/staf + akun portal; aksi Edit/Reset Sandi.</td><td>Panel “Data Guru &amp; Akun Login” termuat (25 pengajar sesuai ringkasan); struktur sama dengan Data Siswa. Flash “0 data” sesaat → OBS-01.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-12</td><td>Data Kelas &amp; rombel<span class="steps">1. Buka menu Kelas 2. Amati isi.</span></td><td>Daftar kelas dengan tingkat, tahun ajaran, jurusan, jumlah siswa, wali kelas.</td><td>2 kelas: X DKV 1 &amp; X TKJ 1 (X • 2026/2027), masing-masing 5 siswa; “Wali kelas belum diatur”; tombol Edit &amp; Tambah Kelas; klik kelas membuka isinya.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-13</td><td>Jadwal Roster Kelas<span class="steps">1. Buka menu Jadwal 2. Amati tabel &amp; filter.</span></td><td>Baris jadwal hari/jam/kelas/mapel/guru; filter kelas &amp; hari.</td><td>2 baris: Senin 07:30–09:00 X TKJ 1 PBO (Guru Demo FigCraft, S.Pd.); Selasa 07:30–09:00 X DKV 1 DKV. Filter Semua Kelas &amp; Senin–Sabtu tersedia; Tambah Jadwal/Edit ada.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-14</td><td>Mata Pelajaran<span class="steps">1. Buka menu Mapel.</span></td><td>Daftar mapel dengan kode, nama, jurusan; tambah/edit.</td><td>2 mapel: DKV — Dasar Desain Komunikasi Visual (DKV); PBO — Pemrograman Berorientasi Objek (TKJ). Tombol Tambah Mapel &amp; Edit hadir.</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 11 / 22</span></div>
+</section>
+
+<!-- ================= HAL 12 · AD 15-20 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.3 Dashboard Admin <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">AD-15</td><td>Rekap Presensi siswa<span class="steps">1. Buka menu Presensi 2. Amati rekap &amp; filter rentang tanggal.</span></td><td>Rekap per kelas (H/T/I/S/A, total, % kehadiran); filter kelas &amp; tanggal; ekspor CSV.</td><td>1 catatan: X TKJ 1 — T=1, total 1, kehadiran 100% (presensi uji siswa pukul 23.46). Filter kelas/dari/sampai &amp; tombol Ekspor CSV tersedia. Konsisten lintas peran.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-16</td><td>Pengaturan fitur Ujian (CBT)<span class="steps">1. Buka menu Ujian 2. Amati sakelar global.</span></td><td>Sakelar fitur CBT aktif/nonaktif; penjelasan dampak ke menu guru &amp; siswa.</td><td>Status “Aktif — menu Ujian tampil di dashboard guru &amp; siswa”; penjelasan pengelolaan per ujian oleh guru &amp; efek sakelar tampil lengkap. Sakelar tidak diubah (menjaga state demo).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-17</td><td>Kelola Akun — tabel &amp; paginasi<span class="steps">1. Buka Kelola Akun 2. Amati tabel &amp; kontrol halaman.</span></td><td>Semua akun (admin/guru/siswa) dengan email, nama, role, login terakhir; paginasi.</td><td>12 akun; “Menampilkan 1–10 dari 12 · Halaman 1 dari 2”; pilihan 5/10/20/50 per hal; login terakhir tercatat (waktu/identitas akun disunting).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-18</td><td>Filter role &amp; ganti role akun<span class="steps">1. Pilih filter role 2. Ubah role via dropdown baris.</span></td><td>Tabel terfilter; perubahan role tersimpan dengan konfirmasi.</td><td>Tidak dieksekusi (menghindari perubahan akun demo). Filter admin/guru/siswa &amp; dropdown role per baris + Reset Sandi + Buat Akun tersedia.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AD-19</td><td>Menu CMS konten landing<span class="steps">1. Amati grup menu konten 2. Buka salah satu editor.</span></td><td>Editor Profil, Hero, Tampilan, Teks Section, Jurusan, Fasilitas, Eskul, Guru, Galeri tersedia.</td><td>Seluruh menu hadir dengan counter (Fasilitas 7, Eskul 4, Guru 25); form tambah jurusan/eskul/fasilitas/galeri terverifikasi di kode. Penyuntingan konten tidak dieksekusi (menjaga tampilan situs publik).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">AD-20</td><td>Pesan masuk (kontak)<span class="steps">1. Amati kartu Pesan Masuk Terbaru / menu Pesan.</span></td><td>Daftar pesan atau empty-state yang informatif.</td><td>Empty-state “Belum ada pesan masuk.” tampil rapi; tombol “Lihat Semua” &amp; pencarian pesan tersedia (aria “Cari pesan masuk”).</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Kesimpulan modul:</b> 16/16 kasus yang dieksekusi lulus. Administrasi data, analitik, dan CMS berfungsi baik; operasi tulis sengaja tidak dieksekusi demi integritas data demo.</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 12 / 22</span></div>
+</section>
+
+<!-- ================= HAL 13 · GU 1-8 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.4 Dashboard Guru <span class="muted" style="font-weight:400;font-size:9pt">(/guru/dashboard)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">GU-01</td><td>Dashboard &amp; kartu statistik<span class="steps">1. Login akun guru uji resmi 2. Amati ringkasan.</span></td><td>Sapaan guru; statistik kelas diampu, mapel, materi aktif, menunggu dinilai.</td><td>“Guru Demo FigCraft”; 2 Kelas Diampu, 2 Mata Pelajaran, 3 Materi Aktif (2 terpublikasi), 0 Menunggu Dinilai (“Semua Dinilai”); 2 sesi mengajar.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-02</td><td>Tab Kelas &amp; Jadwal<span class="steps">1. Amati daftar kelas ampu.</span></td><td>Kelas dengan jadwal, jumlah materi/tugas/sesi.</td><td>X DKV 1 (1 sesi, 1 materi, 1 tugas, Selasa 07:30–09:00 DKV) &amp; X TKJ 1 (1 sesi, 2 materi, 1 tugas, Senin 07:30–09:00 PBO) — sesuai Jadwal admin.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-03</td><td>Tab Presensi — tampilan<span class="steps">1. Buka tab Presensi 2. Amati kontrol.</span></td><td>Pemilih kelas &amp; tanggal, statistik H/T/I/S/A/Belum, tombol Tandai Semua Hadir.</td><td>Semua kontrol hadir; tanggal default “Senin, 16 November 2026”; ringkasan 6 status tampil.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-04</td><td>Roster presensi X DKV 1<span class="steps">1. Pilih kelas X DKV 1 pada Presensi 2. Bandingkan dengan data admin.</span></td><td>5 siswa X DKV 1 tampil untuk dipresensi (konsisten dengan menu Kelas admin).</td><td><b>Retest 21 Nov:</b> <b>5 siswa</b> tampil (Siswa 10, 2, 4, 6, 8); X TKJ 1 juga 5 siswa. Konsisten dengan admin → <b>BUG-03 FIXED</b>. <i>16–17 Nov: 0 siswa, “Belum ada siswa di kelas ini…”.</i></td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-05</td><td>Peringatan ketidakcocokan hari<span class="steps">1. Pilih tanggal Senin untuk jadwal kelas Selasa.</span></td><td>Peringatan informatif; presensi tetap dapat disimpan.</td><td>“Jadwal ini hari selasa, sedangkan tanggal yang dipilih jatuh pada hari senin. Presensi tetap bisa disimpan.” — sesuai.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-06</td><td>Tandai Semua Hadir<span class="steps">1. Klik Tandai Semua Hadir 2. Simpan.</span></td><td>Seluruh siswa berstatus Hadir; rekap tersimpan.</td><td>Tidak dieksekusi (menulis data presensi massal pada demo; roster X DKV 1 juga kosong — BUG-03).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">GU-07</td><td>Tab Materi — daftar &amp; filter<span class="steps">1. Buka tab Materi 2. Amati filter status/mapel.</span></td><td>Daftar materi dengan tipe, status draft/publik, kelas; filter Semua/Terpublikasi/Draft &amp; mapel.</td><td>3 materi: “Rencana Modul Ajar Semester Genap” (Teks, DRAFT, X TKJ 1); “Modul Dasar DKV” (Tautan, PUBLIK, X DKV 1); “Pengenalan PBO” (Teks, PUBLIK, X TKJ 1). Filter lengkap; “Buka materi” ada.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-08</td><td>Tambah materi baru<span class="steps">1. Klik Tambah Materi 2. Pilih tipe Video/PDF/Tautan/Teks 3. Simpan.</span></td><td>Materi tersimpan; PDF maks 25 MB; status draft/publik sesuai pilihan.</td><td>Tidak dieksekusi (operasi tulis). Form 4 tipe &amp; batas unggah PDF 25 MB terverifikasi di kode (DashboardGuru.jsx:1787–1836).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 13 / 22</span></div>
+</section>
+
+<!-- ================= HAL 14 · GU 9-16 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.4 Dashboard Guru <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">GU-09</td><td>Tab Tugas &amp; Penilaian<span class="steps">1. Buka tab Tugas 2. Amati daftar &amp; counter.</span></td><td>Tugas dengan mapel/kelas, tenggat, status, counter kumpul/dinilai/menunggu.</td><td>2 tugas: “Sketsa Logo Jurusan DKV” (DRAFT, 30 Nov 23.59) &amp; “Latihan Algoritma Dasar” (PUBLIK, 23 Nov 23.59); counter 0/0/0; filter status &amp; mapel; “Buat Tugas” ada.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-10</td><td>Buat tugas / menilai submission<span class="steps">1. Buat tugas baru atau buka penilaian submission.</span></td><td>Tugas tersimpan; GradeModal menyimpan nilai &amp; umpan balik.</td><td>Tidak dieksekusi (operasi tulis pada demo). Komponen GradeModal &amp; AssignmentSubmissionsModal terverifikasi di kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">GU-11</td><td>Tab Ujian — daftar ujian<span class="steps">1. Buka tab Ujian / CBT.</span></td><td>Ujian milik guru dengan status sesi, durasi, jumlah soal, kode, acak soal.</td><td>Satu ujian uji berstatus SESI BERLANGSUNG, durasi/jumlah soal dan tombol Kelola Soal / Kode Akses / Pengerjaan / Buat Ujian tampil. Tanggal, judul, dan kode akses disunting.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-12</td><td>Modal Kode Akses<span class="steps">1. Klik “Kode akses” 2. Amati isi modal.</span></td><td>Kode saat ini, tombol Salin &amp; Ganti Kode, sakelar wajibkan kode.</td><td>Modal “Kode Akses Ujian”: kode aktif (disunting), Salin, Ganti Kode, toggle “Wajibkan kode untuk memulai”; penjelasan keamanan kode tampil. Kode tidak diganti.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-13</td><td>Modal Pengerjaan siswa<span class="steps">1. Dengan attempt fixture yang disetujui, klik Pengerjaan.</span></td><td>Tabel per siswa: status, nilai, waktu mulai/kumpul; filter kelas/mapel/ujian/status.</td><td>“Pengerjaan (1)”: seorang siswa uji / kelas X TKJ 1 / Sedang dikerjakan; waktu dan identitas disunting. Filter lengkap + ekspor CSV/Excel/PDF + Reset per siswa.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-14</td><td>Reset pengerjaan siswa<span class="steps">1. Klik Reset pada attempt Siswa 1 2. Konfirmasi “Reset Ujian Siswa”.</span></td><td>Konfirmasi jelas; attempt &amp; jawaban terhapus; siswa dapat mengulang; counter turun.</td><td>16–17 Nov: dialog “Reset Pengerjaan Siswa?” dengan penjelasan lengkap; setelah konfirmasi → “Pengerjaan (0)”; daftar ujian siswa kembali BELUM DIKERJAKAN. Data demo pulih.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-15</td><td>Rekap Nilai CBT per kelas<span class="steps">1. Buka tab Rekap Nilai 2. Amati kartu kelas &amp; kontrol.</span></td><td>Rekap per kelas (siswa, ujian, rata-rata), KKM, urutan, filter, ekspor.</td><td>X DKV 1 (0 siswa, 0 ujian) &amp; X TKJ 1 (1 siswa, 1 ujian); kontrol KKM, Urut Nama A-Z / Nilai tertinggi, sembunyikan ujian kosong, Reset filter; ekspor CSV/Excel/PDF. <b>Retest 21 Nov:</b> X DKV 1 <b>5 siswa</b> (0 ujian) &amp; X TKJ 1 <b>5 siswa</b> (1 ujian) — konsisten dengan roster presensi pasca-perbaikan BUG-03.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">GU-16</td><td>Buat ujian &amp; kelola soal<span class="steps">1. Klik Buat Ujian 2. Tambah soal via Kelola soal / impor.</span></td><td>Ujian baru tersimpan; soal PG terkelola; impor template didukung.</td><td>Tidak dieksekusi (operasi tulis). ExamQuestionsModal, ExamCodeModal, questionImport/questionTemplateData terverifikasi di kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 14 / 22</span></div>
+</section>
+
+<!-- ================= HAL 15 · SI 1-6 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.5 Dashboard Siswa <span class="muted" style="font-weight:400;font-size:9pt">(/lms/dashboard · LMS MAPAN)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">SI-01</td><td>Dashboard &amp; statistik siswa<span class="steps">1. Login akun siswa uji resmi 2. Amati ringkasan.</span></td><td>Sapaan, kelas, NISN; kartu mapel/tugas/ujian/materi sesuai data.</td><td>Dashboard uji menampilkan sapaan/profil, kelas dan kartu ringkasan sesuai akun. Identitas dan NISN disunting dari salinan laporan.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-02</td><td>Tab Mata Pelajaran<span class="steps">1. Buka tab Mata Pelajaran 2. Pilih mapel.</span></td><td>Daftar mapel kelas; detail materi/tugas/ujian per mapel.</td><td>Tidak dieksekusi live; tab &amp; alur selectedSubject terverifikasi di kode (DashboardSiswa.jsx:731).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SI-03</td><td>Jadwal hari ini<span class="steps">1. Amati kartu “Jadwal Hari Ini”.</span></td><td>Jadwal sesuai hari berjalan dan roster admin.</td><td>“Jadwal Hari Ini (Senin)” menampilkan sesi PBO 07:30–09:00 — cocok dengan Jadwal Roster admin (Senin X TKJ 1 PBO).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-04</td><td>Tab Presensi — tampilan awal<span class="steps">1. Buka tab Presensi.</span></td><td>Persentase kehadiran, kartu H/T/I-S/A, sesi hari ini, riwayat + filter.</td><td>0% (0 dari 0 catatan); sesi Senin 16 Nov 2026 07:30–09:00 PBO (Guru Demo FigCraft) status BELUM; filter bulan &amp; status; empty-state riwayat informatif.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-05</td><td>Presensi mandiri di luar jam<span class="steps">1. Klik “Presensi Sekarang” pukul 23.46 (sesi 07:30–09:00).</span></td><td>Presensi tercatat; status TERLAMBAT karena lewat jam sesi; statistik &amp; riwayat diperbarui.</td><td>Toast “Presensi … tercatat pada 23:46”; statistik menjadi TERLAMBAT 1; sesi “1/1 · TERLAMBAT 23:46 · Presensi mandiri”; riwayat “16 Nov 2026 … masuk 23:46”. Pembaruan statistik ±4 dtk (async).</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-06</td><td>Riwayat &amp; filter presensi<span class="steps">1. Amati riwayat 2. Amati filter bulan/status.</span></td><td>Catatan tampil dengan tanggal, mapel, jam, status; filter tersedia.</td><td>1 catatan tampil benar; filter “Semua bulan / November 2026” dan Semua/Hadir/Terlambat/Izin/Sakit/Alpa tersedia.</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 15 / 22</span></div>
+</section>
+
+<!-- ================= HAL 16 · SI 7-12 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.5 Dashboard Siswa <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">SI-07</td><td>Tab Tugas Saya — daftar &amp; filter<span class="steps">1. Buka tab Tugas Saya 2. Amati filter &amp; kartu tugas.</span></td><td>Filter Semua/Belum/Menunggu/Dinilai + mapel; kartu tugas dengan tenggat &amp; status.</td><td>Filter Semua · Belum (2) · Menunggu (0) · Dinilai (0) + filter mapel; 2 tugas “Latihan Algoritma Dasar” (tenggat 23 Nov 23.59 &amp; 20 Nov 23.07), status BELUM DIKUMPULKAN, tombol Kumpulkan Tugas. API assignments sempat 500 → BUG-02.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-08</td><td>Mengumpulkan tugas<span class="steps">1. Klik Kumpulkan Tugas 2. Unggah berkas 3. Kirim.</span></td><td>SubmissionModal mengunggah jawaban; status → Menunggu dinilai.</td><td>Tidak dieksekusi (unggah berkas pada demo). SubmissionModal &amp; alur status terverifikasi di kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SI-09</td><td>Tab Ujian — daftar ujian<span class="steps">1. Buka tab Ujian / CBT.</span></td><td>Ujian aktif dengan status, durasi, jumlah soal, jendela sesi, kebutuhan kode.</td><td>2 ujian: UTS Pemrograman (60 mnt, 5 soal, 16–23 Nov) &amp; Ujian Contoh (60 mnt, 10 soal, 13–20 Nov); keduanya BELUM DIKERJAKAN + “Butuh kode”; catatan “ujian hanya satu kali, nilai diumumkan guru”.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-10</td><td>Kode ujian salah<span class="steps">1. Masukkan Kode → isi XXXX → Buka Ujian.</span></td><td>Kode ditolak; pesan kesalahan jelas; ujian tidak terbuka.</td><td>“Kode salah. Periksa kembali atau minta kode baru kepada guru.”; tombol sempat “Memeriksa...” (validasi server); ujian tetap terkunci.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-11</td><td>Kode ujian benar → intro<span class="steps">1. Masukkan kode akses uji yang dibagikan guru secara privat → Buka Ujian.</span></td><td>Layar intro: durasi, jumlah soal, aturan (timer, auto-submit, satu kali, anti-curang 3 peringatan).</td><td>Intro uji menampilkan durasi/jumlah soal, status sesi, pengacakan, penyimpanan jawaban, auto-submit, dan aturan anti-curang. Kode dan butir ujian disunting.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-12</td><td>Mulai Ujian → lembar soal<span class="steps">1. Klik Mulai Ujian 2. Amati halaman.</span></td><td>Runner menampilkan soal pertama, navigasi soal, timer berjalan, opsi jawaban.</td><td><b>Retest 21 Nov:</b> lembar soal <b>tampil penuh</b> — SOAL 1 bobot 1.00, opsi A–D, timer 59:48, navigasi 1–5. POST attempts 201, console error 0 → <b>BUG-01 FIXED</b>. <i>16–17 Nov: #root kosong + TypeError <code>.map</code>.</i></td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 16 / 22</span></div>
+</section>
+
+<!-- ================= HAL 17 · SI 13-18 ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.5 Dashboard Siswa <span class="muted" style="font-weight:400;font-size:9pt">(lanjutan)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">SI-13</td><td>Menjawab soal &amp; auto-save<span class="steps">1. Pilih opsi jawaban 2. Amati indikator “Menyimpan…/Tersimpan”.</span></td><td>Jawaban tersimpan per pilihan (PUT …/answers/{id}); navigasi antar soal bebas.</td><td><b>Retest 21 Nov:</b> pilih opsi B → “Menyimpan...” lalu “Tersimpan”; counter “1 dari 5 soal terjawab”; <code>PUT …/answers/{qid} → 200</code>. <i>16–17 Nov: terblokir BUG-01.</i></td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-14</td><td>Timer &amp; auto-submit<span class="steps">1. Gunakan attempt uji/fixture waktu terkontrol; pastikan timer dan pengumpulan otomatis.</span></td><td>Timer mundur dari durasi ujian; habis waktu → attempt dikumpulkan otomatis tepat satu kali.</td><td><b>Retest 21 Nov:</b> timer mundur terverifikasi &amp; tersinkron server; <b>auto-submit tidak dieksekusi</b> (butuh 60 menit); source path diperiksa saja. Belum ada bukti perilaku auto-submit end-to-end.</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+      <tr><td class="id">SI-15</td><td>Anti-curang pindah tab<span class="steps">1. Berpindah tab/aplikasi 3× 2. Amati peringatan &amp; terminasi.</span></td><td>Peringatan kuning bertingkat; pelanggaran ke-3 → ujian dihentikan, hanya guru bisa membuka (reset).</td><td><b>Retest 21 Nov:</b> terbukti bekerja — browser uji berstatus <code>visibilityState: hidden</code>; sistem menghentikan ujian pada <b>pelanggaran ke-3</b>: “Jawaban Anda sudah tersimpan di server”, status DIHENTIKAN, hanya guru dapat mereset.</td><td><span class="chip ok">LULUS</span></td></tr>
+      <tr><td class="id">SI-16</td><td>Submit &amp; status akhir<span class="steps">1. Klik Kumpulkan 2. Amati status ujian &amp; sisi guru.</span></td><td>Attempt selesai; status SUDAH DIKUMPULKAN; nilai menunggu penilaian guru; muncul di Pengerjaan guru.</td><td><b>Retest 21 Nov:</b> tidak dieksekusi — attempt keburu dihentikan anti-curang (SI-15) sebelum Kumpulkan ditekan. Alur submitById &amp; ExamRecapCard terverifikasi di kode. <i>16–17 Nov: terblokir BUG-01.</i></td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SI-17</td><td>Lanjutkan Ujian (resume)<span class="steps">1. Setelah crash, refresh manual 2. Klik Lanjutkan Ujian.</span></td><td>Attempt berjalan dipulihkan; soal &amp; jawaban terakhir tampil; timer lanjut.</td><td><b>Retest 21 Nov:</b> logika resume <b>benar</b> — soal pulih dengan jawaban (“1 dari 5”), timer lanjut (55:51). <b>Namun</b> overlay “Aplikasi gagal dimuat” menutupi seluruh aplikasi setelah reload → <b>BUG-04</b>; pengguna riil melihat layar putih.</td><td><span class="chip fail">GAGAL</span></td></tr>
+      <tr><td class="id">SI-18</td><td>Logout siswa<span class="steps">1. Klik Keluar 2. Konfirmasi Keluar Sekarang.</span></td><td>Sesi berakhir; kembali ke /login; dashboard terkunci.</td><td>Retest historis berhasil ke /login; pengujian ulang token/session setelah perubahan API belum dilakukan.</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Kesimpulan historis (retest 21 Nov):</b> BUG-01 teratasi — CBT, auto-save, timer &amp; anti-curang lulus; SI-17 gagal akibat <b>BUG-04</b> (overlay), bukan runner. SI-16 belum diuji. Addendum 22 Nov memverifikasi bahwa watchdog di source kini menghapus overlay saat React mount; uji cold-start/resume di produksi masih diperlukan.</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 17 / 22</span></div>
+</section>
+
+<!-- ================= HAL 18 · SE ================= -->
+<section class="page">
+  <div class="kicker">Bagian 4 · Kasus Uji</div>
+  <h2>4.6 Keamanan &amp; Sesi <span class="muted" style="font-weight:400;font-size:9pt">(lintas peran)</span></h2>
+  <table>
+    <thead><tr><th style="width:13mm">ID</th><th style="width:52mm">Skenario &amp; Langkah</th><th style="width:44mm">Hasil Diharapkan</th><th>Hasil Aktual</th><th style="width:19mm">Status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">SE-01</td><td>Eksposur PIN/gate Admin Studio (historis)<span class="steps">1. Periksa UI/bundle source untuk faktor client-side lama.</span></td><td>Tidak ada rahasia PIN dalam UI/bundle; otorisasi bertumpu pada server.</td><td>Retest 21 Nov lulus aspek UI tetapi sempat menemukan PIN client-side di bundle. Commit <code>0abebe7</code> menghapus gate dari source; build lokal lulus. Bundle produksi terbaru dan role API belum diverifikasi live; nilai rahasia dihapus dari laporan.</td><td><span class="chip skip">TIDAK DIUJI ULANG</span></td></tr>
+      <tr><td class="id">SE-02</td><td>Rate-limit login server<span class="steps">1. Pada staging, lakukan percobaan login gagal berulang sesuai batas yang disetujui.</span></td><td>Server membatasi percobaan tanpa mengungkap apakah identifier terdaftar; tidak dapat dilewati dengan refresh.</td><td>Throttle PIN yang diuji 21 Nov adalah client-side dan gate PIN sudah dihapus; rate-limit endpoint login tidak diuji dalam audit ini.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-03</td><td>Aturan 1 akun = 1 perangkat<span class="steps">1. Login guru/siswa di perangkat A 2. Login akun sama di perangkat B.</span></td><td>Login B ditolak (conflict) dengan pesan “Akun ini sedang aktif di …”; sesi A tidak terganggu.</td><td>Tidak dieksekusi (butuh 2 perangkat). Mekanisme ensureSession/conflictNotice + heartbeat terverifikasi di kode (sessionGuard.js, useSessionGuard.js).</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-04</td><td>Sesi idle &gt; 5 menit<span class="steps">1. Diamkan sesi guru/siswa &gt; 5 menit 2. Buka kembali.</span></td><td>Sesi kedaluwarsa; dipaksa logout dengan notice “Sesi kamu berakhir … lebih dari 5 menit tidak aktif”.</td><td>Tidak dieksekusi (menunggu idle penuh). GRACE_MINUTES &amp; SESSION_NOTICE terverifikasi di kode.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-05</td><td>Injeksi input login<span class="steps">1. Masukkan payload XSS/SQLi pada field login.</span></td><td>Input diperlakukan sebagai teks; tidak ada eksekusi skrip / error query.</td><td>Tidak dieksekusi pada sesi ini. React melakukan escaping default; identifier dikirim sebagai JSON ke API.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-06</td><td>Akses API tanpa token<span class="steps">1. Panggil endpoint siswa tanpa Authorization.</span></td><td>HTTP 401/403; data tidak bocor.</td><td>Tidak dieksekusi terisolasi; seluruh panggilan uji menggunakan Bearer token dari localStorage dan berhasil sesuai peran.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-07</td><td>Kerahasiaan kode ujian<span class="steps">1. Sebagai siswa, telusuri respons API daftar ujian.</span></td><td>Kode akses tidak ikut terkirim ke klien siswa.</td><td>Tidak diuji menyeluruh; respons GET /siswa/exams yang diamati hanya memuat metadata (butuh_kode: true) tanpa field kode — indikasi sesuai klaim UI guru.</td><td><span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-08</td><td>Transport HTTPS<span class="steps">1. Amati skema URL frontend &amp; API.</span></td><td>Seluruh lalu lintas produksi terenkripsi HTTPS.</td><td>Frontend Vercel &amp; API Wasmer keduanya HTTPS; tidak ada permintaan HTTP campuran yang teramati.</td><td><span class="chip ok">LULUS</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Status historis 21 Nov:</b> UI PIN sudah bersih, tetapi bukti PIN client-side sempat ditemukan di bundle; throttle yang diuji hanya berlaku di browser. Source terbaru menghapus gate tersebut. Ini bukan audit keamanan penuh: uji server-side role, rate-limit login, pencabutan token, dan endpoint tanpa autentikasi masih belum dilakukan. Rahasia historis sengaja tidak dicetak.</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing</span><span>Hal. 18 / 22</span></div>
+</section>
+
+<!-- ================= HAL 19 · KESIMPULAN ================= -->
+<section class="page">
+  <div class="kicker">Bagian 5</div>
+  <h2>Kesimpulan &amp; Rekomendasi</h2>
+  <h3>5.1 Kesimpulan</h3>
+  <p>Eksekusi historis menunjukkan landing page dan alur utama berfungsi pada skenario yang diuji. Audit 22 Nov hanya memverifikasi smoke check UI login produksi; <b>bukti belum cukup untuk menyatakan seluruh sistem siap pakai tanpa celah</b>. Perlu uji role/API, pemulihan attempt uji, responsif/aksesibilitas, dan regresi source di staging/produksi yang diizinkan.</p>
+  <p><b>Rekap historis retest 21 Nov 2026</b> (<code>index-BSD_wKoR.js</code>; FE <code>bd42159</code>, API <code>a2f168f</code>): <b>BUG-01 diperbaiki</b> — soal tampil, auto-save PUT 200, timer berjalan (auto-submit belum dieksekusi), anti-curang bekerja, resume pulih. <b>BUG-03 teratasi</b> — roster guru 5 siswa/kelas. Hasil saat itu: <b>64/65 lulus (98,5%)</b>; bukan hasil audit 22 Nov.</p>
+  <p><b>Status sumber 22 Nov:</b> watchdog kini membersihkan overlay sesudah React mount; gate PIN client-side telah dihapus; API GET memiliki timeout/retry. Perubahan ini terverifikasi pada source/build lokal, <b>bukan</b> sebagai retest regresi penuh di produksi. Temuan historis BUG-04/SEC-01/BUG-02 dan OBS-01/02/03 memerlukan verifikasi deployment atau observasi lanjutan. Prioritas tersisa: cold-start/resume, validasi role/token via API, error-state tugas, latensi, dan data tabel.</p>
+  <h3>5.2 Rencana Tindak Lanjut (berprioritas, pasca-retest)</h3>
+  <table>
+    <thead><tr><th>Prioritas</th><th>Tindakan</th><th>Penanggung Jawab</th><th>Verifikasi</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip sev-m">P1</span></td><td><b>BUG-04:</b> perbaikan MutationObserver sudah ada di source (index.html); deploy bila belum terbit dan pastikan overlay hilang setelah mount</td><td>Frontend / QA</td><td>Uji SI-17 cold-start/reload di produksi, juga pastikan overlay tetap informatif bila JS benar-benar gagal</td></tr>
+      <tr><td><span class="chip sev-h">P1</span></td><td><b>SEC-01:</b> PIN/gate client-side telah dihapus dalam source; pertahankan proteksi role server, token kedaluwarsa/pencabutan, dan hindari klaim autentikasi dua faktor</td><td>Backend + Frontend</td><td>Uji matriks role, token dicabut, dan endpoint langsung pada lingkungan staging/akun yang diotorisasi</td></tr>
+      <tr><td><span class="chip sev-m">P2</span></td><td><b>BUG-02:</b> timeout dan retry GET sudah tersedia di client API source; verifikasi deployment dan pastikan UI memberi pesan error/retry, bukan menyamarkan kegagalan sebagai daftar kosong</td><td>Backend + Frontend</td><td>Uji ulang SI-07 dengan kegagalan network/5xx yang disimulasikan di staging</td></tr>
+      <tr><td><span class="chip sev-l">P3</span></td><td><b>OBS-01/02/03:</b> skeleton untuk hitungan header tabel admin, indikator loading dashboard, migrasi API Rive deprecated</td><td>Frontend</td><td>Observasi OBS-01…03</td></tr>
+      <tr><td><span class="chip sev-l">P3</span></td><td>Putaran selanjutnya: 47 kasus tidak diuji/diuji ulang (termasuk CRUD tulis, lintas-role, expiry/revocation, unggah tugas, submit CBT, dan sesi multi-perangkat)</td><td>QA</td><td>Lengkapi cakupan hingga 100%</td></tr>
+      <tr><td><span class="chip ok">SELESAI (SOURCE)</span></td><td><s>BUG-01 normalisasi opsi + error boundary</s> · <s>BUG-03 roster presensi guru</s> · penghapusan gate PIN client-side</td><td>Frontend + Backend</td><td>Retest live 21 Nov untuk BUG-01/03; PIN dihapus di source 0abebe7, produksi perlu verifikasi build</td></tr>
+    </tbody>
+  </table>
+  <h3>5.3 Pengesahan</h3>
+  <p class="small muted">Disusun dari eksekusi live 16–17 Nov 2026, <b>diretest 21 Nov 2026</b> pada build <code>index-BSD_wKoR.js</code>. Status kasus Bagian 4 = keadaan pasca-retest; nilai asli 16–17 Nov tetap dicantumkan sebagai pembanding.</p>
+  <div class="sign">
+    <div><b>Disusun oleh</b><div class="line"></div>AffandiEYD<br><span class="muted">Penguji / QA</span></div>
+    <div><b>Diperiksa oleh</b><div class="line"></div>____________________<br><span class="muted">Pengembang / Pembimbing</span></div>
+    <div><b>Disetujui oleh</b><div class="line"></div>____________________<br><span class="muted">Pemilik Proyek</span></div>
+  </div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing · v1.2</span><span>Hal. 19 / 22</span></div>
+</section>
+
+<!-- ================= HAL 20 · HASIL RETEST ================= -->
+<section class="page">
+  <div class="kicker">Bagian 6</div>
+  <h2>Hasil Retest — 21 November 2026</h2>
+  <table class="tbl-meta">
+    <tr><td>Build diuji</td><td>Frontend <code>index-BSD_wKoR.js</code> (sebelumnya <code>index-l-eShG-1.js</code>) · API <code>smkm8medan-api.wasmer.app/api/v1</code></td></tr>
+    <tr><td>Commit perbaikan</td><td>Frontend <code>bd42159</code> · Backend <code>a2f168f</code> + <code>3b36758</code> (rilis Wasmer 0.1.8), 17 Nov 2026</td></tr>
+    <tr><td>Metode</td><td>Eksekusi UI live (Chromium 150 / Qoder Desktop) + inspeksi DOM, network, console + verifikasi source code &amp; bundle produksi</td></tr>
+    <tr><td>Akun uji</td><td>Akun admin/guru/siswa uji yang terdaftar; identitas dan sandi tidak dicantumkan dalam salinan laporan ini</td></tr>
+  </table>
+
+  <h3>6.1 BUG-04 (BARU) — Overlay Fallback Menutupi Aplikasi yang Sehat</h3>
+  <div class="bug">
+    <h3><span class="chip sev-m">MEDIUM</span> Layar putih “Aplikasi gagal dimuat” padahal aplikasi berfungsi</h3>
+    <p><b>Gejala:</b> setelah reload pada cold-start, pengguna melihat layar putih penuh bertuliskan “Aplikasi gagal dimuat / Tidak ada pesan error yang tertangkap”, padahal dashboard dan lembar ujian sudah ter-render normal di baliknya. Kasus SI-17 gagal karena ini.</p>
+    <div class="evidence">#root.children.length = <span class="hl">2</span>  (aplikasi React + box fallback)<br>box.style = position:fixed; inset:0; <span class="hl">z-index:99999</span>; background:#fff<br>getBoundingClientRect → <span class="hl">624 × 610</span> (seluruh viewport)<br>document.elementFromPoint(tengah layar) === box → <span class="hl">true</span><br>document.visibilityState = hidden · console error = 0</div>
+    <p><b>Akar masalah:</b> watchdog di <code>index.html:34–47</code> menyuntikkan box fallback ke dalam <code>#root</code> bila <code>root.children.length === 0</code> setelah <b>5 detik</b>, dan <b>tidak pernah menghapusnya</b>. Karena cold-start backend/frontend melebihi 5 detik (OBS-02: login 5,5–11 dtk), watchdog terlanjur menyuntik box; React kemudian mount sebagai sibling, sehingga box tetap menutupi aplikasi. Ini menjelaskan gejala “Aplikasi gagal dimuat” pada laporan awal — dulu bertumpang tindih dengan crash BUG-01, kini berdiri sendiri.</p>
+    <p><b>Rekomendasi:</b> hapus box saat React selesai mount (MutationObserver pada <code>#root</code>, atau cek ulang berkala dan <code>box.remove()</code> bila <code>root</code> sudah punya child lain); atau naikkan ambang waktu di atas cold-start terukur; atau render fallback di luar <code>#root</code> dan sembunyikan begitu aplikasi siap. Tambahkan uji reload pada koneksi lambat.</p>
+  </div>
+
+  <h3>6.2 SEC-01 — Bukti historis &amp; status source terkini</h3>
+  <div class="evidence">Bukti 21 Nov (historis): faktor PIN dan flag gate client-side ditemukan di bundle lama.<br>Nilai rahasia dihapus dari dokumen dan tidak diulang pada addendum.<br>Source terbaru 0abebe7: gate PIN &amp; flag <span class="hl">DIHAPUS</span>; build lokal diuji, bundle produksi pasca-deploy belum diperiksa.</div>
+  <p class="small">Pernyataan ini adalah temuan historis pada bundle lama. Gate PIN dan flag client-side dihapus pada source terbaru; status bundle produksi pasca-deploy dan akses role/API harus diuji ulang sebelum dinyatakan tertutup sepenuhnya.</p>
+
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing · v1.2</span><span>Hal. 20 / 22</span></div>
+</section>
+
+<!-- ================= HAL 21 · DELTA RETEST ================= -->
+<section class="page">
+  <div class="kicker">Bagian 6 · lanjutan</div>
+  <h2>Perubahan Status Kasus &amp; Pemulihan Data</h2>
+  <h3>6.3 Perubahan Status Kasus</h3>
+  <table>
+    <thead><tr><th style="width:16mm">Kasus</th><th style="width:26mm">16–17 Nov</th><th style="width:26mm">21 Nov (retest)</th><th>Keterangan</th></tr></thead>
+    <tbody>
+      <tr><td class="id">SI-12</td><td><span class="chip fail">GAGAL</span></td><td><span class="chip ok">LULUS</span></td><td>Lembar soal tampil; BUG-01 fixed</td></tr>
+      <tr><td class="id">SI-13</td><td><span class="chip block">TERBLOKIR</span></td><td><span class="chip ok">LULUS</span></td><td>Auto-save “Menyimpan…” → “Tersimpan”, PUT 200</td></tr>
+      <tr><td class="id">SI-14</td><td><span class="chip block">TERBLOKIR</span></td><td><span class="chip skip">TIDAK DIUJI</span></td><td>Timer terverifikasi 21 Nov; auto-submit belum dieksekusi</td></tr>
+      <tr><td class="id">SI-15</td><td><span class="chip block">TERBLOKIR</span></td><td><span class="chip ok">LULUS</span></td><td>3 peringatan → ujian dihentikan otomatis</td></tr>
+      <tr><td class="id">SI-16</td><td><span class="chip block">TERBLOKIR</span></td><td><span class="chip skip">TIDAK DIUJI</span></td><td>Attempt dihentikan anti-curang sebelum submit</td></tr>
+      <tr><td class="id">SI-17</td><td><span class="chip fail">GAGAL</span></td><td><span class="chip fail">GAGAL</span></td><td>Resume benar, tetapi tertutup overlay → BUG-04</td></tr>
+      <tr><td class="id">GU-04</td><td><span class="chip fail">GAGAL</span></td><td><span class="chip ok">LULUS</span></td><td>Roster 5 siswa per kelas; BUG-03 fixed</td></tr>
+      <tr><td class="id">SE-01</td><td><span class="chip fail">GAGAL</span></td><td><span class="chip ok">LULUS</span></td><td>UI bersih; validasi server-side masih terbuka</td></tr>
+      <tr><td class="id">SE-02</td><td><span class="chip skip">TIDAK DIUJI</span></td><td><span class="chip ok">LULUS</span></td><td>Kunci 30 detik setelah 5 gagal (client-side)</td></tr>
+    </tbody>
+  </table>
+  <h3>6.4 Rekapitulasi Akhir</h3>
+  <table class="tbl-meta">
+    <tr><td>Kasus inti (21 Nov)</td><td>91 — Lulus <b>64</b> · Gagal <b>1</b> · Terblokir <b>0</b> · Tidak Diuji <b>26</b> (rekap historis)</td></tr>
+    <tr><td>Dieksekusi live</td><td>65 kasus → 64 lulus (<b>98,5%</b>); sebelumnya 57/65 (87,7%)</td></tr>
+    <tr><td>Temuan tertutup</td><td>BUG-01 (Critical), BUG-03 (Medium); penghapusan gate PIN terjadi pada source sesudah retest, bukan uji live baru</td></tr>
+    <tr><td>Temuan historis</td><td>BUG-04 (overlay), SEC-01 (PIN client-side), BUG-02 (500 intermiten), OBS-01/02/03; source fix &amp; status audit kini dijelaskan pada hal. 22</td></tr>
+  </table>
+  <div class="note"><b>Etika &amp; pemulihan data:</b> retest CBT membuat satu attempt Siswa 1 (mulai 03.36, dihentikan anti-curang 03.40 karena surface browser uji berstatus <i>hidden</i>). Status terverifikasi 21 Nov: <b>masih DIHENTIKAN — reset belum dilakukan</b>. Pemulihan wajib melalui fitur resmi dashboard guru (Ujian / CBT → Pengerjaan (1) → Reset); klik Reset otomatis diblokir penjaga keamanan sesi uji sehingga tindakan ini diserahkan kepada penguji/pengembang. Operasi tulis lain (presensi massal, CRUD, ganti sandi) tetap tidak dieksekusi.</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing · v1.2</span><span>Hal. 21 / 22</span></div>
+</section>
+
+<!-- ================= HAL 22 · ADDENDUM AUDIT 22 NOV ================= -->
+<section class="page">
+  <div class="kicker">Bagian 7 · Addendum Audit</div>
+  <h2>Audit source &amp; browser — 22 November 2026</h2>
+  <div class="note"><b>Batas bukti:</b> URL produksi <code>https://smkmapan.vercel.app/</code> terbuka melalui preview browser. Halaman beranda termuat dengan judul sesuai metadata; <code>/login</code> termuat dan DOM menampilkan identitas portal, input NISN/username, kata sandi, tombol tampil/sembunyikan kata sandi, dan tombol MASUK. Evaluasi DOM membaca <code>document.readyState=complete</code> dan satu root React. Kolektor error/console tidak tersedia pada sesi ini, jadi jumlah error runtime tidak dapat dipastikan. Tidak ada kredensial yang dikirim. Snapshot interaktif kemudian ditolak oleh tool karena izin/data, sehingga alur klik, login, dashboard berperan, console/network penuh, dan build produksi saat ini tidak dapat diklaim sudah diuji. Aset produksi tidak diunduh atau diperiksa.</div>
+  <h3>7.1 Perubahan source terbaru yang diverifikasi lokal</h3>
+  <ul class="small">
+    <li>Commit <code>0abebe7</code> (21 Nov): PIN Admin Studio/fallback client-side dihapus; route admin tetap dibatasi <code>RequireRole</code> dan profil peran dari API. Logout admin memanggil API logout; client API memiliki timeout 20 dtk dan retry GET terbatas untuk network/429/5xx.</li>
+    <li><code>index.html</code> pada source kini mengamati perubahan <code>#root</code> dan menghapus watchdog overlay begitu React menambah child selain box. Ini menanggapi BUG-04, tetapi bukan bukti cold-start produksi sudah lulus.</li>
+    <li>Source scan tidak menemukan PIN admin client-side di modul CMS; build lokal sukses dan aset main lokal bernama <code>index-B23-UEfy.js</code>. Placeholder sandi non-admin bukan PIN admin. Jangan menyimpulkan bundle produksi sama dengan build lokal tanpa inspeksi/deployment yang diizinkan.</li>
+    <li><code>npm run build</code> berhasil; bundler memberi peringatan chunk utama besar dan dynamic import XLSX tidak efektif. <code>npm run lint</code> selesai dengan dua warning React (set-state-in-effect di tabs dan pembacaan ref saat render di LightTunnel), tanpa error lint.</li>
+  </ul>
+  <h3>7.2 Delta kasus uji (status eksekusi eksplisit)</h3>
+  <table>
+    <thead><tr><th style="width:16mm">ID</th><th style="width:42mm">Skenario</th><th>Langkah &amp; hasil yang diharapkan</th><th style="width:34mm">Hasil audit / status</th></tr></thead>
+    <tbody>
+      <tr><td class="id">AU-16</td><td>Smoke check UI login produksi</td><td>Buka <code>/login</code>; periksa render root, label NISN/username, password, toggle visibility, tombol Masuk, URL, dan error runtime.</td><td>DOM teramati; halaman complete, satu root, kontrol dasar tersedia. Error console/runtime tidak terverifikasi. <span class="chip ok">LULUS TERBATAS</span></td></tr>
+      <tr><td class="id">LP-15</td><td>Responsif multi-viewport</td><td>Uji 360×800, 768×1024, 1280×800; pastikan tidak ada overflow horizontal, elemen tumpang tindih, atau CTA terpotong.</td><td>Browser produksi tidak dapat dikontrol/diinspeksi lanjut. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">LP-16</td><td>Aksesibilitas modal &amp; keyboard</td><td>Keyboard-only buka PPDB/video, Tab/Shift+Tab, Escape, close button; fokus terperangkap saat modal dan kembali ke pemicu sesudah tutup.</td><td>Belum dieksekusi live; status fokus/Escape tidak dibuktikan oleh markup saja. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-17</td><td>Matriks akses lintas role lengkap</td><td>Dengan sesi tiap role, buka langsung semua dashboard Admin/Guru/Siswa; role yang tidak cocok harus ditolak/diarahkan tanpa data dashboard muncul.</td><td>Perlu sesi akun resmi dan browser yang dapat dikontrol; inspeksi route source bukan eksekusi. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-18</td><td>Validasi login admin negatif</td><td>Di <code>/admin/login</code>, submit kosong dan sandi salah; pesan aman, tidak ada sesi/token, tetap di login. Jangan mencoba kredensial default.</td><td>Interaksi login produksi tidak dilakukan. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-19</td><td>Token kedaluwarsa/dicabut</td><td>Gunakan token uji yang sudah expired/revoked; buka route terlindungi dan refresh. Harus kembali ke login, membersihkan sesi lokal, tanpa menampilkan data cached sensitif.</td><td>Perlu akun/API uji yang diotorisasi; tidak diuji terhadap data produksi. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AU-20</td><td>Logout benar-benar mencabut token</td><td>Logout dengan akun uji, lalu validasi ulang token lama lewat alur uji resmi; API harus menolak penggunaan ulang dan browser tidak bisa resume sesi.</td><td>Source mengirim request logout; pencabutan token di server belum dibuktikan live. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">AD-21</td><td>Deep link Admin CMS &amp; isolasi role</td><td>Buka <code>/admin/cms</code> langsung tanpa sesi/dengan role non-admin; redirect/penolakan dan tidak ada data CMS yang ter-render.</td><td>Route role-guard terlihat di source; uji browser/API aktual menunggu akun uji. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">GU-17</td><td>Roster kelas yang tidak diampu</td><td>Guru meminta roster kelas lain melalui UI/alur resmi; respons harus ditolak dan tidak mengungkap nama/NISN siswa.</td><td>Perlu akun guru multi-role/kelas fixture dan verifikasi server di staging. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">GU-18</td><td>Simpan presensi bulk &amp; kegagalan parsial</td><td>Di staging, simpan satu set status; uji klik ganda dan respons 5xx/timeout. Pastikan tidak ada duplikasi/parsial diam-diam dan UI memberi hasil yang dapat dipulihkan.</td><td>Menulis data; tidak dijalankan pada data demo produksi. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SI-19</td><td>Tugas: unggah dan validasi berkas</td><td>Di staging, uji tanpa file, tipe tidak didukung, ukuran batas dan melewati batas; tidak ada upload parsial, pesan jelas, status tugas tetap benar.</td><td>Mengunggah/membuat submission; perlu fixture dan izin staging. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SI-20</td><td>CBT resume setelah auto-save</td><td>Dalam attempt uji, jawab soal, tunggu indikator Tersimpan, reload sekali; jawaban, urutan soal dan timer pulih, watchdog overlay tidak menutup UI.</td><td>Cold-start produksi/resume belum diverifikasi setelah perubahan watchdog. Jangan gunakan attempt demo bersama. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SI-21</td><td>CBT submit normal &amp; auto-submit</td><td>Fixture staging: submit manual lalu verifikasi status/rekap guru; kasus terpisah majukan waktu uji untuk auto-submit dan pastikan tepat satu submission.</td><td>Submit normal belum diuji; auto-submit 60 menit bukan retest praktis tanpa fixture waktu. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+      <tr><td class="id">SE-09</td><td>API tanpa autentikasi &amp; lintas role</td><td>Dengan endpoint uji non-destruktif, kirim tanpa token dan token role yang salah; server harus 401/403 serta tidak mengembalikan isi data privat.</td><td>Endpoint/API produksi tidak dipanggil atau diprobe dalam audit ini. <span class="chip skip">TIDAK DIUJI</span></td></tr>
+    </tbody>
+  </table>
+  <h3>7.3 Rekap setelah penambahan</h3>
+  <table class="tbl-meta">
+    <tr><td>Total skenario</td><td><b>105</b> (91 skenario inti + 14 delta audit)</td></tr>
+    <tr><td>Status agregat</td><td><b>56 lulus historis</b>, <b>1 lulus terbatas</b> (smoke check UI), <b>1 gagal historis</b> (SI-17 pada 21 Nov), <b>0 terblokir</b>, <b>47 tidak diuji/diuji ulang</b></td></tr>
+    <tr><td>Build &amp; lint lokal</td><td>Build berhasil; lint berhasil dengan 2 warning. Bukan pengganti uji browser end-to-end produksi.</td></tr>
+    <tr><td>Risiko yang masih perlu retest</td><td>Deploy/periksa fix BUG-04, otorisasi role/token dan logout di staging, konfirmasi retry/error-state tugas (BUG-02), aksesibilitas/responsif, CBT submit dan upload.</td></tr>
+    <tr><td>Keputusan keamanan</td><td>Temuan PIN client-side SEC-01 ditutup pada source terbaru; tidak mengklaim 2FA. Server-side role/API tetap harus diverifikasi oleh penguji berizin.</td></tr>
+  </table>
+  <div class="note"><b>Catatan integritas audit:</b> status “Tidak Diuji” berarti benar-benar belum dieksekusi; verifikasi route/source tidak dihitung sebagai pass runtime. Pengujian tulis, sesi privat, endpoint API, dan attempt CBT harus dilakukan di staging dengan akun/fixture yang disetujui dan rencana pemulihan data.</div>
+  <div class="footer"><span><b>SMK MAPAN</b> · Dokumen Blackbox Testing · v1.2</span><span>Hal. 22 / 22</span></div>
+</section>
+
+</body>
+</html>

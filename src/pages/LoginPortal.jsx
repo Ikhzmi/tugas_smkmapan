@@ -17,7 +17,7 @@ import {
 } from '../lib/sessionGuard';
 import { logout as apiLogout } from '../lib/auth';
 import { useTheme } from '../hooks/useTheme';
-import LightTunnel from '../components/backgrounds/LightTunnel';
+import MagnetLines from '../components/backgrounds/MagnetLines';
 import TeddyMascot from '../components/login/TeddyMascot';
 import './LoginPortal.css';
 
@@ -171,22 +171,13 @@ export default function LoginPortal() {
       <div className="login-bg" aria-hidden="true">
         <div className="login-bg-grid" />
         <div className="login-bg-orb3" />
-        <LightTunnel
-          className="login-tunnel"
-          lightMode={isLight}
-          cableColor={isLight ? '#c2410c' : '#ff6b00'}
-          pulseColor={isLight ? '#7c2d12' : '#ffb347'}
-          tunnelColor={isLight ? '#0f172a' : '#1e293b'}
-          tunnelOpacity={isLight ? 0 : 0.08}
-          opacity={isLight ? 0.85 : 1}
-          brightness={isLight ? 1.1 : 1.2}
-          cableCount={64}
-          thickness={0.5}
-          pulseDensity={0.6}
-          speed={0.08}
-          pulseSpeed={1.7}
-          glow={1.15}
-          mouseStrength={0.08}
+        <MagnetLines
+          className="login-magnet-lines"
+          lineColor={isLight ? 'rgba(194, 65, 12, 0.36)' : 'rgba(255, 140, 42, 0.46)'}
+          accentColor={isLight ? 'rgba(124, 45, 18, 0.78)' : 'rgba(255, 190, 120, 0.9)'}
+          vignetteColor={isLight ? 'rgba(238, 242, 249, 0.32)' : 'rgba(4, 8, 18, 0.34)'}
+          spacing={34}
+          lineLength={13}
         />
       </div>
 

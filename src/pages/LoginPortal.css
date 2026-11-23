@@ -199,11 +199,16 @@
   background-image: radial-gradient(rgba(15,23,42,0.04) 1px, transparent 1px);
 }
 
-.login-tunnel {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.login-magnet-lines {
+  z-index: 1;
+  opacity: 0.9;
+}
+
+.login-bg::before,
+.login-bg::after,
+.login-bg-orb3 {
+  animation: none;
+  opacity: 0.55;
 }
 
 /* ─── Back button ──────────────────────────────────────────────────── */
@@ -854,14 +859,14 @@
     grid-template-columns: minmax(0, 1fr);
     max-width: 420px;
     row-gap: 16px;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    background-image: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
+    padding: clamp(18px, 5vw, 28px);
+    border: 1px solid var(--shell-border);
+    border-radius: 26px;
+    background: var(--shell-bg);
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    backdrop-filter: blur(32px) saturate(180%);
+    box-shadow: var(--shell-shadow);
     animation-name: shell-in-mobile;
   }
 
@@ -901,6 +906,7 @@
   }
 
   .login-shell {
+    padding: 18px;
     /* Ukuran beruang besar & proporsional seperti referensi Flutter/Rive */
     --mascot-w: clamp(220px, 66vw, 260px);
     --mascot-crop: calc(var(--mascot-w) * 0.08);
@@ -963,6 +969,7 @@
   .login-page { padding-inline: 10px; }
 
   .login-shell {
+    padding: 14px;
     --mascot-w: clamp(190px, 62vw, 220px);
     --mascot-crop: calc(var(--mascot-w) * 0.08);
     --mascot-gap: 0px;

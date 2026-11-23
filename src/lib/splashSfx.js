@@ -35,6 +35,7 @@ export function createSplashSfx({ dark = false } = {}) {
   let ctx = null;
   let master = null;
   let disposed = false;
+  let played = false;
 
   const ensureContext = () => {
     if (disposed || !Ctor) return null;
@@ -57,6 +58,7 @@ export function createSplashSfx({ dark = false } = {}) {
   ) => {
     const audio = ensureContext();
     if (!audio || !master || audio.state !== 'running') return;
+    played = true;
 
     try {
       const start = audio.currentTime + at;
@@ -123,6 +125,11 @@ export function createSplashSfx({ dark = false } = {}) {
           gain: 0.05 - index * 0.008,
         });
       });
+    },
+
+    // true bila ada nada yang benar-benar dijadwalkan (browser mengizinkan audio).
+    hasPlayed() {
+      return played;
     },
 
     dispose() {

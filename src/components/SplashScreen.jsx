@@ -252,8 +252,14 @@ export default function SplashScreen() {
 
     const sfx = createSplashSfx({ dark: themeRef.current === 'dark' });
     sfxRef.current = sfx;
+
+    // Splash menutupi seluruh layar, jadi setiap klik di atasnya sekaligus
+    // menutup splash — intro tidak pernah sempat terdengar. Yang perlu disiapkan
+    // hanya nada penutup, dan browser baru mengizinkannya setelah ada interaksi:
+    // kalau splash ditutup otomatis (tanpa klik), nada itu menyusul pada
+    // sentuhan pertama pengguna.
     void sfx.unlock().then((ok) => {
-      if (ok) sfx.intro();
+      if (ok && !leavingRef.current) sfx.intro();
     });
 
     const handleKeyDown = (event) => {
@@ -267,8 +273,41 @@ export default function SplashScreen() {
       finishTimerRef.current = null;
       document.documentElement.classList.remove('splash-lock');
       markSplashDone();
-      sfx.dispose();
       if (sfxRef.current === sfx) sfxRef.current = null;
+
+      // Sudah berbunyi (atau tidak akan pernah bisa): aman ditutup sekarang.
+      if (sfx.hasPlayed()) {
+        sfx.dispose();
+        return;
+      }
+
+      // Belum ada interaksi: biarkan konteks siap supaya nada penutup bisa
+      // diputar pada gestur pertama, lalu tutup setelah selesai.
+      const gestureTypes = ['pointerdown', 'keydown', 'touchstart'];
+      let released = false;
+      let spareTimer = 0;
+      const release = () => {
+        if (released) return;
+        released = true;
+        gestureTypes.forEach((type) =>
+          window.removeEventListener(type, onFirstGesture, { capture: true }),
+        );
+        window.clearTimeout(spareTimer);
+        sfx.dispose();
+      };
+      const onFirstGesture = () => {
+        // Nada penutup yang tadi tertahan autoplay diputar sekarang — kecuali
+        // dismiss() sudah sempat memutarnya sendiri.
+        void sfx.unlock().then((ok) => {
+          if (ok && !sfx.hasPlayed()) sfx.finish();
+          // Beri waktu nada selesai sebelum konteks ditutup.
+          window.setTimeout(release, 2600);
+        });
+      };
+      gestureTypes.forEach((type) =>
+        window.addEventListener(type, onFirstGesture, { capture: true, passive: true }),
+      );
+      spareTimer = window.setTimeout(release, 12000);
     };
   }, [visible]);
 

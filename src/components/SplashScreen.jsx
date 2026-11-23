@@ -6,11 +6,6 @@ import {
   useState,
 } from 'react';
 import { useLocation } from 'react-router-dom';
-import {
-  motion,
-  useAnimate,
-  useMotionValue,
-} from 'motion/react';
 import { useTheme } from '../context/ThemeContext';
 import { useContent } from '../context/ContentContext';
 import { createSplashSfx } from '../lib/splashSfx';
@@ -18,20 +13,15 @@ import './SplashScreen.css';
 
 const WORDS = ['SMK', 'Muhammadiyah', '8', 'Medan'];
 
-// Babak 1: logo besar terbentuk di tengah. Babak 2: logo mengecil ke
-// posisi lockup. Babak 3: teks muncul setelah logo mendarat.
-const LOGO_DELAY = 0.05;
-const LOGO_DURATION = 0.8;
-const MARK_SCALE = 1.55;
-const MOVE_DURATION = 0.7;
-const RIPPLE_DELAY = 0.2;
-const RIPPLE_DURATION = 1.15;
-const LETTER_STEP = 0.018;
-const LETTER_DURATION = 0.55;
-const TAGLINE_DELAY = 0.72;
-const MIN_SPLASH_MS = 3150;
+// Tiga babak, semuanya transform/opacity lewat CSS agar jalan di compositor:
+//   1. logo besar terbentuk di tengah,
+//   2. logo bergeser ke posisi lockup sambil mengecil,
+//   3. teks muncul setelah logo mendarat.
+const STAGE_MOVE_MS = 800;
+const STAGE_TEXT_MS = 750;
+const INTRO_FALLBACK_MS = 4000;
+const MIN_SPLASH_MS = 3050;
 const MIN_SPLASH_REDUCED_MS = 620;
-const INTRO_FALLBACK_MS = 3600;
 const MAX_LANDING_WAIT_MS = 25000;
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -101,7 +91,7 @@ async function waitForLandingVisuals() {
 
 /**
  * Splash pembuka tiga babak:
- *   1. logo besar terbentuk di tengah (iris membuka + cincin menggambar),
+ *   1. logo besar terbentuk di tengah (cincin tipis + logo membesar),
  *   2. logo bergeser ke posisi lockup sambil mengecil,
  *   3. wordmark muncul huruf demi huruf, lalu tagline.
  *
@@ -116,8 +106,11 @@ export default function SplashScreen() {
   const { heroReady, hero } = useContent();
   const { pathname } = useLocation();
   const [reduceMotion, setReduceMotion] = useState(prefersReducedMotion);
+  // '' → logo terbentuk di tengah, 'lockup' → logo mendarat, 'text' → teks.
+  const [stage, setStage] = useState('form');
   // Splash tidak boleh menutup sebelum seluruh koreografi selesai.
   const [introDone, setIntroDone] = useState(prefersReducedMotion);
+  const [shiftX, setShiftX] = useState(0);
   const isLanding = pathname === '/';
   const canDismiss = !isLanding || landingAssetsReady;
 
@@ -126,13 +119,8 @@ export default function SplashScreen() {
   const sfxRef = useRef(null);
   const finishTimerRef = useRef(null);
   const maxWaitTimerRef = useRef(null);
-  const [scope, animateInScope] = useAnimate();
   const lockupRef = useRef(null);
   const wordmarkRef = useRef(null);
-  const timelineRef = useRef(null);
-
-  // Saat teks belum muncul, logo digeser agar benar-benar di tengah layar.
-  const lockupX = useMotionValue(0);
 
   const finish = useCallback(() => {
     if (finishTimerRef.current) window.clearTimeout(finishTimerRef.current);
@@ -145,7 +133,6 @@ export default function SplashScreen() {
     if (leavingRef.current) return;
     leavingRef.current = true;
     setLeaving(true);
-    timelineRef.current?.forEach((controls) => controls.stop?.());
 
     const sfx = sfxRef.current;
     if (sfx) {
@@ -166,20 +153,20 @@ export default function SplashScreen() {
     return () => query.removeEventListener?.('change', handleChange);
   }, []);
 
-  // Ukur lebar wordmark (tanpa mengubah layout) sebagai jarak kompensasi.
+  // Saat teks belum muncul, logo digeser agar benar-benar di tengah layar.
   useLayoutEffect(() => {
-    if (!visible || reduceMotion) return;
+    if (!visible) return;
     const lockup = lockupRef.current;
     const wordmark = wordmarkRef.current;
     if (!lockup || !wordmark) return;
 
     const gap = Number.parseFloat(getComputedStyle(lockup).columnGap || '0') || 0;
     const width = wordmark.getBoundingClientRect().width;
-    lockupX.set(Math.max(0, (width + gap) / 2));
-  }, [lockupX, reduceMotion, visible]);
+    setShiftX(Math.max(0, (width + gap) / 2));
+  }, [visible]);
 
   useEffect(() => {
-    if (!visible || reduceMotion) return undefined;
+    if (!visible) return undefined;
 
     // Lebar teks bisa berubah setelah webfont siap; perbarui sebelum beranjak.
     let cancelled = false;
@@ -190,14 +177,37 @@ export default function SplashScreen() {
         const wordmark = wordmarkRef.current;
         if (!lockup || !wordmark) return;
         const gap = Number.parseFloat(getComputedStyle(lockup).columnGap || '0') || 0;
-        lockupX.set(Math.max(0, (wordmark.getBoundingClientRect().width + gap) / 2));
+        setShiftX(Math.max(0, (wordmark.getBoundingClientRect().width + gap) / 2));
       })
       .catch(() => undefined);
 
     return () => {
       cancelled = true;
     };
-  }, [lockupX, reduceMotion, visible]);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible || reduceMotion) return undefined;
+
+    const toLockup = window.setTimeout(() => {
+      setStage('lockup');
+      sfxRef.current?.tick();
+    }, STAGE_MOVE_MS);
+
+    const toText = window.setTimeout(() => {
+      setStage('text');
+      sfxRef.current?.tick();
+    }, STAGE_MOVE_MS + STAGE_TEXT_MS);
+
+    // Jaring pengaman kalau animasi tagline tidak sempat jalan.
+    const done = window.setTimeout(() => setIntroDone(true), INTRO_FALLBACK_MS);
+
+    return () => {
+      window.clearTimeout(toLockup);
+      window.clearTimeout(toText);
+      window.clearTimeout(done);
+    };
+  }, [reduceMotion, visible]);
 
   useEffect(() => {
     if (!visible) return undefined;
@@ -226,8 +236,6 @@ export default function SplashScreen() {
       window.removeEventListener('keydown', handleKeyDown);
       if (maxWaitTimerRef.current) window.clearTimeout(maxWaitTimerRef.current);
       if (finishTimerRef.current) window.clearTimeout(finishTimerRef.current);
-      timelineRef.current?.stop?.();
-      timelineRef.current = null;
       maxWaitTimerRef.current = null;
       finishTimerRef.current = null;
       document.documentElement.classList.remove('splash-lock');
@@ -235,125 +243,6 @@ export default function SplashScreen() {
       if (sfxRef.current === sfx) sfxRef.current = null;
     };
   }, [dismiss, isLanding, theme, visible]);
-
-  // Babak 2: geser komposisi ke tengah bersamaan dengan munculnya teks.
-  // Satu timeline imperatif: babak logo, lalu babak teks. Semua fase
-  // dijadwalkan paralel dengan delay masing-masing agar tidak saling menunggu.
-  useEffect(() => {
-    if (!visible || !scope.current) return undefined;
-
-    timelineRef.current?.forEach((controls) => controls.stop?.());
-
-    const controls = [];
-    let cancelled = false;
-    // Jaring pengaman bila frame sempat tersendat (landing WebGL sibuk).
-    const introFallback = window.setTimeout(() => setIntroDone(true), INTRO_FALLBACK_MS);
-
-    if (reduceMotion) {
-      const root = scope.current;
-      const clip = root.querySelector('.splash__mark-clip');
-      const logo = root.querySelector('.splash__mark-clip img');
-      const tagline = root.querySelector('.splash__tagline');
-
-      if (clip) clip.style.clipPath = 'none';
-      if (logo) {
-        logo.style.opacity = '1';
-        logo.style.transform = 'none';
-      }
-      root.querySelectorAll('.splash__char').forEach((char) => {
-        char.style.opacity = '1';
-        char.style.transform = 'none';
-      });
-      if (tagline) tagline.style.opacity = '1';
-      const mark = root.querySelector('.splash__mark');
-      if (mark) mark.style.transform = 'none';
-      lockupX.set(0);
-      return () => window.clearTimeout(introFallback);
-    }
-
-    // ── Babak 1: logo besar terbentuk dari inti ─────────────────────────
-    controls.push(
-      animateInScope(
-        '.splash__ripple',
-        { opacity: [0.42, 0], scale: [0.82, 1.55] },
-        {
-          duration: RIPPLE_DURATION,
-          delay: RIPPLE_DELAY,
-          ease: 'easeOut',
-        },
-      ),
-      animateInScope(
-        '.splash__mark-clip img',
-        { opacity: [0, 1], scale: [1.2, 1], rotate: [-8, 0] },
-        { duration: LOGO_DURATION, delay: LOGO_DELAY, ease: [0.16, 1, 0.3, 1] },
-      ),
-    );
-
-    const formation = animateInScope(
-      '.splash__mark-clip',
-      { clipPath: ['circle(0% at 50% 50%)', 'circle(100% at 50% 50%)'] },
-      { duration: LOGO_DURATION, delay: LOGO_DELAY, ease: [0.65, 0, 0.35, 1] },
-    );
-    controls.push(formation);
-
-    // ── Babak 2: logo bergeser ke posisi lockup sambil mengecil ──────────
-    formation.then(() => {
-      if (cancelled) return;
-      // Ketukan halus: logo selesai terbentuk, komposisi mulai beranjak.
-      sfxRef.current?.tick();
-
-      const move = animateInScope(
-        lockupX,
-        0,
-        { duration: MOVE_DURATION, ease: [0.22, 1, 0.36, 1] },
-      );
-      controls.push(
-        move,
-        animateInScope(
-          '.splash__mark',
-          { scale: 1 },
-          { duration: MOVE_DURATION, ease: [0.22, 1, 0.36, 1] },
-        ),
-      );
-
-      // ── Babak 3: teks muncul, dimulai setelah logo mendarat ───────────
-      move.then(() => {
-        if (cancelled) return;
-        // Ketukan kedua: logo mendarat, teks mulai muncul.
-        sfxRef.current?.tick();
-
-        controls.push(
-          animateInScope(
-            '.splash__char',
-            { opacity: [0, 1], y: ['70%', '0%'] },
-            {
-              duration: LETTER_DURATION,
-              delay: (index) => index * LETTER_STEP,
-              ease: [0.16, 1, 0.3, 1],
-            },
-          ),
-        );
-
-        const tagline = animateInScope(
-          '.splash__tagline',
-          { opacity: [0, 1] },
-          { duration: 0.45, delay: TAGLINE_DELAY, ease: 'easeOut' },
-        );
-        controls.push(tagline);
-        tagline.then(() => {
-          if (!cancelled) setIntroDone(true);
-        });
-      });
-    });
-
-    timelineRef.current = controls;
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(introFallback);
-      controls.forEach((item) => item.stop?.());
-    };
-  }, [animateInScope, lockupX, reduceMotion, scope, visible]);
 
   useEffect(() => {
     if (!visible || !isLanding || !heroReady) return undefined;
@@ -388,7 +277,11 @@ export default function SplashScreen() {
         charIndex += 1;
 
         return (
-          <span className="splash__char" key={`${word}-${index}`}>
+          <span
+            className="splash__char"
+            key={`${word}-${index}`}
+            style={{ '--i': index }}
+          >
             {character}
           </span>
         );
@@ -399,9 +292,12 @@ export default function SplashScreen() {
   return (
     <div
       className="splash"
-      ref={scope}
       data-theme={theme}
+      data-stage={stage}
       data-leaving={leaving ? 'true' : 'false'}
+      onAnimationEnd={(event) => {
+        if (event.target.classList.contains('splash__tagline')) setIntroDone(true);
+      }}
       aria-hidden={leaving ? 'true' : undefined}
       onClick={dismiss}
       onTransitionEnd={(event) => {
@@ -415,28 +311,15 @@ export default function SplashScreen() {
       </span>
 
       <div className="splash__inner">
-        <motion.div
+        <div
           className="splash__lockup"
           ref={lockupRef}
-          style={{ x: reduceMotion ? 0 : lockupX }}
+          style={{ '--shift-x': `${shiftX}px` }}
         >
-          <div
-            className="splash__mark"
-            style={{ '--mark-scale': MARK_SCALE }}
-            aria-hidden="true"
-          >
+          <div className="splash__mark" aria-hidden="true">
             <svg className="splash__ring" viewBox="0 0 200 200">
-              <circle className="splash__ring-track" cx="100" cy="100" r="97" pathLength="1" />
-              <circle
-                className="splash__ring-draw"
-                cx="100"
-                cy="100"
-                r="97"
-                pathLength="1"
-              />
+              <circle cx="100" cy="100" r="97" />
             </svg>
-
-            <span className="splash__ripple" />
 
             <div className="splash__mark-clip">
               <img src="/logo.png" alt="" />
@@ -447,7 +330,7 @@ export default function SplashScreen() {
             {wordmark}
           </span>
           <span className="splash__sr">SMK Muhammadiyah 8 Medan</span>
-        </motion.div>
+        </div>
 
         <p className="splash__tagline">Mapan Learning Ecosystem</p>
       </div>

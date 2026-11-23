@@ -40,7 +40,7 @@ Respons list memakai `data` array dan `meta` pagination. Error standar:
 | POST | `/admin/accounts/{user}/reset-password` | `password`, confirmation |
 | DELETE | `/admin/accounts/{user}` | –; admin sendiri ditolak |
 | POST | `/admin/teachers` | profil guru + `create_account`, username/password |
-| GET/PATCH/DELETE | `/admin/teachers/{teacher}` | profil guru |
+| GET/PATCH/DELETE | `/admin/teachers/{teacher}` | profil guru (PATCH juga bisa `create_account` untuk guru yang belum punya akun) |
 | POST | `/admin/students` | profil siswa + `create_account`, password |
 | GET/PATCH/DELETE | `/admin/students/{student}` | profil siswa |
 | POST | `/admin/students/import` | `class_id`, `rows[]` |

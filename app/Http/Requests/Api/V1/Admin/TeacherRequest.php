@@ -32,7 +32,7 @@ class TeacherRequest extends FormRequest
             'sertifikasi' => ['nullable', 'array'],
             'foto_url' => ['nullable', 'url', 'max:2048'],
             'create_account' => ['sometimes', 'boolean'],
-            'username' => ['nullable', 'string', 'max:100', 'alpha_dash', 'unique:users,username'],
+            'username' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }

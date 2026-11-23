@@ -416,6 +416,11 @@ paths:
       tags: [Admin]
       x-required-role: admin
       operationId: updateTeacher
+      description: >
+        Memperbarui profil guru. Kirim `create_account: true` beserta
+        `username`/`password` untuk membuatkan akun login bagi guru yang
+        belum memilikinya; permintaan akan ditolak 409 bila guru sudah
+        punya akun.
       parameters:
         - {$ref: '#/components/parameters/TeacherId'}
       requestBody:
@@ -429,6 +434,7 @@ paths:
         '401': {$ref: '#/components/responses/Unauthorized'}
         '403': {$ref: '#/components/responses/Forbidden'}
         '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
         '422': {$ref: '#/components/responses/ValidationError'}
     delete:
       tags: [Admin]

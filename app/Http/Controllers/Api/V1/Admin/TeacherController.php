@@ -45,8 +45,7 @@ class TeacherController extends Controller
             $userId = null;
 
             if ($createAccount) {
-                $username = $data['username'] ?? Str::slug($data['nama']);
-                $username = $this->uniqueUsername($username);
+                $username = $this->resolveUsername($data['username'] ?? null, $data['nama']);
                 $initialPassword = $data['password'] ?? Str::password(12);
                 $user = User::query()->create([
                     'name' => $data['nama'],
@@ -72,9 +71,45 @@ class TeacherController extends Controller
 
     public function update(TeacherRequest $request, Teacher $teacher): JsonResponse
     {
-        $teacher->update($this->profileData($request->validated()));
+        $data = $request->validated();
+        $createAccount = (bool) ($data['create_account'] ?? false);
+        $initialPassword = null;
 
-        return ApiResponse::success($teacher->fresh(), 'Data guru berhasil diperbarui.');
+        if ($createAccount && $teacher->user_id) {
+            return ApiResponse::error(
+                'Guru ini sudah memiliki akun login.',
+                [],
+                409,
+                'ACCOUNT_ALREADY_EXISTS',
+            );
+        }
+
+        DB::transaction(function () use (&$initialPassword, $data, $createAccount, $teacher): void {
+            if ($createAccount) {
+                $username = $this->resolveUsername($data['username'] ?? null, $data['nama']);
+                $initialPassword = $data['password'] ?? Str::password(12);
+
+                $user = User::query()->create([
+                    'name' => $data['nama'],
+                    'username' => $username,
+                    'email' => $data['email'] ?? null,
+                    'password' => $initialPassword,
+                    'role' => 'guru',
+                ]);
+
+                $teacher->user_id = $user->getKey();
+            }
+
+            $teacher->fill($this->profileData($data));
+            $teacher->save();
+        });
+
+        return ApiResponse::success([
+            'teacher' => $teacher->fresh(),
+            'initial_password' => $initialPassword,
+        ], $createAccount
+            ? 'Data guru diperbarui dan akun login berhasil dibuat.'
+            : 'Data guru berhasil diperbarui.');
     }
 
     public function destroy(Teacher $teacher): Response
@@ -94,6 +129,17 @@ class TeacherController extends Controller
     private function profileData(array $data): array
     {
         return array_intersect_key($data, array_flip(['nama', 'gelar', 'jabatan', 'department', 'email', 'jam_kerja', 'bio', 'sertifikasi', 'foto_url']));
+    }
+
+    /**
+     * Username yang dikirim admin dipakai apa adanya (huruf kecil, titik
+     * dibiarkan); bila kosong, dibuat dari nama guru dan dijamin unik.
+     */
+    private function resolveUsername(?string $provided, string $nama): string
+    {
+        $username = Str::lower(trim((string) $provided));
+
+        return $username !== '' ? $username : $this->uniqueUsername($nama);
     }
 
     private function uniqueUsername(string $base): string

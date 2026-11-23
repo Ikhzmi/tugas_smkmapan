@@ -25,7 +25,7 @@ class CreateAccountRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:150'],
-            'username' => ['nullable', 'string', 'max:100', 'alpha_dash', 'unique:users,username'],
+            'username' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:users,username'],
             'email' => ['nullable', 'email', 'max:150', 'unique:users,email', 'required_without:username'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'string', Rule::in(UserRole::values())],

@@ -25,6 +25,17 @@ const MIN_SPLASH_REDUCED_MS = 620;
 const MAX_LANDING_WAIT_MS = 25000;
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
+// Dashboard punya layar tunggu sendiri (AppLoader). Splash pembuka hanya
+// relevan untuk halaman publik, jadi tidak diputar ulang saat hard reload
+// dashboard agar pengguna tidak menunggu dua kali.
+const SPLASH_SKIP_PATHS = ['/admin/dashboard', '/admin/cms', '/guru/dashboard', '/lms/dashboard'];
+
+function shouldSkipSplash(pathname) {
+  return SPLASH_SKIP_PATHS.some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
+}
+
 function prefersReducedMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false;
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
@@ -99,12 +110,12 @@ async function waitForLandingVisuals() {
  * lalu membuka halaman dengan transisi ringan berbasis compositor.
  */
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(true);
+  const { pathname } = useLocation();
+  const [visible, setVisible] = useState(() => !shouldSkipSplash(pathname));
   const [leaving, setLeaving] = useState(false);
   const [landingAssetsReady, setLandingAssetsReady] = useState(false);
   const { theme } = useTheme();
   const { heroReady, hero } = useContent();
-  const { pathname } = useLocation();
   const [reduceMotion, setReduceMotion] = useState(prefersReducedMotion);
   // '' → logo terbentuk di tengah, 'lockup' → logo mendarat, 'text' → teks.
   const [stage, setStage] = useState('form');

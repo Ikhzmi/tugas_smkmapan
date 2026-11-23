@@ -23,11 +23,32 @@
   color: var(--accent);
 }
 
-/* Desktop: teks sambutan admin langsung mengikuti brand di atas,
-   bukan terlempar ke dasar panel kiri. */
-@media (min-width: 961px) {
+/* Desktop: brand tetap menempel di atas, sedangkan teks sambutan admin
+   dipusatkan tepat pada sumbu Y panel kiri (bukan sisa ruang di bawah brand). */
+@media (min-width: 961px) and (min-height: 640px) {
+  .admin-shell .login-brand-panel {
+    position: relative;
+    justify-content: flex-start;
+  }
+
   .admin-shell .login-hero {
-    margin-top: clamp(28px, 5.5vh, 60px);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .admin-shell .login-hero-desc {
+    max-width: 42ch;
+  }
+}
+
+/* Layar desktop pendek: kembali ke alur normal agar brand tidak tertimpa. */
+@media (min-width: 961px) and (max-height: 639px) {
+  .admin-shell .login-hero {
+    margin-top: clamp(20px, 4vh, 40px);
     margin-bottom: 0;
   }
 }

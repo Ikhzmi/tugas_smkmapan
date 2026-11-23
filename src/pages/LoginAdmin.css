@@ -22,3 +22,12 @@
   text-decoration: underline;
   color: var(--accent);
 }
+
+/* Desktop: teks sambutan admin langsung mengikuti brand di atas,
+   bukan terlempar ke dasar panel kiri. */
+@media (min-width: 961px) {
+  .admin-shell .login-hero {
+    margin-top: clamp(28px, 5.5vh, 60px);
+    margin-bottom: 0;
+  }
+}

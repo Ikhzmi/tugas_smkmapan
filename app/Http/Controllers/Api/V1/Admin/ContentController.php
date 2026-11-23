@@ -253,13 +253,20 @@ class ContentController extends Controller
     /** @return array<string, int> */
     private function dailyCounts(Builder $query, string $column): array
     {
-        $postgres = $query->getConnection()->getDriverName() === 'pgsql';
-        $dateExpression = $postgres ? "DATE({$column} AT TIME ZONE ?)" : "DATE({$column})";
-        $bindings = $postgres ? [config('app.timezone', 'UTC')] : [];
+        $connection = $query->getConnection();
+        $postgres = $connection->getDriverName() === 'pgsql';
+
+        // Postgres mencocokkan ekspresi GROUP BY secara struktural, sehingga
+        // `DATE(col AT TIME ZONE ?)` di SELECT dan GROUP BY dianggap beda
+        // ekspresi (placeholder $1 vs $2) dan ditolak dengan error 42803.
+        // Zona waktu dikutip langsung agar kedua ekspresi identik.
+        $dateExpression = $postgres
+            ? sprintf('DATE(%s AT TIME ZONE %s)', $column, $connection->getPdo()->quote(config('app.timezone', 'UTC')))
+            : "DATE({$column})";
 
         return $query
-            ->selectRaw("{$dateExpression} as day, COUNT(*) as aggregate", $bindings)
-            ->groupByRaw($dateExpression, $bindings)
+            ->selectRaw("{$dateExpression} as day, COUNT(*) as aggregate")
+            ->groupByRaw($dateExpression)
             ->orderBy('day')
             ->get()
             ->mapWithKeys(fn (object $row): array => [(string) $row->day => (int) $row->aggregate])

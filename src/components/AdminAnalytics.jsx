@@ -11,6 +11,7 @@ import {
 import { apiGet, apiListAll } from '../lib/api';
 import { useContent } from '../context/ContentContext';
 import { DashboardSkeleton } from './ui/Skeleton';
+import { useAnimeEntrance } from '../hooks/useAnimeEntrance';
 import './AdminAnalytics.css';
 
 const ROLE_COLOR = { guru: '#9333ea', siswa: '#0284c7', admin: '#ea580c' };
@@ -32,6 +33,15 @@ export default function AdminAnalytics({ embedded = false }) {
   const [accounts, setAccounts] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Statistik muncul setelah skeleton panel selesai; animasikan saat itu.
+  const contentRevealRef = useAnimeEntrance({
+    deps: [days],
+    ready: !loading,
+    selector: '.cms-stat-box, .analytics-chart-card, .analytics-rank li',
+    duration: 560,
+    staggerMs: 38,
+    distance: 14,
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -245,7 +255,7 @@ export default function AdminAnalytics({ embedded = false }) {
 
   if (embedded) return inner;
   return (
-    <div className="cms-panel animate-fade-in">
+    <div className="cms-panel animate-fade-in" ref={contentRevealRef}>
       {inner}
     </div>
   );

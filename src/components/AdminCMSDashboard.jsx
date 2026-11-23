@@ -295,7 +295,12 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
 
   
   const [activeTab, setActiveTab] = useState('overview');
-  const contentRevealRef = useAnimeEntrance({ deps: [activeTab] });
+  // Konten admin baru dirender setelah data CMS siap; animasi menunggu itu.
+  const contentRevealRef = useAnimeEntrance({
+    deps: [activeTab],
+    ready: !contentLoading,
+    selector: ':scope > *',
+  });
   const [statusNotification, setStatusNotification] = useState('');
 
   // ---- Affordance sidebar: beri tahu masih ada menu di bawah lipatan ----

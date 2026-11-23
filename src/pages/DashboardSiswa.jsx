@@ -115,7 +115,23 @@ export default function DashboardSiswa() {
   const [unlockedExams, setUnlockedExams] = useState(new Set());
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const contentRevealRef = useAnimeEntrance({ deps: [activeTab, loading] });
+  // Skeleton tampil selama dataLoading; animasi masuk jalan tepat setelahnya.
+  const contentRevealRef = useAnimeEntrance({
+    deps: [activeTab, loading],
+    ready: !dataLoading,
+    selector: '.siswa-hero-banner, .magic-bento__card, .siswa-content-card',
+  });
+  // Isi panel tab (mapel, materi, jadwal) menyusul satu langkah kemudian.
+  const contentPanelRevealRef = useAnimeEntrance({
+    deps: [activeTab, dataLoading],
+    ready: !dataLoading,
+    selector:
+      '.siswa-mapel-card, .guru-item-card, .guru-wide-card, .siswa-day-card, .dash-exam-alert-card, .guru-empty-box',
+    countUp: false,
+    duration: 520,
+    staggerMs: 40,
+    distance: 14,
+  });
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [examFeatureOn, setExamFeatureOn] = useState(true);
   
@@ -842,7 +858,7 @@ export default function DashboardSiswa() {
 
       <MobileBottomNav items={mobileNavItems} maxPerSlide={3} label="Navigasi portal siswa" />
 
-      <main className="siswa-main-container">
+      <main className="siswa-main-container" ref={contentRevealRef}>
         {dataLoading || loading ? (
           <DashboardSkeleton cards={4} showHero={activeTab === 'dashboard'} />
         ) : (
@@ -913,7 +929,7 @@ export default function DashboardSiswa() {
           </div>
         )}
 
-        <div className="siswa-content-card" ref={contentRevealRef}>
+        <div className="siswa-content-card" ref={contentPanelRevealRef}>
           {/* MENU 1: DASHBOARD OVERVIEW */}
           {activeTab === 'dashboard' && (
             <div className="siswa-tab-pane">

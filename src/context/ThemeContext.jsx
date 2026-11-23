@@ -1,38 +1,64 @@
 /* oxlint-disable react/only-export-components */
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const ThemeContext = createContext(undefined);
 
-const STORAGE_KEY = 'smk-mapan-theme';
+const STORAGE_KEY = 'smk-mapan-theme-preference';
+const LEGACY_STORAGE_KEY = 'smk-mapan-theme';
+const SYSTEM_THEME_QUERY = '(prefers-color-scheme: dark)';
+
+function readStoredTheme() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return stored === 'light' || stored === 'dark' ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSystemTheme() {
+  if (typeof window === 'undefined') return 'light';
+  return window.matchMedia?.(SYSTEM_THEME_QUERY).matches ? 'dark' : 'light';
+}
+
+function getInitialTheme() {
+  return readStoredTheme() ?? getSystemTheme();
+}
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    if (typeof window === 'undefined') return 'light';
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const [theme, setThemeState] = useState(getInitialTheme);
 
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const isFirstRender = useRef(true);
+  const previousThemeRef = useRef(theme);
+  const themePreferenceRef = useRef(readStoredTheme());
+  const systemThemeRef = useRef(getSystemTheme());
 
   useEffect(() => {
     const root = document.documentElement;
 
-    if (theme === 'light') {
-      root.classList.add('light');
-      root.classList.remove('dark');
-    } else {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    }
-    localStorage.setItem(STORAGE_KEY, theme);
+    root.classList.toggle('light', theme === 'light');
+    root.classList.toggle('dark', theme === 'dark');
+    root.style.colorScheme = theme;
 
-    // Class transisi hanya saat tema benar-benar berubah (toggle), bukan mount pertama.
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+    // Catat preferensi hanya jika memang eksplisit dipilih pengguna.
+    // Tema otomatis mengikuti sistem dan tidak menjadi override permanen.
+    try {
+      if (themePreferenceRef.current) {
+        window.localStorage.setItem(STORAGE_KEY, themePreferenceRef.current);
+      } else {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+      // Versi lama menulis tema otomatis ke key ini; abaikan agar tidak
+      // mengubah preferensi sistem menjadi pilihan permanen saat upgrade.
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch {
+      // Tema tetap berfungsi untuk sesi ini jika storage browser diblokir.
     }
+
+    // Jangan animasikan tema awal (termasuk setup ulang React StrictMode).
+    if (previousThemeRef.current === theme) return;
+    previousThemeRef.current = theme;
 
     root.classList.add('theme-transitioning');
     setIsTransitioning(true);
@@ -46,24 +72,32 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        setThemeState(e.matches ? 'dark' : 'light');
+    const mediaQuery = window.matchMedia(SYSTEM_THEME_QUERY);
+    const handleChange = (event) => {
+      systemThemeRef.current = event.matches ? 'dark' : 'light';
+      if (!themePreferenceRef.current) {
+        setThemeState(systemThemeRef.current);
       }
     };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+
+    mediaQuery.addEventListener?.('change', handleChange);
+    return () => mediaQuery.removeEventListener?.('change', handleChange);
   }, []);
 
-  const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const setTheme = useCallback((newTheme) => {
+    if (newTheme === 'light' || newTheme === 'dark') {
+      themePreferenceRef.current = newTheme;
+      setThemeState(newTheme);
+    }
+  }, []);
 
-  const setTheme = (newTheme) => {
-    setThemeState(newTheme);
-  };
+  const toggleTheme = useCallback(() => {
+    setThemeState((previous) => {
+      const nextTheme = previous === 'dark' ? 'light' : 'dark';
+      themePreferenceRef.current = nextTheme;
+      return nextTheme;
+    });
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, isTransitioning }}>

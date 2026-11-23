@@ -1,7 +1,7 @@
 /* =====================================================================
    Splash screen — logo lockup reveal
    Referensi: titik kecil → logo membesar → wordmark muncul huruf demi
-   huruf, di atas latar bersih. Tema mengikuti preferensi sistem.
+   huruf, di atas latar bersih. Tema mengikuti sistem atau pilihan manual.
 
    Semua animasi hanya transform/opacity agar tetap ringan.
    ===================================================================== */
@@ -40,14 +40,12 @@ html.splash-lock body {
   pointer-events: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  .splash {
-    --splash-bg: #08080a;
-    --splash-fg: #fafafa;
-    --splash-word: #d4d4d8;
-    --splash-muted: rgba(250, 250, 250, 0.34);
-    --splash-accent: #ff7a3d;
-  }
+.splash[data-theme='dark'] {
+  --splash-bg: #08080a;
+  --splash-fg: #fafafa;
+  --splash-word: #d4d4d8;
+  --splash-muted: rgba(250, 250, 250, 0.34);
+  --splash-accent: #ff7a3d;
 }
 
 .splash__sr {

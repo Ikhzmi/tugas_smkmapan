@@ -6,6 +6,26 @@
     <link rel="shortcut icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Terapkan tema sebelum CSS/React untuk mencegah flash dan menyelaraskan landing + splash. -->
+    <script>
+      (function () {
+        var theme = null;
+        try {
+          var saved = window.localStorage.getItem('smk-mapan-theme-preference');
+          if (saved === 'light' || saved === 'dark') theme = saved;
+          // Key versi lama ikut menyimpan tema otomatis, bukan hanya pilihan manual.
+          window.localStorage.removeItem('smk-mapan-theme');
+        } catch (_) {}
+        if (!theme) {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+        }
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('light', theme === 'light');
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
     <meta name="description" content="Website Resmi SMK Pusat Keunggulan SMK Muhammadiyah 8 Medan (MAPAN). Terakreditasi A BAN-SM. Dilengkapi Mapan Learning Ecosystem (LMS), Lab Virtual Jaringan, CBT Online, dan Program Keahlian TKJ, DKV, AKL." />
     <meta name="keywords" content="SMK Muhammadiyah 8 Medan, SMK Mapan, SMK Pusat Keunggulan Medan, PPDB SMK Medan, TKJ, DKV, AKL, LMS Sekolah, E-Learning Vokasi" />
     <meta name="theme-color" content="#FF6B00" />
@@ -13,8 +33,9 @@
     <!-- Latar awal mengikuti tema sistem agar tidak ada kedipan putih sebelum CSS/React siap. -->
     <style>
       html { background-color: #ffffff; }
+      html.dark { background-color: #08080a; }
       @media (prefers-color-scheme: dark) {
-        html { background-color: #08080a; }
+        html:not(.light) { background-color: #08080a; }
       }
     </style>
     <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->

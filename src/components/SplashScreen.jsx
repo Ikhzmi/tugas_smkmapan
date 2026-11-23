@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
+import { useTheme } from '../context/ThemeContext';
 import { createSplashSfx } from '../lib/splashSfx';
 import './SplashScreen.css';
 
@@ -11,8 +12,8 @@ const LETTER_STEP = 0.024;
  * Pembuka situs: titik kecil tumbuh menjadi logo, lalu wordmark muncul
  * huruf demi huruf di atas latar bersih.
  *
- * Warna mengikuti preferensi tema sistem perangkat (bukan tema tersimpan
- * aplikasi), sehingga pembuka selalu sesuai device pengguna.
+ * Warna mengikuti tema efektif aplikasi: preferensi sistem sebagai default,
+ * atau pilihan eksplisit pengguna yang tersimpan dari toggle.
  *
  * Animasi masuk memakai Motion; animasi keluar memakai CSS transition
  * supaya tetap mulus di compositor walau main thread sibuk (WebGL).
@@ -20,6 +21,7 @@ const LETTER_STEP = 0.024;
 export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
   const [leaving, setLeaving] = useState(false);
+  const { theme } = useTheme();
   const reduceMotion = useReducedMotion();
   const sfxRef = useRef(null);
   const leaveRef = useRef(null);
@@ -35,10 +37,7 @@ export default function SplashScreen() {
 
     document.documentElement.classList.add('splash-lock');
 
-    const systemDark =
-      window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
-
-    const sfx = createSplashSfx({ dark: systemDark });
+    const sfx = createSplashSfx({ dark: theme === 'dark' });
     sfxRef.current = sfx;
     void sfx.unlock().then((ok) => {
       if (ok) sfx.intro();
@@ -85,7 +84,7 @@ export default function SplashScreen() {
       sfx.dispose();
       if (sfxRef.current === sfx) sfxRef.current = null;
     };
-  }, [finish, reduceMotion, visible]);
+  }, [finish, reduceMotion, theme, visible]);
 
   if (!visible) return null;
 
@@ -119,6 +118,7 @@ export default function SplashScreen() {
   return (
     <div
       className="splash"
+      data-theme={theme}
       data-leaving={leaving ? 'true' : 'false'}
       aria-hidden={leaving ? 'true' : undefined}
       onClick={() => leaveRef.current?.()}

@@ -21,17 +21,19 @@ const STAGE_MOVE_MS = 800;
 const STAGE_TEXT_MS = 750;
 const INTRO_FALLBACK_MS = 4000;
 const MIN_SPLASH_MS = 3050;
+// Dashboard tetap menampilkan splash berlogo, hanya lebih singkat supaya
+// tidak menahan pengguna yang baru login.
+const MIN_DASHBOARD_SPLASH_MS = 1500;
 const MIN_SPLASH_REDUCED_MS = 620;
 const MAX_LANDING_WAIT_MS = 25000;
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-// Dashboard punya layar tunggu sendiri (AppLoader). Splash pembuka hanya
-// relevan untuk halaman publik, jadi tidak diputar ulang saat hard reload
-// dashboard agar pengguna tidak menunggu dua kali.
-const SPLASH_SKIP_PATHS = ['/admin/dashboard', '/admin/cms', '/guru/dashboard', '/lms/dashboard'];
+// Splash tetap diputar di dashboard (logo sekolah jadi pembuka), tetapi
+// dengan durasi minimum lebih pendek agar tidak menahan pengguna.
+const DASHBOARD_PATHS = ['/admin/dashboard', '/admin/cms', '/guru/dashboard', '/lms/dashboard'];
 
-function shouldSkipSplash(pathname) {
-  return SPLASH_SKIP_PATHS.some(
+function isDashboardPath(pathname) {
+  return DASHBOARD_PATHS.some(
     (base) => pathname === base || pathname.startsWith(`${base}/`),
   );
 }
@@ -111,7 +113,7 @@ async function waitForLandingVisuals() {
  */
 export default function SplashScreen() {
   const { pathname } = useLocation();
-  const [visible, setVisible] = useState(() => !shouldSkipSplash(pathname));
+  const [visible, setVisible] = useState(true);
   const [leaving, setLeaving] = useState(false);
   const [landingAssetsReady, setLandingAssetsReady] = useState(false);
   const { theme } = useTheme();
@@ -123,6 +125,7 @@ export default function SplashScreen() {
   const [introDone, setIntroDone] = useState(prefersReducedMotion);
   const [shiftX, setShiftX] = useState(0);
   const isLanding = pathname === '/';
+  const isDashboard = isDashboardPath(pathname);
   const canDismiss = !isLanding || landingAssetsReady;
 
   const mountedAtRef = useRef(0);
@@ -222,12 +225,19 @@ export default function SplashScreen() {
     // Jaring pengaman kalau animasi tagline tidak sempat jalan.
     const done = window.setTimeout(() => setIntroDone(true), INTRO_FALLBACK_MS);
 
+    // Di dashboard, logo + wordmark sudah cukup sebagai pembuka; tagline
+    // tidak ditunggu agar pengguna tidak menunggu terlalu lama.
+    const quickDone = isDashboard
+      ? window.setTimeout(() => setIntroDone(true), STAGE_MOVE_MS + STAGE_TEXT_MS)
+      : null;
+
     return () => {
       window.clearTimeout(toLockup);
       window.clearTimeout(toText);
       window.clearTimeout(done);
+      if (quickDone) window.clearTimeout(quickDone);
     };
-  }, [reduceMotion, visible]);
+  }, [isDashboard, reduceMotion, visible]);
 
   // Audio disiapkan sekali saja: kalau effect ini ikut berjalan ulang karena
   // tema/mode berubah, AudioContext lama ditutup dan suara pembuka terputus.
@@ -288,11 +298,13 @@ export default function SplashScreen() {
   useEffect(() => {
     if (!visible || leaving || !canDismiss || !introDone) return undefined;
 
-    const minimum = reduceMotion ? MIN_SPLASH_REDUCED_MS : MIN_SPLASH_MS;
+    const minimum = reduceMotion
+      ? MIN_SPLASH_REDUCED_MS
+      : (isDashboard ? MIN_DASHBOARD_SPLASH_MS : MIN_SPLASH_MS);
     const remaining = Math.max(0, minimum - (Date.now() - mountedAtRef.current));
     const timer = window.setTimeout(dismiss, remaining);
     return () => window.clearTimeout(timer);
-  }, [canDismiss, dismiss, introDone, leaving, reduceMotion, visible]);
+  }, [canDismiss, dismiss, introDone, isDashboard, leaving, reduceMotion, visible]);
 
   if (!visible) return null;
 

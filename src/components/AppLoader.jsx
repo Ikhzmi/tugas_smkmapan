@@ -61,9 +61,9 @@ function WaveText({ text, reduced }) {
               : {
                   scale: [1, 1.08, 1],
                   textShadow: [
-                    '0 0 0 rgba(255, 107, 0, 0)',
-                    '0 0 14px rgba(255, 107, 0, 0.45)',
-                    '0 0 0 rgba(255, 107, 0, 0)',
+                    '0 0 0 rgba(120, 120, 128, 0)',
+                    '0 0 12px rgba(120, 120, 128, 0.35)',
+                    '0 0 0 rgba(120, 120, 128, 0)',
                   ],
                   opacity: [0.45, 1, 0.45],
                 }
@@ -102,7 +102,14 @@ export default function AppLoader({ text = 'Menyiapkan dashboard' }) {
     >
       <div className="app-loader__stage">
         <span className="app-loader__mark" aria-hidden="true">
-          <img src="/logo.png" alt="" className="app-loader__logo" width="58" height="58" />
+          <img
+            src="/logo-mark.png"
+            alt=""
+            className="app-loader__logo"
+            width="58"
+            height="58"
+            decoding="async"
+          />
         </span>
         <WaveText text={text} reduced={reduced} />
         <BouncingDots reduced={reduced} />

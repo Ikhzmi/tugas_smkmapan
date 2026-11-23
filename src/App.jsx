@@ -11,6 +11,7 @@ import DashboardSiswa from './pages/DashboardSiswa';
 import DashboardGuru from './pages/DashboardGuru';
 import AnalyticsTracker from './components/AnalyticsTracker';
 import SessionResume from './components/SessionResume';
+import SplashScreen from './components/SplashScreen';
 import LandingPage from './landing/LandingPage';
 import './App.css';
 
@@ -30,6 +31,7 @@ export default function App() {
 
   return (
     <ContentProvider>
+      <SplashScreen />
       <AnalyticsTracker />
       <SessionResume />
       <Routes>

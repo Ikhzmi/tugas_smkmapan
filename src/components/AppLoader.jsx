@@ -126,16 +126,6 @@ export default function AppLoader({ text = 'Menyiapkan dashboard' }) {
       aria-busy="true"
     >
       <div className="app-loader__stage">
-        <span className="app-loader__mark" aria-hidden="true">
-          <img
-            src="/logo-mark.png"
-            alt=""
-            className="app-loader__logo"
-            width="58"
-            height="58"
-            decoding="async"
-          />
-        </span>
         <WaveText text={text} reduced={reduced} />
         <BouncingDots reduced={reduced} />
       </div>

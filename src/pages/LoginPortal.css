@@ -40,9 +40,9 @@
   --shell-bg: rgba(255, 255, 255, 0.04);
   --shell-border: rgba(255, 255, 255, 0.1);
   --shell-shadow: 0 40px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.2);
-  --form-bg: rgba(10, 16, 29, 0.82);
-  --form-border: rgba(255, 255, 255, 0.12);
-  --form-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+  --form-bg: rgba(13, 20, 34, 0.46);
+  --form-border: rgba(255, 255, 255, 0.16);
+  --form-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.16);
   --form-hairline: rgba(255, 255, 255, 0.08);
   --orb-1: rgba(255, 107, 0, 0.18);
   --orb-2: rgba(14, 165, 233, 0.12);
@@ -110,9 +110,9 @@
   --shell-bg: rgba(255, 255, 255, 0.32);
   --shell-border: rgba(255, 255, 255, 0.68);
   --shell-shadow: 0 40px 90px rgba(15,23,42,0.11), inset 0 1px 0 rgba(255,255,255,0.82);
-  --form-bg: rgba(255, 255, 255, 0.88);
-  --form-border: rgba(255, 255, 255, 0.78);
-  --form-shadow: 0 8px 40px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.92);
+  --form-bg: rgba(255, 255, 255, 0.34);
+  --form-border: rgba(255, 255, 255, 0.92);
+  --form-shadow: 0 24px 60px rgba(15,23,42,0.14), inset 0 1px 0 rgba(255,255,255,0.95);
   --form-hairline: rgba(15, 23, 42, 0.05);
   --orb-1: rgba(255, 107, 0, 0.12);
   --orb-2: rgba(14, 165, 233, 0.1);
@@ -535,21 +535,29 @@
   overflow: hidden;
   border: 1px solid var(--form-border);
   border-radius: 20px;
+  /* Kaca asli: latar tembus pandang + blur, bukan isian warna pekat. */
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 46%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.02) 46%),
     var(--form-bg);
-  -webkit-backdrop-filter: blur(48px) saturate(180%);
-  backdrop-filter: blur(48px) saturate(180%);
-  box-shadow: var(--form-shadow);
-  transition: box-shadow 0.3s ease;
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  box-shadow:
+    var(--form-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -18px 40px -28px rgba(255, 255, 255, 0.18);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
 }
 
 .admin-page:not([data-theme='light']) .login-form-glass {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.01) 48%),
+    rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  backdrop-filter: blur(26px) saturate(160%);
+  box-shadow:
+    0 40px 90px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .login-form-glass:focus-within {

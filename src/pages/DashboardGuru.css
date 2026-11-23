@@ -910,3 +910,92 @@
 html.dark .guru-class-day {
   color: #fb923c;
 }
+
+
+/* ─── Light mode: permukaan kaca, bukan putih statis ──────────────────
+   Kartu kelas/tugas/materi, menu segmen, dan panel konten memakai latar
+   tembus pandang + blur agar selaras dengan kartu kaca lainnya. */
+html.light .guru-class-card,
+html.light .guru-task-card,
+html.light .guru-item-card,
+html.light .guru-wide-card,
+html.light .guru-sub-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.64));
+  border-color: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    0 16px 34px -24px rgba(15, 23, 42, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+html.light .guru-class-card:hover,
+html.light .guru-task-card:hover,
+html.light .guru-item-card:hover,
+html.light .guru-wide-card:hover {
+  border-color: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 22px 40px -24px rgba(15, 23, 42, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+html.light .guru-sub-card {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
+}
+
+html.light .guru-sub-card:hover {
+  background: rgba(255, 255, 255, 0.74);
+}
+
+/* Menu segmen (Tugas / Ujian) tidak lagi memakai putih pekat. */
+html.light .guru-segment {
+  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+html.light .guru-segment-btn.is-active {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.66));
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  box-shadow:
+    0 6px 14px -8px rgba(15, 23, 42, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+
+/* Kontrol & keadaan kosong ikut kaca supaya tidak ada putih pekat tersisa. */
+html.light .guru-search,
+html.light .guru-chip-btn,
+html.light .guru-select,
+html.light .guru-icon-btn,
+html.light .guru-input {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow:
+    0 10px 22px -18px rgba(15, 23, 42, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+html.light .guru-chip-btn:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+html.light .guru-chip-btn.is-active {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(15, 23, 42, 0.9);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+html.light .guru-empty-box {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(148, 163, 184, 0.34);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}

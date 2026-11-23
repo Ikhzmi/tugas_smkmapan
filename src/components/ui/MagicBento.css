@@ -279,7 +279,12 @@
 /* Light Mode Overrides */
 [data-theme='light'] .magic-bento,
 :root:not(.dark) .magic-bento {
-  --mb-surface: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+  /* Kaca, bukan putih pekat: latar halaman tetap terlihat samar di baliknya. */
+  --mb-surface: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.84) 0%,
+    rgba(255, 255, 255, 0.62) 100%
+  );
   --mb-edge: rgba(0, 0, 0, 0.08);
   --mb-highlight: rgba(255, 255, 255, 0.9);
   --mb-shadow: 0 16px 32px -16px rgba(0, 0, 0, 0.12);

@@ -28,34 +28,6 @@
   text-align: center;
 }
 
-.app-loader__mark {
-  display: grid;
-  place-items: center;
-  width: 82px;
-  height: 82px;
-  border-radius: 26px;
-  /* Tile terang di kedua tema: logo sekolah berwarna oranye gelap sehingga
-     butuh alas putih agar tetap terbaca di latar hitam. */
-  background: #ffffff;
-  box-shadow:
-    0 18px 38px rgba(15, 23, 42, 0.16),
-    0 0 0 1px rgba(15, 23, 42, 0.08);
-  animation: app-loader-mark 2.4s ease-in-out infinite;
-}
-
-.app-loader[data-theme='dark'] .app-loader__mark {
-  background: #ffffff;
-  box-shadow:
-    0 22px 44px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-.app-loader__logo {
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
-}
-
 .app-loader__text {
   display: inline-flex;
   flex-wrap: wrap;
@@ -102,33 +74,8 @@
   border: 0;
 }
 
-@keyframes app-loader-mark {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-loader__mark {
-    animation: none;
-  }
-}
-
 @media (max-width: 420px) {
   .app-loader__text {
     font-size: 0.94rem;
-  }
-  .app-loader__mark {
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
-  }
-  .app-loader__logo {
-    width: 40px;
-    height: 40px;
   }
 }

@@ -9,7 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useContent } from '../context/ContentContext';
 import { createSplashSfx } from '../lib/splashSfx';
-import { markSplashDone } from '../lib/splashGate';
+import { markSplashDone, markSplashLeaving } from '../lib/splashGate';
 import './SplashScreen.css';
 
 const WORDS = ['SMK', 'Muhammadiyah', '8', 'Medan'];
@@ -152,6 +152,7 @@ export default function SplashScreen() {
     if (leavingRef.current) return;
     leavingRef.current = true;
     setLeaving(true);
+    markSplashLeaving();
 
     const sfx = sfxRef.current;
     if (sfx) {

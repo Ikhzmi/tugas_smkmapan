@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import StarBorder from '@/components/ui/star-border'
 import { useContent, HERO_DEFAULTS } from '../../context/ContentContext'
-import { isSplashDone, onSplashDone } from '../../lib/splashGate'
+import { isSplashLeaving, onSplashLeaving } from '../../lib/splashGate'
 import { VideoProfileModal } from './VideoProfileModal'
 import './Hero.css'
 
@@ -33,10 +33,10 @@ export function Hero({ onOpenPpdb }) {
 
   // Hero dipasang di belakang splash, jadi koreografi masuknya ditahan sampai
   // splash benar-benar selesai — tanpa ini animasinya habis di balik layar.
-  const [splashDone, setSplashDone] = useState(() => isSplashDone())
+  const [splashDone, setSplashDone] = useState(() => isSplashLeaving())
   useEffect(() => {
     if (splashDone) return undefined
-    return onSplashDone(() => setSplashDone(true))
+    return onSplashLeaving(() => setSplashDone(true))
   }, [splashDone])
 
   /* `animate` baru aktif setelah splash selesai; sebelumnya elemen diam di initialState. */

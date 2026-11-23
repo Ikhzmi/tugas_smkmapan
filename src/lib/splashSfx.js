@@ -7,25 +7,21 @@
  * dan tidak ada error yang dilempar.
  */
 
-const STORAGE_KEY = 'smk-mapan-splash-sound';
+// Kunci lama dari splash versi sebelumnya yang punya tombol suara. Nilai 'off'
+// di sana membuat splash bisu selamanya karena tombolnya sudah tidak ada,
+// jadi kunci itu dibersihkan dan suara selalu aktif.
+const LEGACY_STORAGE_KEY = 'smk-mapan-splash-sound';
 
-export function isSplashSoundEnabled() {
-  if (typeof window === 'undefined') return false;
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) !== 'off';
-  } catch {
-    return true;
-  }
-}
-
-function persistSound(enabled) {
+export function clearLegacySoundPreference() {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, enabled ? 'on' : 'off');
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
-    /* penyimpanan diblokir atau penuh */
+    /* penyimpanan diblokir */
   }
 }
+
+clearLegacySoundPreference();
 
 // Guard kecil untuk StrictMode: intro tidak diputar dua kali beruntun.
 let lastIntroAt = 0;
@@ -38,7 +34,6 @@ export function createSplashSfx({ dark = false } = {}) {
 
   let ctx = null;
   let master = null;
-  let muted = !isSplashSoundEnabled();
   let disposed = false;
 
   const ensureContext = () => {
@@ -47,7 +42,7 @@ export function createSplashSfx({ dark = false } = {}) {
     try {
       ctx = new Ctor();
       master = ctx.createGain();
-      master.gain.value = muted ? 0 : 0.85;
+      master.gain.value = 0.85;
       master.connect(ctx.destination);
     } catch {
       ctx = null;
@@ -61,7 +56,7 @@ export function createSplashSfx({ dark = false } = {}) {
     { at = 0, duration = 0.6, gain = 0.08, type = 'sine', glide = 0 } = {},
   ) => {
     const audio = ensureContext();
-    if (!audio || !master || muted || audio.state !== 'running') return;
+    if (!audio || !master || audio.state !== 'running') return;
 
     try {
       const start = audio.currentTime + at;
@@ -105,12 +100,6 @@ export function createSplashSfx({ dark = false } = {}) {
         return false;
       }
       return audio.state === 'running';
-    },
-
-    setMuted(next) {
-      muted = Boolean(next);
-      persistSound(!muted);
-      if (master) master.gain.value = muted ? 0 : 0.85;
     },
 
     intro() {

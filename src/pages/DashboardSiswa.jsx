@@ -25,6 +25,7 @@ import AnimatedThemeToggler from '../components/AnimatedThemeToggler';
 import MobileBottomNav from '../components/MobileBottomNav';
 import MagicBento from '../components/ui/MagicBento';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
+import { useAnimeEntrance } from '../hooks/useAnimeEntrance';
 import GlassConfirmModal from '../components/ui/GlassConfirmModal';
 import '../styles/portal-shell.css';
 
@@ -114,6 +115,7 @@ export default function DashboardSiswa() {
   const [unlockedExams, setUnlockedExams] = useState(new Set());
   const [dataLoading, setDataLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const contentRevealRef = useAnimeEntrance({ deps: [activeTab, loading] });
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [examFeatureOn, setExamFeatureOn] = useState(true);
   
@@ -911,7 +913,7 @@ export default function DashboardSiswa() {
           </div>
         )}
 
-        <div className="siswa-content-card">
+        <div className="siswa-content-card" ref={contentRevealRef}>
           {/* MENU 1: DASHBOARD OVERVIEW */}
           {activeTab === 'dashboard' && (
             <div className="siswa-tab-pane">

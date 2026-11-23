@@ -33,6 +33,7 @@ import AnimatedThemeToggler from '../components/AnimatedThemeToggler';
 import MobileBottomNav from '../components/MobileBottomNav';
 import MagicBento from '../components/ui/MagicBento';
 import { DashboardSkeleton } from '../components/ui/Skeleton';
+import { useAnimeEntrance } from '../hooks/useAnimeEntrance';
 import GlassConfirmModal from '../components/ui/GlassConfirmModal';
 import '../styles/portal-shell.css';
 
@@ -167,6 +168,7 @@ export default function DashboardGuru() {
   const [contentLoading, setContentLoading] = useState(true);
   const contentLoadedRef = useRef(false);
   const [activeTab, setActiveTab] = useState('kelas');
+  const contentRevealRef = useAnimeEntrance({ deps: [activeTab, loading] });
   const [notice, setNotice] = useState('');
 
   
@@ -1245,7 +1247,7 @@ export default function DashboardGuru() {
               theme={theme === 'dark' ? 'dark' : 'light'}
             />
 
-        <div className="siswa-content-card">
+        <div className="siswa-content-card" ref={contentRevealRef}>
           {activeTab === 'kelas' && (
             <div className="siswa-tab-pane">
               <div className="guru-toolbar">

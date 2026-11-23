@@ -41,6 +41,7 @@ import AdminAttendance from './AdminAttendance';
 import AdminAnalytics from './AdminAnalytics';
 import '../styles/portal-shell.css';
 import AdminGuruManager from './AdminGuruManager';
+import { useAnimeEntrance } from '../hooks/useAnimeEntrance';
 import AdminSiswaManager from './AdminSiswaManager';
 import AdminMapelManager from './AdminMapelManager';
 import AdminJadwalManager from './AdminJadwalManager';
@@ -294,6 +295,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
 
   
   const [activeTab, setActiveTab] = useState('overview');
+  const contentRevealRef = useAnimeEntrance({ deps: [activeTab] });
   const [statusNotification, setStatusNotification] = useState('');
 
   // ---- Affordance sidebar: beri tahu masih ada menu di bawah lipatan ----
@@ -1260,7 +1262,7 @@ export default function AdminCMSDashboard({ isOpen, onClose, isFullPage = false,
             </aside>
 
             {/* Area Konten Utama */}
-            <main className="cms-main-content">
+            <main className="cms-main-content" ref={contentRevealRef}>
 
               {/* OVERVIEW TAB */}
               {activeTab === 'overview' && (

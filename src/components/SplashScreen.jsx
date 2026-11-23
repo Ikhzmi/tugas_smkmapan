@@ -121,6 +121,9 @@ export default function SplashScreen() {
   const maxWaitTimerRef = useRef(null);
   const lockupRef = useRef(null);
   const wordmarkRef = useRef(null);
+  // Nilai terbaru untuk listener/sfx tanpa memicu effect berjalan ulang.
+  const themeRef = useRef(theme);
+  const dismissRef = useRef(null);
 
   const finish = useCallback(() => {
     if (finishTimerRef.current) window.clearTimeout(finishTimerRef.current);
@@ -144,6 +147,12 @@ export default function SplashScreen() {
     // transitionend mempercepat penutupan; timeout tetap jadi fallback.
     finishTimerRef.current = window.setTimeout(finish, reduceMotion ? 220 : 560);
   }, [finish, reduceMotion]);
+
+  // Escape selalu memakai versi terbaru tanpa memasang ulang listener audio.
+  useEffect(() => {
+    themeRef.current = theme;
+    dismissRef.current = dismiss;
+  }, [dismiss, theme]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
@@ -209,40 +218,48 @@ export default function SplashScreen() {
     };
   }, [reduceMotion, visible]);
 
+  // Audio disiapkan sekali saja: kalau effect ini ikut berjalan ulang karena
+  // tema/mode berubah, AudioContext lama ditutup dan suara pembuka terputus.
   useEffect(() => {
     if (!visible) return undefined;
 
     document.documentElement.classList.add('splash-lock');
     if (!mountedAtRef.current) mountedAtRef.current = Date.now();
 
-    const sfx = createSplashSfx({ dark: theme === 'dark' });
+    const sfx = createSplashSfx({ dark: themeRef.current === 'dark' });
     sfxRef.current = sfx;
     void sfx.unlock().then((ok) => {
       if (ok) sfx.intro();
     });
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') dismiss();
+      if (event.key === 'Escape') dismissRef.current();
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    if (isLanding) {
-      maxWaitTimerRef.current = window.setTimeout(() => {
-        setLandingAssetsReady(true);
-      }, MAX_LANDING_WAIT_MS);
-    }
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      if (maxWaitTimerRef.current) window.clearTimeout(maxWaitTimerRef.current);
       if (finishTimerRef.current) window.clearTimeout(finishTimerRef.current);
-      maxWaitTimerRef.current = null;
       finishTimerRef.current = null;
       document.documentElement.classList.remove('splash-lock');
       sfx.dispose();
       if (sfxRef.current === sfx) sfxRef.current = null;
     };
-  }, [dismiss, isLanding, theme, visible]);
+  }, [visible]);
+
+  // Batas tunggu aset beranda dipisah agar tidak mengganggu siklus audio.
+  useEffect(() => {
+    if (!visible || !isLanding) return undefined;
+
+    maxWaitTimerRef.current = window.setTimeout(() => {
+      setLandingAssetsReady(true);
+    }, MAX_LANDING_WAIT_MS);
+
+    return () => {
+      if (maxWaitTimerRef.current) window.clearTimeout(maxWaitTimerRef.current);
+      maxWaitTimerRef.current = null;
+    };
+  }, [isLanding, visible]);
 
   useEffect(() => {
     if (!visible || !isLanding || !heroReady) return undefined;

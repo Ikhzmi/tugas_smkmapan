@@ -91,10 +91,9 @@ export async function renderPrincipalCard({
 
   ctx.textBaseline = 'alphabetic'
 
-  const top = ctx.createLinearGradient(0, 0, 0, SPLIT)
-  top.addColorStop(0, '#ff8a1e')
-  top.addColorStop(1, '#ff5a00')
-  ctx.fillStyle = top
+  // Match the official principal portrait's orange backdrop so the header
+  // blends into the photo instead of reading as a separate color band.
+  ctx.fillStyle = '#f15f27'
   ctx.fillRect(0, 0, CARD_W, SPLIT)
 
   if (photoUrl) {

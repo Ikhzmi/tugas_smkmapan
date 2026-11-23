@@ -20,6 +20,7 @@ export default function MagnetLines({
 
     const host = canvas.parentElement;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const compactScreen = window.matchMedia('(max-width: 960px)');
     const pointer = { x: -1000, y: -1000, active: false };
     let width = 0;
     let height = 0;
@@ -57,10 +58,11 @@ export default function MagnetLines({
           const dy = pointer.y - y;
           const distance = Math.hypot(dx, dy);
           const influence = pointer.active ? Math.max(0, 1 - distance / 230) : 0;
-          const ambient = reduceMotion.matches ? 0 : Math.sin(elapsed * 0.8 + col * 0.19 + row * 0.13) * 0.045;
+          const ambientMotion = compactScreen.matches ? 0.22 : 0.045;
+          const ambient = reduceMotion.matches ? 0 : Math.sin(elapsed * 0.8 + col * 0.19 + row * 0.13) * ambientMotion;
           let angle = -0.18 + ambient + influence * Math.atan2(dy, dx) * 0.34;
-          let length = lineLength * (1 + influence * 0.65);
-          let alpha = 0.36 + influence * 0.55;
+          let length = (lineLength + (compactScreen.matches ? 3 : 0)) * (1 + influence * 0.65);
+          let alpha = (compactScreen.matches ? 0.62 : 0.36) + influence * 0.55;
 
           if (ripple) {
             const age = (now - ripple.time) / 1000;
@@ -79,7 +81,7 @@ export default function MagnetLines({
           ctx.rotate(angle);
           ctx.globalAlpha = Math.max(0, Math.min(1, alpha * edge));
           ctx.strokeStyle = influence > 0.72 ? accentColor : lineColor;
-          ctx.lineWidth = 1.15;
+          ctx.lineWidth = compactScreen.matches ? 1.3 : 1.15;
           ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(-length / 2, 0);

@@ -40,7 +40,7 @@
   --shell-bg: rgba(255, 255, 255, 0.04);
   --shell-border: rgba(255, 255, 255, 0.1);
   --shell-shadow: 0 40px 90px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.2);
-  --form-bg: rgba(255, 255, 255, 0.065);
+  --form-bg: rgba(10, 16, 29, 0.82);
   --form-border: rgba(255, 255, 255, 0.12);
   --form-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
   --form-hairline: rgba(255, 255, 255, 0.08);
@@ -110,7 +110,7 @@
   --shell-bg: rgba(255, 255, 255, 0.32);
   --shell-border: rgba(255, 255, 255, 0.68);
   --shell-shadow: 0 40px 90px rgba(15,23,42,0.11), inset 0 1px 0 rgba(255,255,255,0.82);
-  --form-bg: rgba(255, 255, 255, 0.75);
+  --form-bg: rgba(255, 255, 255, 0.88);
   --form-border: rgba(255, 255, 255, 0.78);
   --form-shadow: 0 8px 40px rgba(15,23,42,0.08), inset 0 1px 0 rgba(255,255,255,0.92);
   --form-hairline: rgba(15, 23, 42, 0.05);
@@ -201,7 +201,11 @@
 
 .login-magnet-lines {
   z-index: 1;
-  opacity: 0.9;
+  opacity: 0.95;
+}
+
+.login-page[data-theme='light'] .login-magnet-lines {
+  mix-blend-mode: multiply;
 }
 
 .login-bg::before,
@@ -534,10 +538,18 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 46%),
     var(--form-bg);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
+  backdrop-filter: blur(48px) saturate(180%);
   box-shadow: var(--form-shadow);
   transition: box-shadow 0.3s ease;
+}
+
+.admin-page:not([data-theme='light']) .login-form-glass {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .login-form-glass:focus-within {
@@ -860,13 +872,12 @@
     max-width: 420px;
     row-gap: 16px;
     padding: clamp(18px, 5vw, 28px);
-    border: 1px solid var(--shell-border);
-    border-radius: 26px;
-    background: var(--shell-bg);
-    background-image: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
-    backdrop-filter: blur(32px) saturate(180%);
-    box-shadow: var(--shell-shadow);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
     animation-name: shell-in-mobile;
   }
 
@@ -893,7 +904,22 @@
 
   .login-form-glass {
     padding: 22px 20px 18px;
-    border-radius: 20px;
+    border: 1px solid var(--shell-border);
+    border-radius: 26px;
+    background: var(--shell-bg);
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    backdrop-filter: blur(32px) saturate(180%);
+    box-shadow: var(--shell-shadow);
+  }
+
+  .admin-page:not([data-theme='light']) .login-form-glass {
+    border-color: var(--shell-border);
+    background: var(--shell-bg);
+    background-image: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    backdrop-filter: blur(32px) saturate(180%);
+    box-shadow: var(--shell-shadow);
   }
 }
 
@@ -933,7 +959,7 @@
 
   .login-form-glass {
     padding: 20px 16px 18px;
-    border-radius: 18px;
+    border-radius: 26px;
   }
 
   .login-form-header {

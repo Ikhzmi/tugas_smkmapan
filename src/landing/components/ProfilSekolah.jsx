@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { AtSign, BadgeCheck, BookOpen, Clock, ExternalLink, GraduationCap, Hash, IdCard, Mail, MapPin, MousePointer2, Phone, ShieldCheck } from 'lucide-react'
 import { Tabs } from '@/components/ui/tabs'
@@ -52,6 +52,7 @@ function PrincipalCard({ data }) {
         {webgl ? (
           <Suspense fallback={<StaticPrincipalCard src={data.cardFront} />}>
             <Lanyard
+              key={data.cardFront}
               frontImage={data.cardFront}
               backImage={data.cardBack}
               imageFit="contain"
@@ -293,18 +294,23 @@ export function ProfilSekolah() {
   const c = sectionCopy?.profil || {}
   const reduceMotion = useReducedMotion()
 
-  const principalPhoto =
-    (teachers || []).find((t) => /kepala sekolah/i.test(t.role || ''))?.image || ''
   const principalName = schoolInfo?.principal || ''
+  const normalizedPrincipalName = principalName.trim().toLocaleLowerCase('id')
+  const principalPhoto =
+    (teachers || []).find(
+      (teacher) => teacher.name?.trim().toLocaleLowerCase('id') === normalizedPrincipalName,
+    )?.image ||
+    (teachers || []).find((teacher) => /^kepala sekolah$/i.test((teacher.role || '').trim()))?.image ||
+    ''
   const schoolName = schoolInfo?.name || 'SMK Muhammadiyah 8 Medan'
   const brandTagline = appearance?.tagline || 'Tunas Bangsa Berkarakter'
   const brandLogo = appearance?.logoUrl || ''
 
-  const [generatedCard, setGeneratedCard] = useState('')
-  const genToken = useRef(0)
+  const [generatedCard, setGeneratedCard] = useState(null)
   useEffect(() => {
-    if (profileExtras?.kartuDepan) return
-    const token = ++genToken.current
+    if (!principalPhoto) return undefined
+
+    let current = true
     renderPrincipalCard({
       photoUrl: principalPhoto,
       name: principalName,
@@ -313,10 +319,12 @@ export function ProfilSekolah() {
       logoUrl: brandLogo,
     })
       .then((url) => {
-        if (token === genToken.current && url) setGeneratedCard(url)
+        if (current && url) setGeneratedCard({ photo: principalPhoto, url })
       })
       .catch(() => {})
-  }, [profileExtras?.kartuDepan, principalPhoto, principalName, schoolName, brandTagline, brandLogo])
+
+    return () => { current = false }
+  }, [principalPhoto, principalName, schoolName, brandTagline, brandLogo])
 
   const sekolahName = schoolInfo?.name || 'SMK Muhammadiyah 8 Medan'
 
@@ -339,7 +347,9 @@ export function ProfilSekolah() {
     role: 'Kepala SMK Muhammadiyah 8 Medan',
     greeting: profileExtras?.kepsekSambutan || '',
     message: profileExtras?.kepsekPesan || [],
-    cardFront: profileExtras?.kartuDepan || generatedCard || principalPhoto,
+    cardFront: principalPhoto
+      ? (generatedCard?.photo === principalPhoto ? generatedCard.url : principalPhoto)
+      : profileExtras?.kartuDepan || generatedCard?.url,
     cardBack: profileExtras?.kartuBelakang || '',
   }
 

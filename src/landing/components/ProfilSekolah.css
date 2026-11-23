@@ -772,12 +772,37 @@ a.profil-id__contact-link:hover {
 /* ---------- responsive ---------- */
 
 @media (max-width: 767px) {
-  .profil-split {
-    grid-template-columns: 1fr;
-    grid-template-rows: 180px auto;
+  .profil__stack-card:not([data-active='true']) {
+    display: none;
   }
 
-  .profil-split__body,
+  .profil__stack-card[data-active='true'] {
+    height: auto;
+  }
+
+  .profil-panel {
+    height: auto;
+  }
+
+  .profil-split {
+    grid-template-columns: 1fr;
+    grid-template-rows: 156px auto;
+    height: auto;
+    align-content: start;
+  }
+
+  .profil-split__body {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 20px 18px;
+  }
+
+  .profil-split__body .profil-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
   .profil-vm__visi,
   .profil-vm__misi,
   .profil-head__body,
@@ -798,7 +823,20 @@ a.profil-id__contact-link:hover {
 
   .profil-milestones {
     grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 0;
   }
+
+  .profil-milestone {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+  }
+
+  .profil-milestone__year { font-size: 14px; }
+  .profil-milestone__label { margin-top: 0; }
 
   .profil-head__media {
     min-height: 520px;

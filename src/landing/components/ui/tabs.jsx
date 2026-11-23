@@ -122,6 +122,8 @@ export const FadeInDiv = ({ className, tabs, hovering, reduceMotion }) => {
           <div
             key={tab.value}
             data-active={active}
+            aria-hidden={!active}
+            inert={!active}
             style={{
               gridArea: '1 / 1',
               zIndex: tabs.length - idx,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  ShieldCheck, Eye, EyeOff, ArrowLeft, LogIn,
+  Eye, EyeOff, ArrowLeft, LogIn,
   User, Lock
 } from 'lucide-react';
 import { useAuth, emailForUsername } from '../hooks/useAuth';
@@ -120,10 +120,6 @@ export default function LoginAdmin() {
             </p>
           </div>
 
-          <div className="admin-security-notice">
-            <ShieldCheck size={15} />
-            <p>Akses admin diverifikasi di server melalui autentikasi akun dan pemeriksaan peran. Hanya personil berwenang yang dapat masuk.</p>
-          </div>
         </section>
 
         <section className="login-form-panel admin-form-panel">

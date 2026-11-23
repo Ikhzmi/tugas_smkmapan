@@ -91,24 +91,92 @@ html.splash-lock body {
   flex-shrink: 0;
   width: clamp(52px, 6.5vw, 92px);
   aspect-ratio: 1;
+  /* Logo tampil besar saat masih sendiri di tengah layar. */
+  transform: scale(var(--mark-scale, 1));
+  transform-origin: center;
+  will-change: transform;
 }
 
-.splash__mark img {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  will-change: transform, opacity;
-}
-
-.splash__pulse {
+/* Cincin tipis yang menggambar saat logo terbentuk. */
+.splash__ring {
   position: absolute;
-  inset: -6%;
+  inset: -13%;
+  z-index: 0;
+  width: 126%;
+  height: 126%;
+  transform: rotate(-90deg);
+  overflow: visible;
+  pointer-events: none;
+  /* Cincin hanya bagian dari pembentukan logo, lalu memudar. */
+  animation: splash-ring-out 0.5s ease 0.8s both;
+}
+
+@keyframes splash-ring-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.splash__ring circle {
+  fill: none;
+  stroke-width: 1;
+}
+
+.splash__ring-track {
+  stroke: var(--splash-line);
+}
+
+.splash__ring-draw {
+  stroke: var(--splash-accent);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: splash-ring-draw 1.05s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+@keyframes splash-ring-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Riak halus ketika logo selesai terbentuk. */
+.splash__ripple {
+  position: absolute;
+  inset: -10%;
   z-index: 0;
   border: 1px solid var(--splash-accent);
   border-radius: 50%;
   opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Iris yang membuka sehingga logo tampak terbentuk dari inti.
+   Status awal dipasang di sini agar tidak ada kedip sebelum timeline jalan. */
+.splash__mark-clip {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  clip-path: circle(0% at 50% 50%);
+  will-change: clip-path;
+}
+
+.splash__mark-clip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transform: scale(1.28) rotate(-10deg);
   will-change: transform, opacity;
 }
 
@@ -132,6 +200,8 @@ html.splash-lock body {
 
 .splash__char {
   display: inline-block;
+  opacity: 0;
+  transform: translateY(70%);
   will-change: transform, opacity;
 }
 
@@ -144,6 +214,7 @@ html.splash-lock body {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--splash-muted);
+  opacity: 0;
 }
 
 @media (max-width: 420px) {
@@ -172,9 +243,36 @@ html.splash-lock body {
     transform: none;
   }
 
+  .splash__mark {
+    transform: none;
+  }
+
+  .splash__mark-clip {
+    clip-path: none;
+  }
+
+  .splash__mark-clip img,
+  .splash__char,
+  .splash__tagline {
+    opacity: 1;
+    transform: none;
+  }
+
+  .splash__ring {
+    animation: none;
+    opacity: 0;
+  }
+
+  .splash__ring-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
   .splash__inner,
-  .splash__mark img,
-  .splash__pulse,
+  .splash__mark,
+  .splash__mark-clip,
+  .splash__mark-clip img,
+  .splash__ripple,
   .splash__char {
     will-change: auto;
   }

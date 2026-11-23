@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { useContent } from '../../context/ContentContext'
 import './Footer.css'
 
@@ -23,6 +24,64 @@ export function Footer() {
     label: major.name,
     href: '#program',
   }))
+  const wordmarkRef = useRef(null)
+  const wordmarkText = appearance?.wordmark || brand
+
+  // Wordmark raksasa diskalakan agar selalu pas dengan lebar layar,
+  // berapa pun panjang teks brand dari CMS.
+  useLayoutEffect(() => {
+    const el = wordmarkRef.current
+    if (!el) return undefined
+
+    let frame = 0
+
+    const fit = () => {
+      const style = window.getComputedStyle(el)
+      const padX =
+        (Number.parseFloat(style.paddingLeft) || 0) +
+        (Number.parseFloat(style.paddingRight) || 0)
+      const available = el.clientWidth - padX
+      const current = Number.parseFloat(style.fontSize)
+      if (!available || available < 48 || !current) return
+
+      // Ukur lebar teks sebenarnya (font yang sudah terpakai), lalu skala.
+      const clone = el.cloneNode(true)
+      clone.removeAttribute('ref')
+      clone.style.cssText = [
+        'position: absolute',
+        'left: -9999px',
+        'top: 0',
+        'visibility: hidden',
+        'width: max-content',
+        'padding: 0',
+        'margin: 0',
+        `font-size: ${current}px`,
+      ].join(';')
+      document.body.appendChild(clone)
+      const measured = clone.getBoundingClientRect().width
+      clone.remove()
+
+      if (!measured) return
+      const size = Math.min(192, Math.max(16, current * (available / measured)))
+      el.style.fontSize = `${size.toFixed(1)}px`
+    }
+
+    const schedule = () => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(fit)
+    }
+
+    schedule()
+    document.fonts?.ready?.then(schedule).catch(() => {})
+    const observer = new ResizeObserver(schedule)
+    observer.observe(el)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [wordmarkText])
+
   const instagramUrl = schoolInfo?.instagram
     ? `https://instagram.com/${String(schoolInfo.instagram).replace(/^@|^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '')}`
     : '#'
@@ -140,8 +199,11 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="footer-wordmark px-4 pb-[0.06em] pt-8 md:pt-12">
-        {appearance?.wordmark || brand}
+      <div
+        className="footer-wordmark px-4 pb-[0.06em] pt-8 md:pt-12"
+        ref={wordmarkRef}
+      >
+        {wordmarkText}
       </div>
     </footer>
   )

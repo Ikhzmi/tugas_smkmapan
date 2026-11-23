@@ -14,7 +14,8 @@
 }
 
 .footer-wordmark {
-  font-size: clamp(2.5rem, 15vw, 10.5rem);
+  /* Cadangan sebelum JS mengukur; JS menyesuaikan agar teks pas. */
+  font-size: clamp(2rem, 9vw, 12rem);
   line-height: 0.82;
   letter-spacing: -0.045em;
   font-weight: 800;

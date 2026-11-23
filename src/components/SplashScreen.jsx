@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useContent } from '../context/ContentContext';
 import { createSplashSfx } from '../lib/splashSfx';
+import { markSplashDone } from '../lib/splashGate';
 import './SplashScreen.css';
 
 const WORDS = ['SMK', 'Muhammadiyah', '8', 'Medan'];
@@ -144,6 +145,7 @@ export default function SplashScreen() {
     finishTimerRef.current = null;
     document.documentElement.classList.remove('splash-lock');
     setVisible(false);
+    markSplashDone();
   }, []);
 
   const dismiss = useCallback(() => {
@@ -263,6 +265,7 @@ export default function SplashScreen() {
       if (finishTimerRef.current) window.clearTimeout(finishTimerRef.current);
       finishTimerRef.current = null;
       document.documentElement.classList.remove('splash-lock');
+      markSplashDone();
       sfx.dispose();
       if (sfxRef.current === sfx) sfxRef.current = null;
     };

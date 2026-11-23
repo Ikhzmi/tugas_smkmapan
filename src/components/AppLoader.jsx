@@ -1,9 +1,31 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from '../hooks/useTheme';
+import { isSplashDone, onSplashDone } from '../lib/splashGate';
 import './AppLoader.css';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+/**
+ * Splash dan layar tunggu tidak boleh tampil bersamaan: saat splash memudar,
+ * isi di belakangnya terlihat dobel. Layar tunggu baru muncul setelah splash
+ * benar-benar selesai (dengan jaring pengaman 8 detik).
+ */
+function useAfterSplash() {
+  const [ready, setReady] = useState(isSplashDone);
+
+  useEffect(() => {
+    if (ready) return undefined;
+    const unsubscribe = onSplashDone(() => setReady(true));
+    const timeout = window.setTimeout(() => setReady(true), 8000);
+    return () => {
+      unsubscribe();
+      window.clearTimeout(timeout);
+    };
+  }, [ready]);
+
+  return ready;
+}
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() =>
@@ -91,6 +113,9 @@ function WaveText({ text, reduced }) {
 export default function AppLoader({ text = 'Menyiapkan dashboard' }) {
   const { theme } = useTheme();
   const reduced = useReducedMotion();
+  const afterSplash = useAfterSplash();
+
+  if (!afterSplash) return null;
 
   return (
     <div

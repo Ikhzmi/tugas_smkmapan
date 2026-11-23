@@ -550,7 +550,7 @@ export function Navbar({ onLogin, onOpenPpdb }) {
             className="flex shrink-0 items-center gap-3 pl-3"
           >
             <img
-              src={appearance?.logoUrl || ''}
+              src={appearance?.logoUrl || '/logo.png'}
               alt={`Logo ${appearance?.brand || 'SMK Muhammadiyah 8 Medan'}`}
               className="h-9 w-9 rounded-full object-contain"
             />

@@ -392,10 +392,25 @@ export function ContentProvider({ children }) {
   const [ppdbSubmissions, setPpdbSubmissions] = useState([]);
   const [contactMessages, setContactMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [heroReady, setHeroReady] = useState(false);
 
   const fetchAll = useCallback(async () => {
     const isAdmin = !!getToken() && getStoredUser()?.role === 'admin';
     const list = (path, query) => apiListAll(path, query).catch(() => []);
+    const settingsPromise = apiGet('/public/site').catch(() => ({}));
+
+    // Hero tidak perlu menunggu katalog galeri/ekskul selesai. Begitu settings
+    // API tiba, render teks/logo/foto hero agar splash bisa menunggu asetnya.
+    setHeroReady(false);
+    void settingsPromise.then((settings) => {
+      const safeSettings = settings || {};
+      setContent((current) => ({
+        ...current,
+        appearance: mapAppearance(safeSettings),
+        hero: { ...HERO_DEFAULTS, ...(safeSettings.hero || {}) },
+      }));
+      setHeroReady(true);
+    });
 
     try {
       const [
@@ -407,7 +422,7 @@ export function ContentProvider({ children }) {
         videoRows,
         galleryRows,
       ] = await Promise.all([
-        apiGet('/public/site').catch(() => ({})),
+        settingsPromise,
         list(isAdmin ? '/admin/majors' : '/public/majors'),
         list(isAdmin ? '/admin/teachers' : '/public/teachers'),
         list(isAdmin ? '/admin/eskul' : '/public/eskul'),
@@ -913,6 +928,7 @@ export function ContentProvider({ children }) {
     <ContentContext.Provider value={{
       content,
       loading,
+      heroReady,
       schoolInfo: content.schoolInfo,
       appearance: content.appearance,
       sectionCopy: content.sectionCopy,

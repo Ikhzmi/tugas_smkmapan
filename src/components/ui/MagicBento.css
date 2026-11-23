@@ -279,16 +279,12 @@
 /* Light Mode Overrides */
 [data-theme='light'] .magic-bento,
 :root:not(.dark) .magic-bento {
-  /* Kaca, bukan putih pekat: latar halaman tetap terlihat samar di baliknya. */
-  --mb-surface: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.84) 0%,
-    rgba(255, 255, 255, 0.62) 100%
-  );
-  --mb-edge: rgba(0, 0, 0, 0.08);
-  --mb-highlight: rgba(255, 255, 255, 0.9);
-  --mb-shadow: 0 16px 32px -16px rgba(0, 0, 0, 0.12);
-  --mb-well: rgba(0, 0, 0, 0.03);
+  /* Resep kaca yang sama dengan banner hero dashboard (--ps-card-*). */
+  --mb-surface: var(--ps-card-bg, rgba(255, 255, 255, 0.35));
+  --mb-edge: var(--ps-border, rgba(255, 255, 255, 0.75));
+  --mb-highlight: rgba(255, 255, 255, 0.95);
+  --mb-shadow: var(--ps-glass-shadow, 0 10px 40px rgba(0, 0, 0, 0.05));
+  --mb-well: rgba(255, 255, 255, 0.35);
   --mb-ink: #0f172a;
   --mb-muted: #64748b;
   --mb-focus: rgba(232, 112, 42, 0.4);
@@ -313,4 +309,10 @@ html.dark .dashboard-shell .magic-bento__card {
   .dashboard-shell .magic-bento {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
+}
+
+/* Light mode: blur bento disamakan dengan kartu kaca portal (28px). */
+html.light .dashboard-shell .magic-bento__card {
+  -webkit-backdrop-filter: var(--ps-glass-blur, blur(28px) saturate(180%));
+  backdrop-filter: var(--ps-glass-blur, blur(28px) saturate(180%));
 }

@@ -2,7 +2,7 @@
 // Semua akses data web wajib lewat modul ini — tidak ada akses database langsung.
 
 const API_ORIGIN = (
-  import.meta.env.VITE_API_URL || 'https://smkm8medan-api.wasmer.app'
+  import.meta.env.VITE_API_URL || 'https://smkm8medan-api-production.up.railway.app'
 ).replace(/\/+$/, '');
 
 export const API_BASE = `${API_ORIGIN}/api/v1`;
